@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'eclipse'
+}
+
+group = 'com.fixfinder'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Driver de MySQL
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    
+    // JavaFX (Dependencias explícitas para Windows)
+    implementation 'org.openjfx:javafx-controls:21:win'
+    implementation 'org.openjfx:javafx-fxml:21:win'
+    implementation 'org.openjfx:javafx-graphics:21:win'
+    implementation 'org.openjfx:javafx-base:21:win'
+    
+    // JUnit
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    
+    // JSON (Jackson)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+application {
+    mainClass = 'com.fixfinder.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task runServer(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Server'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.servicios.ServidorCentral'
+}
+
+task runClient(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Client'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.Launcher'
+}

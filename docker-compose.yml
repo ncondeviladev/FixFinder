@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: FixFinderDb
+    restart: always
+    environment:
+      # Contraseña del superusuario root
+      MYSQL_ROOT_PASSWORD: root
+      # Nombre de la base de datos que se creará automáticamente al inicio
+      MYSQL_DATABASE: fixfinder
+      # Usuario 'normal' para la aplicación (no usar root desde Java es buena práctica)
+      MYSQL_USER: user
+      # Contraseña para el usuario 'user'
+      MYSQL_PASSWORD: user
+    ports:
+      # Mapeo de puertos: PuertoPC:PuertoContenedor
+      # Podrás conectar DBeaver a localhost:3306
+      - "3306:3306"
+    volumes:
+      # Persistencia: Los datos de la BD se guardan en la carpeta 'data/mysql' del proyecto
+      - ./data/mysql:/var/lib/mysql
+      # Inicialización: Ejecuta tu script SQL solo la primera vez que se crea el volumen
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql
