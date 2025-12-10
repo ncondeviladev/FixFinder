@@ -14,7 +14,7 @@ public class Factura {
     private String numeroFactura;
     private double baseImponible;
     private double iva;
-    private double importeTotal;
+    private double total;
     private LocalDateTime fechaEmision;
     private String rutaPdf;
     private boolean pagada;
@@ -62,12 +62,12 @@ public class Factura {
         this.iva = iva;
     }
 
-    public double getImporteTotal() {
-        return importeTotal;
+    public double getTotal() {
+        return total;
     }
 
-    public void setImporteTotal(double importeTotal) {
-        this.importeTotal = importeTotal;
+    public void setTotal(double total) {
+        this.total = total;
     }
 
     public LocalDateTime getFechaEmision() {

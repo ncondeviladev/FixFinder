@@ -1,5 +1,6 @@
 package com.fixfinder.modelos;
 
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import java.time.LocalDateTime;
 
 /**
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
  */
 public class Operario extends Usuario {
     private String dni;
-    private String especialidad;
+    private CategoriaServicio especialidad;
     private boolean estaActivo; // Representa estado DISPONIBLE/OCUPADO simplificado o mapeado
     private double latitud;
     private double longitud;
@@ -28,11 +29,11 @@ public class Operario extends Usuario {
         this.dni = dni;
     }
 
-    public String getEspecialidad() {
+    public CategoriaServicio getEspecialidad() {
         return especialidad;
     }
 
-    public void setEspecialidad(String especialidad) {
+    public void setEspecialidad(CategoriaServicio especialidad) {
         this.especialidad = especialidad;
     }
 

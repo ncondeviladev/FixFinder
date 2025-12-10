@@ -9,7 +9,7 @@ import java.sql.SQLException;
  * Si mañana cambiamos MySQL por ficheros, la capa lógica seguirá recibiendo
  * esta misma excepción.
  */
-public class DataAccessException extends Exception {
+public class DataAccessException extends RuntimeException {
 
     public DataAccessException(String mensaje) {
         super(mensaje);

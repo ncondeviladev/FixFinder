@@ -1,10 +1,9 @@
 
 package com.fixfinder;
 
-import com.fixfinder.dao.BaseDAO;
-import com.fixfinder.dao.EmpresaDAO;
-import com.fixfinder.dao.OperarioDAO;
-
+import com.fixfinder.data.BaseDAO;
+import com.fixfinder.data.EmpresaDAO;
+import com.fixfinder.data.OperarioDAO;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Operario;
 

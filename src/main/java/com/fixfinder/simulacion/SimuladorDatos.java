@@ -1,8 +1,8 @@
 package com.fixfinder.simulacion;
 
-import com.fixfinder.dao.BaseDAO;
-import com.fixfinder.dao.OperarioDAO;
-import com.fixfinder.dao.UsuarioDAO;
+import com.fixfinder.data.BaseDAO;
+import com.fixfinder.data.OperarioDAO;
+import com.fixfinder.data.UsuarioDAO;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.Rol;

@@ -1,7 +1,12 @@
 package com.fixfinder.modelos;
 
+import com.fixfinder.modelos.componentes.FotoTrabajo;
+import com.fixfinder.modelos.componentes.Ubicacion;
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Representa una solicitud de servicio o trabajo.
@@ -9,14 +14,14 @@ import java.time.LocalDateTime;
  * Es la entidad central del sistema que vincula:
  * - Un {@link Usuario} (Cliente).
  * - Un {@link Operario} (Técnico asignado).
- * - Una {@link Categoria} de servicio.
+ * - Una {@link CategoriaServicio} de servicio.
  * - Una {@link Ubicacion} y dirección.
  */
 public class Trabajo {
     private int id;
     private Usuario cliente;
     private Operario operarioAsignado;
-    private Categoria categoria;
+    private CategoriaServicio categoria;
     private String titulo;
     private String descripcion;
     private Ubicacion ubicacion;
@@ -25,7 +30,36 @@ public class Trabajo {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaFinalizacion;
 
+    // Componentes nuevos
+    private int valoracion; // 0-5
+    private String comentarioCliente;
+    private List<FotoTrabajo> fotos = new ArrayList<>();
+
     public Trabajo() {
+    }
+
+    public int getValoracion() {
+        return valoracion;
+    }
+
+    public void setValoracion(int valoracion) {
+        this.valoracion = valoracion;
+    }
+
+    public String getComentarioCliente() {
+        return comentarioCliente;
+    }
+
+    public void setComentarioCliente(String comentarioCliente) {
+        this.comentarioCliente = comentarioCliente;
+    }
+
+    public List<FotoTrabajo> getFotos() {
+        return fotos;
+    }
+
+    public void setFotos(List<FotoTrabajo> fotos) {
+        this.fotos = fotos;
     }
 
     public int getId() {
@@ -52,11 +86,11 @@ public class Trabajo {
         this.operarioAsignado = operarioAsignado;
     }
 
-    public Categoria getCategoria() {
+    public CategoriaServicio getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(Categoria categoria) {
+    public void setCategoria(CategoriaServicio categoria) {
         this.categoria = categoria;
     }
 

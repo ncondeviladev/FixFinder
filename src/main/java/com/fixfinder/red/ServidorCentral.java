@@ -42,7 +42,7 @@ public class ServidorCentral {
                 // Socket es como el "cable" virtual que nos une a ese cliente específico.
                 Socket socketCliente = serverSocket.accept();
 
-                // 2. Intentar adquirir permiso del semáforo (El "Portero" de la discoteca)
+                // 2. Intentar adquirir permiso del semáforo
                 if (semaforo.tryAcquire()) {
                     System.out.println("🔌 Nuevo cliente conectado: " + socketCliente.getInetAddress());
                     System.out.println("📊 Conexiones activas: " + (MAX_CONEXIONES - semaforo.availablePermits()) + "/"

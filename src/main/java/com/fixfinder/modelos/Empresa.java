@@ -1,5 +1,9 @@
 package com.fixfinder.modelos;
 
+import com.fixfinder.modelos.enums.CategoriaServicio;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Representa a la entidad proveedora de servicios (Multi-tenant).
  *
@@ -12,11 +16,12 @@ public class Empresa {
     private int id;
     private String nombre;
     private String cif;
-    private String categoria;
-    private boolean validada;
     private String direccion;
     private String telefono;
     private String emailContacto;
+
+    // Lista de servicios que ofrece la empresa (Multiservicio)
+    private List<CategoriaServicio> especialidades = new ArrayList<>();
 
     public Empresa() {
     }
@@ -51,20 +56,12 @@ public class Empresa {
         this.cif = cif;
     }
 
-    public String getCategoria() {
-        return categoria;
+    public List<CategoriaServicio> getEspecialidades() {
+        return especialidades;
     }
 
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
-
-    public boolean isValidada() {
-        return validada;
-    }
-
-    public void setValidada(boolean validada) {
-        this.validada = validada;
+    public void setEspecialidades(List<CategoriaServicio> especialidades) {
+        this.especialidades = especialidades;
     }
 
     public String getDireccion() {

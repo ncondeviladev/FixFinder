@@ -1,4 +1,4 @@
-package com.fixfinder.modelos;
+package com.fixfinder.modelos.componentes;
 
 /**
  * Clase auxiliar para manejar coordenadas geográficas (Latitud/Longitud).

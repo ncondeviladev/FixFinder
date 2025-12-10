@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -22,4 +22,4 @@ services:
       # Persistencia: Los datos de la BD se guardan en la carpeta 'data/mysql' del proyecto
       - ./data/mysql:/var/lib/mysql
       # Inicialización: Ejecuta tu script SQL solo la primera vez que se crea el volumen
-      - ./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./docs/arquitectura/ESQUEMA_BD.sql:/docker-entrypoint-initdb.d/schema.sql

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  */
 public class Usuario {
     protected int id;
+    protected String nombreCompleto;
     protected String email;
     protected String passwordHash;
     /**
@@ -21,7 +22,6 @@ public class Usuario {
      */
     protected Rol rol;
     protected int idEmpresa;
-    protected String nombreCompleto;
     protected LocalDateTime fechaRegistro;
 
     public Usuario() {
