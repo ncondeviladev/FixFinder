@@ -28,7 +28,7 @@ bin/
 *.ipr
 
 # VS Code
-.vscode/
+# .vscode/
 
 # Project specific
-data/
+/data/

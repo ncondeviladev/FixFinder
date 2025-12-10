@@ -1,4 +1,4 @@
-package com.fixfinder.protocolo;
+package com.fixfinder.red.protocolo;
 
 /**
  * Enum que define todas las acciones posibles que el cliente puede solicitar al

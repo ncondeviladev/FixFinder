@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "AppEscritorio",
+            "request": "launch",
+            "mainClass": "com.fixfinder.AppEscritorio",
+            "projectName": "FIXFINDER"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.fixfinder.Main",
+            "projectName": "FIXFINDER"
+        },
+        {
+            "type": "java",
+            "name": "PruebaIntegracion",
+            "request": "launch",
+            "mainClass": "com.fixfinder.pruebas.PruebaIntegracion",
+            "projectName": "FIXFINDER",
+            "vmArgs": ""
+        },
+        {
+            "type": "java",
+            "name": "ServidorCentral",
+            "request": "launch",
+            "mainClass": "com.fixfinder.red.ServidorCentral",
+            "projectName": "FIXFINDER",
+            "vmArgs": ""
+        },
+        {
+            "type": "java",
+            "name": "Launcher (Cliente JavaFX)",
+            "request": "launch",
+            "mainClass": "com.fixfinder.Launcher",
+            "projectName": "FIXFINDER",
+            "vmArgs": ""
+        }
+    ]
+}

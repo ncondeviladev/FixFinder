@@ -1,12 +1,13 @@
 
 package com.fixfinder;
 
-import com.fixfinder.data.BaseDAO;
-import com.fixfinder.data.EmpresaDAO;
-import com.fixfinder.data.OperarioDAO;
+import com.fixfinder.data.DataRepository;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.EmpresaDAO;
+import com.fixfinder.data.interfaces.OperarioDAO;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Operario;
-
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.utilidades.DataAccessException;
 import java.util.List;
 
@@ -14,9 +15,9 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("🚀 Iniciando Test de DAOs...");
 
-        BaseDAO<Empresa> empresaDAO = new EmpresaDAO();
-
-        BaseDAO<Operario> operarioDAO = new OperarioDAO();
+        DataRepository repo = new DataRepositoryImpl();
+        EmpresaDAO empresaDAO = repo.getEmpresaDAO();
+        OperarioDAO operarioDAO = repo.getOperarioDAO();
 
         try {
             // 1. Gestionar Empresa
@@ -47,7 +48,8 @@ public class Main {
 
             // Datos específicos de Operario
             op.setDni("DNI-" + (randomId % 10000));
-            op.setEspecialidad("Fontanería");
+            // FIXED: Usar Enum CategoriaServicio
+            op.setEspecialidad(CategoriaServicio.FONTANERIA);
             op.setEstaActivo(true);
             op.setLatitud(40.416);
             op.setLongitud(-3.703);

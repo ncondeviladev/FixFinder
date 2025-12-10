@@ -1,4 +1,4 @@
-package com.fixfinder.service;
+package com.fixfinder.service.interfaz;
 
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.utilidades.ServiceException;
@@ -19,7 +19,7 @@ public interface TrabajoService {
      * @return El trabajo creado con estado PENDIENTE.
      * @throws ServiceException Error al crear.
      */
-    Trabajo solicitarReparacion(Long idCliente, String descripcion, int urgencia) throws ServiceException;
+    Trabajo solicitarReparacion(Integer idCliente, String descripcion, int urgencia) throws ServiceException;
 
     /**
      * Asigna un operario a un trabajo existente.
@@ -29,7 +29,7 @@ public interface TrabajoService {
      * @throws ServiceException Si el trabajo no existe o el operario no está
      *                          disponible.
      */
-    void asignarOperario(Long idTrabajo, Long idOperario) throws ServiceException;
+    void asignarOperario(Integer idTrabajo, Integer idOperario) throws ServiceException;
 
     /**
      * El operario marca el comienzo del trabajo.
@@ -37,7 +37,7 @@ public interface TrabajoService {
      * @param idTrabajo ID del trabajo.
      * @throws ServiceException Si el estado no permite iniciar.
      */
-    void iniciarTrabajo(Long idTrabajo) throws ServiceException;
+    void iniciarTrabajo(Integer idTrabajo) throws ServiceException;
 
     /**
      * Finaliza un trabajo, añadiendo el informe técnico.
@@ -46,7 +46,7 @@ public interface TrabajoService {
      * @param informeTecnico Descripción de la solución.
      * @throws ServiceException Error al finalizar.
      */
-    void finalizarTrabajo(Long idTrabajo, String informeTecnico) throws ServiceException;
+    void finalizarTrabajo(Integer idTrabajo, String informeTecnico) throws ServiceException;
 
     /**
      * Cancela una solicitud de trabajo.
@@ -55,7 +55,7 @@ public interface TrabajoService {
      * @param motivo    Motivo de cancelación.
      * @throws ServiceException Si ya está finalizado no se puede cancelar.
      */
-    void cancelarTrabajo(Long idTrabajo, String motivo) throws ServiceException;
+    void cancelarTrabajo(Integer idTrabajo, String motivo) throws ServiceException;
 
     /**
      * Lista trabajos pendientes de asignar.
@@ -64,7 +64,7 @@ public interface TrabajoService {
      * @return Lista de trabajos.
      * @throws ServiceException Error de acceso.
      */
-    List<Trabajo> listarPendientes(Long idEmpresa) throws ServiceException;
+    List<Trabajo> listarPendientes(Integer idEmpresa) throws ServiceException;
 
     /**
      * Historial de trabajos de un cliente.
@@ -73,7 +73,7 @@ public interface TrabajoService {
      * @return Lista de trabajos.
      * @throws ServiceException Error de acceso.
      */
-    List<Trabajo> historialCliente(Long idCliente) throws ServiceException;
+    List<Trabajo> historialCliente(Integer idCliente) throws ServiceException;
 
     /**
      * Historial de trabajos realizados por un operario.
@@ -82,5 +82,5 @@ public interface TrabajoService {
      * @return Lista de trabajos.
      * @throws ServiceException Error de acceso.
      */
-    List<Trabajo> historialOperario(Long idOperario) throws ServiceException;
+    List<Trabajo> historialOperario(Integer idOperario) throws ServiceException;
 }

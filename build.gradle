@@ -41,7 +41,7 @@ task runServer(type: JavaExec) {
     group = 'application'
     description = 'Runs the Server'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.servicios.ServidorCentral'
+    mainClass = 'com.fixfinder.red.ServidorCentral'
 }
 
 task runClient(type: JavaExec) {
@@ -49,4 +49,11 @@ task runClient(type: JavaExec) {
     description = 'Runs the Client'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.fixfinder.Launcher'
+}
+
+task runIntegrationTest(type: JavaExec) {
+    group = 'verification'
+    description = 'Runs the Integration Test'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.pruebas.PruebaIntegracion'
 }

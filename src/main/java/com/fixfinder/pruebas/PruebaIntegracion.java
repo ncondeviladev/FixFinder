@@ -1,13 +1,17 @@
 package com.fixfinder.pruebas;
 
-import com.fixfinder.data.*;
+import com.fixfinder.data.ConexionDB;
+import com.fixfinder.data.DataRepository;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.EmpresaDAO;
+import com.fixfinder.data.interfaces.OperarioDAO;
+import com.fixfinder.data.interfaces.TrabajoDAO;
+import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.*;
 import com.fixfinder.modelos.enums.*;
 import com.fixfinder.utilidades.DataAccessException;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.util.Arrays;
 
 public class PruebaIntegracion {
 
@@ -17,13 +21,15 @@ public class PruebaIntegracion {
         System.out.println("=========================================");
 
         try {
-            // 0. Limpieza inicial (Opcional, pero recomendado para evitar duplicados de
-            // Unique Keys)
+            // 0. Limpieza inicial
             limpiarBaseDeDatos();
+
+            // Instanciar Repositorio
+            DataRepository repo = new DataRepositoryImpl();
 
             // 1. Crear EMPRESA
             System.out.println("\n--- [1] PRUEBA EMPRESA ---");
-            EmpresaDAO empresaDAO = new EmpresaDAO();
+            EmpresaDAO empresaDAO = repo.getEmpresaDAO();
             Empresa emp = new Empresa();
             emp.setNombre("FixFinder Soluciones S.L.");
             emp.setCif("B12345678");
@@ -41,7 +47,7 @@ public class PruebaIntegracion {
 
             // 2. Crear OPERARIO (Extiende de Usuario)
             System.out.println("\n--- [2] PRUEBA OPERARIO ---");
-            OperarioDAO operarioDAO = new OperarioDAO();
+            OperarioDAO operarioDAO = repo.getOperarioDAO();
             Operario op = new Operario();
             op.setIdEmpresa(emp.getId()); // Pertenece a la empresa creada
             op.setEmail("tecnico@fixfinder.test");
@@ -61,7 +67,7 @@ public class PruebaIntegracion {
 
             // 3. Crear CLIENTE (Usuario normal)
             System.out.println("\n--- [3] PRUEBA CLIENTE ---");
-            UsuarioDAO usuarioDAO = new UsuarioDAO();
+            UsuarioDAO usuarioDAO = repo.getUsuarioDAO();
             Usuario cli = new Usuario();
             cli.setIdEmpresa(emp.getId());
             cli.setEmail("cliente@gmail.com");
@@ -74,7 +80,7 @@ public class PruebaIntegracion {
 
             // 4. Crear TRABAJO (Incidencia)
             System.out.println("\n--- [4] PRUEBA TRABAJO ---");
-            TrabajoDAO trabajoDAO = new TrabajoDAO();
+            TrabajoDAO trabajoDAO = repo.getTrabajoDAO();
             Trabajo t = new Trabajo();
             t.setCliente(cli);
             t.setCategoria(CategoriaServicio.FONTANERIA);
@@ -135,11 +141,9 @@ public class PruebaIntegracion {
         try (Connection conn = ConexionDB.getConnection()) {
             conn.setAutoCommit(false);
             try (java.sql.Statement stmt = conn.createStatement()) {
-                stmt.execute("SET FOREIGN_KEY_CHECKS=0"); // Desactivar FK temporalmente para borrado masivo
+                stmt.execute("SET FOREIGN_KEY_CHECKS=0");
                 for (String tabla : tablas) {
                     try {
-                        // Reseteamos tambien el contador de AUTO_INCREMENT con TRUNCATE en vez de
-                        // DELETE
                         stmt.executeUpdate("DELETE FROM " + tabla);
                         stmt.executeUpdate("ALTER TABLE " + tabla + " AUTO_INCREMENT = 1");
                     } catch (Exception e) {

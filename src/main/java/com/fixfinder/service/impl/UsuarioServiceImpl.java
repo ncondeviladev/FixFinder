@@ -1,7 +1,10 @@
 package com.fixfinder.service.impl;
 
-import com.fixfinder.data.UsuarioDAO;
+import com.fixfinder.data.DataRepository;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.Usuario;
+import com.fixfinder.service.interfaz.UsuarioService;
 import com.fixfinder.utilidades.DataAccessException;
 import com.fixfinder.utilidades.GestorPassword;
 import com.fixfinder.utilidades.ServiceException;
@@ -14,7 +17,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioDAO usuarioDAO;
 
     public UsuarioServiceImpl() {
-        this.usuarioDAO = new UsuarioDAO();
+        DataRepository repository = new DataRepositoryImpl();
+        this.usuarioDAO = repository.getUsuarioDAO();
     }
 
     @Override
@@ -35,5 +39,35 @@ public class UsuarioServiceImpl implements UsuarioService {
         } catch (DataAccessException e) {
             throw new ServiceException("Error de base de datos durante el login", e);
         }
+    }
+
+    @Override
+    public boolean validarPassword(String password, String confirmacion) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void cambiarPassword(Integer idUsuario, String oldPassword, String newPassword) throws ServiceException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void eliminarUsuario(Integer idUsuario) throws ServiceException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void registrarUsuario(Usuario usuario) throws ServiceException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void modificarUsuario(Usuario usuario) throws ServiceException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Usuario obtenerPorId(Integer idUsuario) throws ServiceException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

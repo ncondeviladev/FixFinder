@@ -1,23 +1,27 @@
-package com.fixfinder.simulacion;
+package com.fixfinder.pruebas;
 
-import com.fixfinder.data.BaseDAO;
-import com.fixfinder.data.OperarioDAO;
-import com.fixfinder.data.UsuarioDAO;
+import com.fixfinder.data.DataRepository;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.BaseDAO;
+import com.fixfinder.data.interfaces.OperarioDAO;
+import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Usuario;
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.Rol;
 import com.fixfinder.utilidades.DataAccessException;
 import java.util.Random;
 
 public class SimuladorDatos {
 
-    private final BaseDAO<Usuario> usuarioDAO;
-    private final BaseDAO<Operario> operarioDAO;
+    private final UsuarioDAO usuarioDAO;
+    private final OperarioDAO operarioDAO;
     private final Random random;
 
     public SimuladorDatos() {
-        this.usuarioDAO = new UsuarioDAO();
-        this.operarioDAO = new OperarioDAO();
+        DataRepository repo = new DataRepositoryImpl();
+        this.usuarioDAO = repo.getUsuarioDAO();
+        this.operarioDAO = repo.getOperarioDAO();
         this.random = new Random();
     }
 
@@ -43,7 +47,7 @@ public class SimuladorDatos {
 
     public void generarOperarios(int cantidad) {
         System.out.println("👷 Generando " + cantidad + " operarios simulados...");
-        String[] especialidades = { "Fontanería", "Electricidad", "Albañilería", "Cerrajería" };
+        CategoriaServicio[] especialidades = CategoriaServicio.values();
 
         for (int i = 0; i < cantidad; i++) {
             try {

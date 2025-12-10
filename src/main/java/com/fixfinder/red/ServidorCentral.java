@@ -1,4 +1,4 @@
-package com.fixfinder.servicios;
+package com.fixfinder.red;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

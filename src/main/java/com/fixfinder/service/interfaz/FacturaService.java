@@ -1,4 +1,4 @@
-package com.fixfinder.service;
+package com.fixfinder.service.interfaz;
 
 import com.fixfinder.modelos.Factura;
 import com.fixfinder.utilidades.ServiceException;

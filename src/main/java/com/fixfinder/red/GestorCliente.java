@@ -1,11 +1,11 @@
-package com.fixfinder.servicios;
+package com.fixfinder.red;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.Rol;
-import com.fixfinder.servicios.negocio.UsuarioService;
-import com.fixfinder.servicios.negocio.UsuarioServiceImpl;
+import com.fixfinder.service.interfaz.UsuarioService;
+import com.fixfinder.service.impl.UsuarioServiceImpl;
 import com.fixfinder.utilidades.ServiceException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
