@@ -24,6 +24,7 @@ dependencies {
     // JUnit
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     
     // JSON (Jackson)
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
@@ -35,6 +36,10 @@ application {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed"
+    }
 }
 
 task runServer(type: JavaExec) {
