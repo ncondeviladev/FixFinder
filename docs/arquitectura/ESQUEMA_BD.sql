@@ -81,6 +81,7 @@ CREATE TABLE operario (
 
 -- 4. Trabajos / Solicitudes de Servicio (Categoria TABLE ELIMINADA)
 
+
 CREATE TABLE trabajo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
@@ -114,6 +115,7 @@ CREATE TABLE trabajo (
     fecha_finalizacion TIMESTAMP,
 
 -- Calidad y Feedback
+
 valoracion INT DEFAULT 0, -- 1 a 5 estrellas
     comentario_cliente TEXT,
 

@@ -1,6 +1,7 @@
 package com.fixfinder.service.interfaz;
 
 import com.fixfinder.modelos.Trabajo;
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.utilidades.ServiceException;
 import java.util.List;
 
@@ -15,11 +16,14 @@ public interface TrabajoService {
      *
      * @param idCliente   ID del cliente que solicita.
      * @param descripcion Descripción del problema.
+     * @param direccion   Dirección donde se realizará el trabajo.
      * @param urgencia    Nivel de urgencia (1-5 ó enum).
      * @return El trabajo creado con estado PENDIENTE.
      * @throws ServiceException Error al crear.
      */
-    Trabajo solicitarReparacion(Integer idCliente, String descripcion, int urgencia) throws ServiceException;
+    Trabajo solicitarReparacion(Integer idCliente, CategoriaServicio categoria, String descripcion, String direccion,
+            int urgencia)
+            throws ServiceException;
 
     /**
      * Asigna un operario a un trabajo existente.

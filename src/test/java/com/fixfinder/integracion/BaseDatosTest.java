@@ -1,4 +1,4 @@
-package test.java.com.fixfinder.integracion;
+package com.fixfinder.integracion;
 
 import com.fixfinder.data.DataRepository;
 import com.fixfinder.data.DataRepositoryImpl;
