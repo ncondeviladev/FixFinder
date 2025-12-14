@@ -90,6 +90,7 @@ public class FacturaDAOImpl implements FacturaDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error obteniendo factura ID " + id, e);
         }
+        cargarRelaciones(f);
         return f;
     }
 
@@ -104,6 +105,9 @@ public class FacturaDAOImpl implements FacturaDAO {
                 lista.add(mapear(rs));
         } catch (SQLException e) {
             throw new DataAccessException("Error listando facturas", e);
+        }
+        for (Factura f : lista) {
+            cargarRelaciones(f);
         }
         return lista;
     }
@@ -121,6 +125,7 @@ public class FacturaDAOImpl implements FacturaDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error obteniendo factura por trabajo", e);
         }
+        cargarRelaciones(f);
         return f;
     }
 
@@ -137,14 +142,25 @@ public class FacturaDAOImpl implements FacturaDAO {
         if (ts != null)
             f.setFechaEmision(ts.toLocalDateTime());
 
-        // Cargar Trabajo asociado
-        try {
-            int idTrabajo = rs.getInt("id_trabajo");
-            Trabajo t = trabajoDAO.obtenerPorId(idTrabajo);
-            f.setTrabajo(t);
-        } catch (DataAccessException e) {
-            // log
-        }
+        // Mapeo lazy del ID trabajo
+        int idTrabajo = rs.getInt("id_trabajo");
+        Trabajo t = new Trabajo();
+        t.setId(idTrabajo);
+        f.setTrabajo(t);
+
         return f;
+    }
+
+    private void cargarRelaciones(Factura f) {
+        if (f == null)
+            return;
+        try {
+            if (f.getTrabajo() != null && f.getTrabajo().getId() > 0) {
+                Trabajo t = trabajoDAO.obtenerPorId(f.getTrabajo().getId());
+                f.setTrabajo(t);
+            }
+        } catch (DataAccessException e) {
+            System.err.println("Error cargando trabajo para factura " + f.getId());
+        }
     }
 }

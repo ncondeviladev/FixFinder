@@ -15,6 +15,7 @@ CREATE TABLE empresa (
     direccion VARCHAR(200),
     telefono VARCHAR(20),
     email_contacto VARCHAR(100),
+    url_foto VARCHAR(255),
     fecha_alta TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -42,6 +43,9 @@ CREATE TABLE usuario (
     email VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL, -- BCrypt
     nombre_completo VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20),
+    direccion VARCHAR(200),
+    url_foto VARCHAR(255),
     rol ENUM(
         'ADMIN',
         'GERENTE',
@@ -116,6 +120,7 @@ CREATE TABLE trabajo (
 
 -- Calidad y Feedback
 
+
 valoracion INT DEFAULT 0, -- 1 a 5 estrellas
     comentario_cliente TEXT,
 
@@ -130,6 +135,18 @@ CREATE TABLE foto_trabajo (
     url_archivo VARCHAR(255) NOT NULL,
     fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE
+);
+
+-- 5. Presupuestos (NEW)
+CREATE TABLE presupuesto (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_trabajo INT NOT NULL,
+    id_empresa INT NOT NULL,
+    monto DECIMAL(10, 2) NOT NULL,
+    estado VARCHAR(50) DEFAULT 'PENDIENTE',
+    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE,
+    FOREIGN KEY (id_empresa) REFERENCES empresa (id)
 );
 
 -- 6. Facturas

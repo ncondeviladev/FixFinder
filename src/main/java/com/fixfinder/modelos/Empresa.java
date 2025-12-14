@@ -19,6 +19,7 @@ public class Empresa {
     private String direccion;
     private String telefono;
     private String emailContacto;
+    private String urlFoto;
 
     // Lista de servicios que ofrece la empresa (Multiservicio)
     private List<CategoriaServicio> especialidades = new ArrayList<>();
@@ -86,5 +87,13 @@ public class Empresa {
 
     public void setEmailContacto(String emailContacto) {
         this.emailContacto = emailContacto;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
     }
 }

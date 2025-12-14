@@ -32,6 +32,8 @@ public class BaseDatosTest {
         Empresa empresa = helper.crearEmpresaTest();
         assertNotNull(empresa.getId(), "La empresa debería tener un ID asignado tras la inserción");
         assertTrue(empresa.getId() > 0, "El ID de la empresa debe ser mayor que 0");
+        assertEquals("http://example.com/logo.png", empresa.getUrlFoto(),
+                "La URL de la foto de la empresa debería coincidir");
 
         // 2. Crear OPERARIO
         Operario op = new Operario();
@@ -56,9 +58,17 @@ public class BaseDatosTest {
         cliente.setPasswordHash("pass123");
         cliente.setNombreCompleto("María Cliente Test");
         cliente.setRol(Rol.CLIENTE);
+        cliente.setTelefono("611223344");
+        cliente.setDireccion("Calle Cliente 1");
+        cliente.setUrlFoto("http://example.com/cliente.jpg");
 
         repo.getUsuarioDAO().insertar(cliente);
         assertNotNull(cliente.getId(), "El cliente debería tener ID");
+
+        Usuario clienteLeido = repo.getUsuarioDAO().obtenerPorId(cliente.getId());
+        assertEquals("611223344", clienteLeido.getTelefono());
+        assertEquals("Calle Cliente 1", clienteLeido.getDireccion());
+        assertEquals("http://example.com/cliente.jpg", clienteLeido.getUrlFoto());
 
         // 4. Crear TRABAJO
         Trabajo trabajo = new Trabajo();

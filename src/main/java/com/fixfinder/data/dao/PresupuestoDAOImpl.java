@@ -96,6 +96,8 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error al obtener presupuesto ID: " + id, e);
         }
+
+        cargarRelaciones(p);
         return p;
     }
 
@@ -113,6 +115,10 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar presupuestos", e);
+        }
+
+        for (Presupuesto p : lista) {
+            cargarRelaciones(p);
         }
         return lista;
     }
@@ -140,31 +146,42 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         Presupuesto p = new Presupuesto();
         p.setId(rs.getInt("id"));
         p.setMonto(rs.getDouble("monto"));
-        // p.setEstado(rs.getString("estado"));
         p.setFechaEnvio(rs.getTimestamp("fecha_envio"));
 
-        // Recuperar objetos relacionados
-        try {
-            int idTrabajo = rs.getInt("id_trabajo");
-            // Cuidado con bucle infinito si Trabajo carga Presupuestos y viceversa.
-            // Aquí cargamos Trabajo "Lazy" o completo según necesidad.
-            // Para evitar recursión infinita simple, podríamos crear un metodo
-            // "obtenerTrabajoSimple"
-            // Pero de momento usamos el normal.
-            Trabajo t = trabajoDAO.obtenerPorId(idTrabajo);
-            p.setTrabajo(t);
-        } catch (DataAccessException e) {
-            // Log
-        }
+        // Mapeo lazy de IDs para cargar relaciones después
+        int idTrabajo = rs.getInt("id_trabajo");
+        Trabajo t = new Trabajo();
+        t.setId(idTrabajo);
+        p.setTrabajo(t);
 
-        try {
-            int idEmpresa = rs.getInt("id_empresa");
-            Empresa e = empresaDAO.obtenerPorId(idEmpresa);
-            p.setEmpresa(e);
-        } catch (DataAccessException e) {
-            // Log
-        }
+        int idEmpresa = rs.getInt("id_empresa");
+        Empresa e = new Empresa();
+        e.setId(idEmpresa);
+        p.setEmpresa(e);
 
         return p;
+    }
+
+    private void cargarRelaciones(Presupuesto p) {
+        if (p == null)
+            return;
+
+        try {
+            if (p.getTrabajo() != null && p.getTrabajo().getId() > 0) {
+                Trabajo t = trabajoDAO.obtenerPorId(p.getTrabajo().getId());
+                p.setTrabajo(t);
+            }
+        } catch (DataAccessException e) {
+            System.err.println("Error cargando trabajo para presupuesto " + p.getId());
+        }
+
+        try {
+            if (p.getEmpresa() != null && p.getEmpresa().getId() > 0) {
+                Empresa e = empresaDAO.obtenerPorId(p.getEmpresa().getId());
+                p.setEmpresa(e);
+            }
+        } catch (DataAccessException e) {
+            System.err.println("Error cargando empresa para presupuesto " + p.getId());
+        }
     }
 }

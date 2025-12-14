@@ -1,7 +1,6 @@
 package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
-import com.fixfinder.data.interfaces.BaseDAO;
 import com.fixfinder.data.interfaces.EmpresaDAO;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.enums.CategoriaServicio;
@@ -14,7 +13,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 
     @Override
     public void insertar(Empresa empresa) throws DataAccessException {
-        String sql = "INSERT INTO empresa (nombre, cif, direccion, telefono, email_contacto) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO empresa (nombre, cif, direccion, telefono, email_contacto, url_foto) VALUES (?, ?, ?, ?, ?, ?)";
         String sqlEspec = "INSERT INTO empresa_especialidad (id_empresa, categoria) VALUES (?, ?)";
 
         Connection conn = null;
@@ -29,6 +28,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
                 stmt.setString(3, empresa.getDireccion());
                 stmt.setString(4, empresa.getTelefono());
                 stmt.setString(5, empresa.getEmailContacto());
+                stmt.setString(6, empresa.getUrlFoto());
 
                 int filas = stmt.executeUpdate();
                 if (filas == 0)
@@ -81,7 +81,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 
     @Override
     public void actualizar(Empresa empresa) throws DataAccessException {
-        String sql = "UPDATE empresa SET nombre=?, cif=?, direccion=?, telefono=?, email_contacto=? WHERE id=?";
+        String sql = "UPDATE empresa SET nombre=?, cif=?, direccion=?, telefono=?, email_contacto=?, url_foto=? WHERE id=?";
         // Estrategia simple: Borrar todas las especialidades y re-insertar
         String sqlDelSpec = "DELETE FROM empresa_especialidad WHERE id_empresa=?";
         String sqlInsSpec = "INSERT INTO empresa_especialidad (id_empresa, categoria) VALUES (?, ?)";
@@ -97,7 +97,8 @@ public class EmpresaDAOImpl implements EmpresaDAO {
                 stmt.setString(3, empresa.getDireccion());
                 stmt.setString(4, empresa.getTelefono());
                 stmt.setString(5, empresa.getEmailContacto());
-                stmt.setInt(6, empresa.getId());
+                stmt.setString(6, empresa.getUrlFoto());
+                stmt.setInt(7, empresa.getId());
                 stmt.executeUpdate();
             }
 
@@ -197,6 +198,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
         e.setDireccion(rs.getString("direccion"));
         e.setTelefono(rs.getString("telefono"));
         e.setEmailContacto(rs.getString("email_contacto"));
+        e.setUrlFoto(rs.getString("url_foto"));
 
         // Cargar Especialidades
         String sqlSpec = "SELECT categoria FROM empresa_especialidad WHERE id_empresa=?";

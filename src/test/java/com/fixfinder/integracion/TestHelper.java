@@ -32,10 +32,27 @@ public class TestHelper {
      */
     public void limpiarBaseDeDatos() {
         System.out.println("[TEST HELPER] Limpiando base de datos...");
-        String[] tablas = { "mensaje_chat", "factura", "foto_trabajo", "trabajo", "operario", "usuario",
+        String[] tablas = { "mensaje_chat", "factura", "foto_trabajo", "presupuesto", "trabajo", "operario", "usuario",
                 "empresa_especialidad", "empresa" };
 
         try (Connection conn = ConexionDB.getConnection()) {
+            // Verificar y Crear Tabla Presupuesto si no existe (Hotfix para tests)
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("CREATE TABLE IF NOT EXISTS presupuesto (" +
+                        "id INT AUTO_INCREMENT PRIMARY KEY," +
+                        "id_trabajo INT NOT NULL," +
+                        "id_empresa INT NOT NULL," +
+                        "monto DECIMAL(10, 2) NOT NULL," +
+                        "estado VARCHAR(50) DEFAULT 'PENDIENTE'," +
+                        "fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                        "FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE," +
+                        "FOREIGN KEY (id_empresa) REFERENCES empresa (id)" +
+                        ")");
+            } catch (Exception e) {
+                System.out.println(
+                        "Nota: No se pudo verificar/crear tabla presupuesto (puede que ya exista): " + e.getMessage());
+            }
+
             conn.setAutoCommit(false);
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute("SET FOREIGN_KEY_CHECKS=0");
@@ -62,6 +79,7 @@ public class TestHelper {
         emp.setDireccion("Calle Test 123");
         emp.setTelefono("600000000");
         emp.setEmailContacto("test@fixfinder.com");
+        emp.setUrlFoto("http://example.com/logo.png");
         emp.getEspecialidades().add(CategoriaServicio.FONTANERIA);
         emp.getEspecialidades().add(CategoriaServicio.ELECTRICIDAD);
         empresaDAO.insertar(emp);

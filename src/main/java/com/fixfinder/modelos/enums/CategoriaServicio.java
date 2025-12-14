@@ -12,5 +12,6 @@ public enum CategoriaServicio {
     CLIMATIZACION,
     CARPINTERIA,
     CERRAJERIA,
-    OTROS
+    OTROS,
+    MULTISERVICIO
 }

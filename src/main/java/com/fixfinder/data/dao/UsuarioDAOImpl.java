@@ -19,7 +19,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public void insertar(Usuario usuario) throws DataAccessException {
-        String sql = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, id_empresa) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, id_empresa, telefono, direccion, url_foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         // Try-with-resources: Cierra automáticamente PreparedStatement y ResultSet
         try (Connection conn = ConexionDB.getConnection();
@@ -30,6 +30,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             stmt.setString(3, usuario.getNombreCompleto());
             stmt.setString(4, usuario.getRol().toString());
             stmt.setInt(5, usuario.getIdEmpresa());
+            stmt.setString(6, usuario.getTelefono());
+            stmt.setString(7, usuario.getDireccion());
+            stmt.setString(8, usuario.getUrlFoto());
 
             int filasAfectadas = stmt.executeUpdate();
             if (filasAfectadas == 0) {
@@ -53,7 +56,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public void actualizar(Usuario usuario) throws DataAccessException {
-        String sql = "UPDATE usuario SET email = ?, password_hash = ?, nombre_completo = ?, rol = ?, id_empresa = ? WHERE id = ?";
+        String sql = "UPDATE usuario SET email = ?, password_hash = ?, nombre_completo = ?, rol = ?, id_empresa = ?, telefono = ?, direccion = ?, url_foto = ? WHERE id = ?";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -63,7 +66,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             stmt.setString(3, usuario.getNombreCompleto());
             stmt.setString(4, usuario.getRol().toString());
             stmt.setInt(5, usuario.getIdEmpresa());
-            stmt.setInt(6, usuario.getId());
+            stmt.setString(6, usuario.getTelefono());
+            stmt.setString(7, usuario.getDireccion());
+            stmt.setString(8, usuario.getUrlFoto());
+            stmt.setInt(9, usuario.getId());
 
             stmt.executeUpdate();
 
@@ -192,6 +198,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         u.setPasswordHash(rs.getString("password_hash"));
         u.setNombreCompleto(rs.getString("nombre_completo"));
         u.setIdEmpresa(rs.getInt("id_empresa"));
+        u.setTelefono(rs.getString("telefono"));
+        u.setDireccion(rs.getString("direccion"));
+        u.setUrlFoto(rs.getString("url_foto"));
 
         // Convertir String a Enum de forma segura
         try {

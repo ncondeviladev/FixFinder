@@ -23,6 +23,9 @@ public class Usuario {
     protected Rol rol;
     protected int idEmpresa;
     protected LocalDateTime fechaRegistro;
+    protected String telefono;
+    protected String direccion;
+    protected String urlFoto;
 
     public Usuario() {
     }
@@ -89,5 +92,29 @@ public class Usuario {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
     }
 }

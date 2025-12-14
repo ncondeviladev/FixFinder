@@ -58,6 +58,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 throw new ServiceException("Ya existe un usuario registrado con ese email.");
             }
 
+            // Validar nuevos campos (teléfono, dirección, foto)
+            validarDatosUsuario(usuario);
+
             if (usuario.getPasswordHash() != null && !usuario.getPasswordHash().startsWith("$2a$")
                     && !usuario.getPasswordHash().contains(":")) {
                 usuario.setPasswordHash(GestorPassword.hashearPassword(usuario.getPasswordHash()));
@@ -82,6 +85,9 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (usuarioConMismoEmail != null && usuarioConMismoEmail.getId() != usuario.getId()) {
                 throw new ServiceException("El email ya está en uso por otro usuario.");
             }
+
+            // Validar nuevos campos antes de actualizar
+            validarDatosUsuario(usuario);
 
             Usuario original = usuarioDAO.obtenerPorId(usuario.getId());
             if (original != null) {
@@ -144,6 +150,29 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         } catch (DataAccessException e) {
             throw new ServiceException("Error al cambiar la contraseña.", e);
+        }
+    }
+
+    private void validarDatosUsuario(Usuario usuario) throws ServiceException {
+        if (usuario.getEmail() == null || !usuario.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            throw new ServiceException("El formato del email no es válido.");
+        }
+
+        // Validación de formato de teléfono (solo dígitos, longitud 9)
+        if (usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
+            if (!usuario.getTelefono().matches("^\\d{9}$")) {
+                throw new ServiceException("El teléfono debe contener exactamente 9 dígitos numéricos.");
+            }
+        }
+
+        // Validación de longitud de URL de foto
+        if (usuario.getUrlFoto() != null && usuario.getUrlFoto().length() > 255) {
+            throw new ServiceException("La URL de la foto excede el límite de 255 caracteres.");
+        }
+
+        // Validación básica de dirección (no vacía si se proporciona)
+        if (usuario.getDireccion() != null && usuario.getDireccion().trim().isEmpty()) {
+            throw new ServiceException("La dirección no puede estar formada solo por espacios.");
         }
     }
 }
