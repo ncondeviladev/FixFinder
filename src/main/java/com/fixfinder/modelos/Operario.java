@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
  * y de geolocalización para el seguimiento en tiempo real.
  */
 public class Operario extends Usuario {
-    private String dni;
     private CategoriaServicio especialidad;
     private boolean estaActivo; // Representa estado DISPONIBLE/OCUPADO simplificado o mapeado
     private double latitud;

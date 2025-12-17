@@ -17,15 +17,16 @@ public class Usuario {
     protected String nombreCompleto;
     protected String email;
     protected String passwordHash;
+    protected String dni;
+    protected String urlFoto;
+    protected LocalDateTime fechaRegistro;
+    protected String telefono;
+    protected String direccion;
     /**
      * Rol del usuario en el sistema (ADMIN, GERENTE, OPERARIO, CLIENTE).
      */
     protected Rol rol;
     protected int idEmpresa;
-    protected LocalDateTime fechaRegistro;
-    protected String telefono;
-    protected String direccion;
-    protected String urlFoto;
 
     public Usuario() {
     }
