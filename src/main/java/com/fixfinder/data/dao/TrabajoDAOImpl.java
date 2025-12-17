@@ -27,7 +27,7 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     @Override
     public void insertar(Trabajo trabajo) throws DataAccessException {
         // 1. Insertar el Trabajo Base. NOTA: id_categoria ahora es 'categoria' (ENUM)
-        String sql = "INSERT INTO trabajo (id_cliente, categoria, titulo, descripcion, direccion, latitud, longitud, estado, valoracion, comentario_cliente) "
+        String sql = "INSERT INTO trabajo (id_cliente, categoria, titulo, descripcion, direccion, ubicacion_lat, ubicacion_lon, estado, valoracion, comentario_cliente) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         Connection conn = null;
@@ -110,7 +110,7 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     @Override
     public void actualizar(Trabajo trabajo) throws DataAccessException {
         String sql = "UPDATE trabajo SET id_cliente=?, id_operario=?, categoria=?, titulo=?, descripcion=?, " +
-                "direccion=?, latitud=?, longitud=?, estado=?, fecha_finalizacion=?, valoracion=?, comentario_cliente=? WHERE id=?";
+                "direccion=?, ubicacion_lat=?, ubicacion_lon=?, estado=?, fecha_finalizacion=?, valoracion=?, comentario_cliente=? WHERE id=?";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -288,8 +288,8 @@ public class TrabajoDAOImpl implements TrabajoDAO {
         if (tsFin != null)
             t.setFechaFinalizacion(tsFin.toLocalDateTime());
 
-        double lat = rs.getDouble("latitud");
-        double lon = rs.getDouble("longitud");
+        double lat = rs.getDouble("ubicacion_lat");
+        double lon = rs.getDouble("ubicacion_lon");
         if (!rs.wasNull()) {
             t.setUbicacion(new Ubicacion(lat, lon));
         }

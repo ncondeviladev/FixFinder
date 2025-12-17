@@ -1,7 +1,6 @@
 package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
-import com.fixfinder.data.interfaces.BaseDAO;
 import com.fixfinder.data.interfaces.OperarioDAO;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.enums.CategoriaServicio;
@@ -14,42 +13,38 @@ import java.util.List;
 /**
  * DAO para gestionar la entidad Operario.
  *
- * Esta clase es especial porque gestiona una TRANSACCIÓN entre dos tablas:
- * - 'usuario': Datos generales (login, nombre).
- * - 'operario': Datos específicos (dni, ubicación).
+ * Esta clase gestiona una TRANSACCIÓN entre dos tablas:
+ * - 'usuario': Datos generales (dni, nombre, login).
+ * - 'operario': Datos específicos (id_empresa, especialidad).
  */
 public class OperarioDAOImpl implements OperarioDAO {
 
     @Override
     public void insertar(Operario operario) throws DataAccessException {
-        // Definimos las dos sentencias SQL necesarias.
-        // 1. Primero insertamos en la tabla padre 'usuario' para obtener el ID.
-        String sqlUsuario = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, id_empresa) VALUES (?, ?, ?, ?, ?)";
-        // 2. Luego insertamos en la tabla hija 'operario' usando ese mismo ID.
-        String sqlOperario = "INSERT INTO operario (id_usuario, dni, especialidad, estado, latitud, longitud) VALUES (?, ?, ?, ?, ?, ?)";
+        // 1. Insertar en 'usuario' (Datos comunes + DNI)
+        String sqlUsuario = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, dni) VALUES (?, ?, ?, ?, ?)";
+        // 2. Insertar en 'operario' (Datos específicos + id_empresa)
+        String sqlOperario = "INSERT INTO operario (id_usuario, id_empresa, especialidad, estado, latitud, longitud) VALUES (?, ?, ?, ?, ?, ?)";
 
         Connection conn = null;
 
         try {
             conn = ConexionDB.getConnection();
+            conn.setAutoCommit(false); // INICIO TRANSACCIÓN
 
-            // --- INICIO DE TRANSACCIÓN ---
-            conn.setAutoCommit(false);
-
-            // PASO 1: Insertar en tabla USUARIO
+            // PASO 1: Insertar en USUARIO
             int idGenerado = 0;
             try (PreparedStatement stmtUser = conn.prepareStatement(sqlUsuario, Statement.RETURN_GENERATED_KEYS)) {
                 stmtUser.setString(1, operario.getEmail());
                 stmtUser.setString(2, operario.getPasswordHash());
                 stmtUser.setString(3, operario.getNombreCompleto());
-                stmtUser.setString(4, Rol.OPERARIO.toString()); // Forzamos rol OPERARIO
-                stmtUser.setInt(5, operario.getIdEmpresa());
+                stmtUser.setString(4, Rol.OPERARIO.toString());
+                stmtUser.setString(5, operario.getDni()); // DNI va a usuario ahora
 
                 int filas = stmtUser.executeUpdate();
                 if (filas == 0)
-                    throw new SQLException("Fallo al crear usuario base para operario.");
+                    throw new SQLException("Fallo al crear usuario base.");
 
-                // Recuperamos el ID autogenerado por MySQL (AUTO_INCREMENT)
                 try (ResultSet generatedKeys = stmtUser.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         idGenerado = generatedKeys.getInt(1);
@@ -60,12 +55,11 @@ public class OperarioDAOImpl implements OperarioDAO {
                 }
             }
 
-            // PASO 2: Insertar en tabla OPERARIO
+            // PASO 2: Insertar en OPERARIO
             try (PreparedStatement stmtOp = conn.prepareStatement(sqlOperario)) {
                 stmtOp.setInt(1, operario.getId());
-                stmtOp.setString(2, operario.getDni());
-                stmtOp.setString(3, operario.getEspecialidad().toString()); // ENUM a String
-                // Convertimos el booleano Java a String ENUM de MySQL
+                stmtOp.setInt(2, operario.getIdEmpresa()); // Ahora va aquí
+                stmtOp.setString(3, operario.getEspecialidad().toString());
                 stmtOp.setString(4, operario.isEstaActivo() ? "DISPONIBLE" : "OCUPADO");
                 stmtOp.setDouble(5, operario.getLatitud());
                 stmtOp.setDouble(6, operario.getLongitud());
@@ -73,14 +67,11 @@ public class OperarioDAOImpl implements OperarioDAO {
                 stmtOp.executeUpdate();
             }
 
-            // --- FIN DE TRANSACCIÓN (ÉXITO) ---
-            conn.commit();
+            conn.commit(); // CONFIRMAR TRANSACCIÓN
 
         } catch (SQLException e) {
-            // --- GESTIÓN DE ERRORES (ROLLBACK) ---
             if (conn != null) {
                 try {
-                    System.err.println("⚠️ Realizando Rollback de Operario...");
                     conn.rollback();
                 } catch (SQLException ex) {
                     ex.printStackTrace();
@@ -88,7 +79,6 @@ public class OperarioDAOImpl implements OperarioDAO {
             }
             throw new DataAccessException("Error transaccional al insertar operario: " + operario.getEmail(), e);
         } finally {
-            // --- LIMPIEZA ---
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
@@ -102,8 +92,10 @@ public class OperarioDAOImpl implements OperarioDAO {
 
     @Override
     public void actualizar(Operario operario) throws DataAccessException {
-        String sqlUsuario = "UPDATE usuario SET email=?, nombre_completo=?, password_hash=? WHERE id=?";
-        String sqlOperario = "UPDATE operario SET dni=?, especialidad=?, estado=?, latitud=?, longitud=?, ultima_actualizacion=NOW() WHERE id_usuario=?";
+        // Actualizar datos base (Usuario)
+        String sqlUsuario = "UPDATE usuario SET email=?, nombre_completo=?, password_hash=?, dni=? WHERE id=?";
+        // Actualizar datos específicos (Operario)
+        String sqlOperario = "UPDATE operario SET id_empresa=?, especialidad=?, estado=?, latitud=?, longitud=?, ultima_actualizacion=NOW() WHERE id_usuario=?";
 
         Connection conn = null;
         try {
@@ -114,12 +106,13 @@ public class OperarioDAOImpl implements OperarioDAO {
                 stmtUser.setString(1, operario.getEmail());
                 stmtUser.setString(2, operario.getNombreCompleto());
                 stmtUser.setString(3, operario.getPasswordHash());
-                stmtUser.setInt(4, operario.getId());
+                stmtUser.setString(4, operario.getDni());
+                stmtUser.setInt(5, operario.getId());
                 stmtUser.executeUpdate();
             }
 
             try (PreparedStatement stmtOp = conn.prepareStatement(sqlOperario)) {
-                stmtOp.setString(1, operario.getDni());
+                stmtOp.setInt(1, operario.getIdEmpresa());
                 stmtOp.setString(2, operario.getEspecialidad().toString());
                 stmtOp.setString(3, operario.isEstaActivo() ? "DISPONIBLE" : "OCUPADO");
                 stmtOp.setDouble(4, operario.getLatitud());
@@ -153,7 +146,7 @@ public class OperarioDAOImpl implements OperarioDAO {
 
     @Override
     public void eliminar(int id) throws DataAccessException {
-        // Gracias al ON DELETE CASCADE de la BD, borrar el usuario borra el operario
+        // ON DELETE CASCADE se encarga de borrar en 'operario' al borrar 'usuario'
         String sql = "DELETE FROM usuario WHERE id = ?";
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -169,10 +162,6 @@ public class OperarioDAOImpl implements OperarioDAO {
         return obtenerPorId(id, null);
     }
 
-    /**
-     * Sobrecarga para permitir reutilizar una conexión existente.
-     * Si 'connExterna' no es nulo, SE USA pero NO SE CIERRA al terminar.
-     */
     public Operario obtenerPorId(int id, Connection connExterna) throws DataAccessException {
         String sql = "SELECT u.*, o.* FROM usuario u JOIN operario o ON u.id = o.id_usuario WHERE u.id = ?";
         Operario op = null;
@@ -182,8 +171,6 @@ public class OperarioDAOImpl implements OperarioDAO {
         ResultSet rs = null;
 
         try {
-            // Si no nos pasan conexión, pedimos una nueva al Singleton (y nos encargamos de
-            // cerrarla)
             boolean esNuevaConexion = (conn == null);
             if (esNuevaConexion) {
                 conn = ConexionDB.getConnection();
@@ -200,8 +187,6 @@ public class OperarioDAOImpl implements OperarioDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error al obtener operario ID: " + id, e);
         } finally {
-            // Cierre manual de recursos para evitar cerrar la conexión externa si nos la
-            // pasaron
             if (rs != null) {
                 try {
                     rs.close();
@@ -214,21 +199,7 @@ public class OperarioDAOImpl implements OperarioDAO {
                 } catch (SQLException e) {
                 }
             }
-            // Solo cerramos la conexión si la abrimos NOSOTROS
-            if (connExterna == null && conn != null) {
-                try {
-                    // No llamamos a conn.close() directamente si es Singleton puro,
-                    // pero para mantener coherencia con el diseño anterior:
-                    // Si tu ConexionDB.cerrarConexion() maneja el cierre, úsalo,
-                    // si no, simplemente dejamos que el GC o el pool lo maneje si es Singleton.
-                    // En este caso, como ConexionDB es estática, NO DEBERÍAMOS cerrar físicamente
-                    // la conexión compartida
-                    // salvo que la app termine.
-                    // PERO, para respetar el bloque try-with-resources original que eliminamos:
-                    // conn.close();
-                } catch (Exception e) {
-                }
-            }
+            // Manejo de cierre de conexión externa omitido para brevedad/consistencia
         }
         return op;
     }
@@ -254,11 +225,11 @@ public class OperarioDAOImpl implements OperarioDAO {
     private Operario mapearOperario(ResultSet rs) throws SQLException {
         Operario o = new Operario();
         // Datos de Usuario
-        o.setId(rs.getInt("id"));
+        o.setId(rs.getInt("id")); // Usar alias o nombre columna directo si es único
         o.setEmail(rs.getString("email"));
         o.setPasswordHash(rs.getString("password_hash"));
         o.setNombreCompleto(rs.getString("nombre_completo"));
-        o.setIdEmpresa(rs.getInt("id_empresa"));
+        o.setDni(rs.getString("dni")); // Ahora viene de usuario
         o.setRol(Rol.OPERARIO);
 
         Timestamp ts = rs.getTimestamp("fecha_registro");
@@ -266,12 +237,12 @@ public class OperarioDAOImpl implements OperarioDAO {
             o.setFechaRegistro(ts.toLocalDateTime());
 
         // Datos de Operario
-        o.setDni(rs.getString("dni"));
+        o.setIdEmpresa(rs.getInt("id_empresa")); // Ahora viene de operario
 
         try {
             o.setEspecialidad(CategoriaServicio.valueOf(rs.getString("especialidad")));
         } catch (IllegalArgumentException e) {
-            o.setEspecialidad(CategoriaServicio.OTROS); // Fallback
+            o.setEspecialidad(CategoriaServicio.OTROS);
         }
 
         String estado = rs.getString("estado");

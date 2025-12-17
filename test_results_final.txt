@@ -1,0 +1,75 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+
+> Task :test
+
+BaseDatosTest > Flujo Completo: Crear Empresa, Operario, Cliente y Ciclo de Trabajo STANDARD_OUT
+    [TEST HELPER] Limpiando base de datos...
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+       -> Limpiando tabla: mensaje_chat
+       -> Limpiando tabla: factura
+       -> Limpiando tabla: foto_trabajo
+       -> Limpiando tabla: presupuesto
+       -> Limpiando tabla: trabajo
+       -> Limpiando tabla: cliente
+       -> Limpiando tabla: operario
+       -> Limpiando tabla: usuario
+       -> Limpiando tabla: empresa_especialidad
+       -> Limpiando tabla: empresa
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+Ejecutando Test: com.fixfinder.integracion.BaseDatosTest.testFlujoCompleto() -> SUCCESS
+
+BaseDatosTest > Flujo Completo: Crear Empresa, Operario, Cliente y Ciclo de Trabajo PASSED
+
+BaseDatosTest > Simulaci├│n de Datos Masiva STANDARD_OUT
+    [TEST HELPER] Limpiando base de datos...
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+       -> Limpiando tabla: mensaje_chat
+       -> Limpiando tabla: factura
+       -> Limpiando tabla: foto_trabajo
+       -> Limpiando tabla: presupuesto
+       -> Limpiando tabla: trabajo
+       -> Limpiando tabla: cliente
+       -> Limpiando tabla: operario
+       -> Limpiando tabla: usuario
+       -> Limpiando tabla: empresa_especialidad
+       -> Limpiando tabla: empresa
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    ­ƒñû Generando 5 clientes simulados...
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    ­ƒæÀ Generando 3 operarios simulados...
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+    Ô£à Conexi├│n a base de datos establecida correctamente.
+Ejecutando Test: com.fixfinder.integracion.BaseDatosTest.testSimulacionMasiva() -> SUCCESS
+
+BaseDatosTest > Simulaci├│n de Datos Masiva PASSED
+
+[Incubating] Problems report is available at: file:///C:/Users/ncond/Desktop/FIXFINDER/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3s
+4 actionable tasks: 4 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.1.0/userguide/configuration_cache_enabling.html

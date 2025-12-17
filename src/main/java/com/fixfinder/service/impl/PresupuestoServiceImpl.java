@@ -32,12 +32,16 @@ public class PresupuestoServiceImpl implements PresupuestoService {
                 throw new ServiceException("Trabajo no encontrado con ID: " + idTrabajo);
             }
 
-            if (trabajo.getCliente() == null) {
-                throw new ServiceException("El trabajo no tiene cliente asociado (Datos corruptos).");
+            if (trabajo.getOperarioAsignado() == null) {
+                // En el nuevo modelo, el presupuesto lo emite la empresa del operario asignado,
+                // o debería pasarse el idEmpresa explícitamente si es una puja.
+                // Asumimos flujo de asignación previa.
+                throw new ServiceException(
+                        "El trabajo debe tener un operario asignado para generar presupuesto (o contexto de empresa no definido).");
             }
 
-            int idEmpresa = trabajo.getCliente().getIdEmpresa();
-            
+            int idEmpresa = trabajo.getOperarioAsignado().getIdEmpresa();
+
             com.fixfinder.modelos.Empresa empresaRef = new com.fixfinder.modelos.Empresa();
             empresaRef.setId(idEmpresa);
 
@@ -46,7 +50,7 @@ public class PresupuestoServiceImpl implements PresupuestoService {
             p.setEmpresa(empresaRef);
             p.setMonto(monto);
             p.setFechaEnvio(new Date());
-            
+
             presupuestoDAO.insertar(p);
             return p;
         } catch (Exception e) {

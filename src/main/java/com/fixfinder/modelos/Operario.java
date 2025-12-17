@@ -1,17 +1,23 @@
 package com.fixfinder.modelos;
 
 import com.fixfinder.modelos.enums.CategoriaServicio;
+import com.fixfinder.modelos.enums.Rol;
+
 import java.time.LocalDateTime;
 
 /**
  * Representa a un técnico u operario que realiza los trabajos.
  *
- * Extiende de {@link Usuario} añadiendo información específica profesional
- * y de geolocalización para el seguimiento en tiempo real.
+ * Extiende de {@link Usuario} e incluye datos laborales.
  */
 public class Operario extends Usuario {
+
+    // Vinculación laboral
+    private int idEmpresa;
+
+    // Datos profesionales específicos
     private CategoriaServicio especialidad;
-    private boolean estaActivo; // Representa estado DISPONIBLE/OCUPADO simplificado o mapeado
+    private boolean estaActivo; // Representa estado DISPONIBLE/OCUPADO
     private double latitud;
     private double longitud;
     private LocalDateTime ultimaActualizacion;
@@ -20,12 +26,20 @@ public class Operario extends Usuario {
         super();
     }
 
-    public String getDni() {
-        return dni;
+    public Operario(int id, String email, String passwordHash, Rol rol, String nombreCompleto, String dni,
+            int idEmpresa, CategoriaServicio especialidad, boolean estaActivo) {
+        super(id, email, passwordHash, rol, nombreCompleto, dni);
+        this.idEmpresa = idEmpresa;
+        this.especialidad = especialidad;
+        this.estaActivo = estaActivo;
     }
 
-    public void setDni(String dni) {
-        this.dni = dni;
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public CategoriaServicio getEspecialidad() {

@@ -103,14 +103,14 @@ public class ServiceTest {
         try {
             int idEmp = ensureEmpresaExists();
 
-            Usuario u = new Usuario();
+            Cliente u = new Cliente();
             u.setNombreCompleto("Juan Test");
             u.setEmail(generateUniqueEmail());
             u.setPasswordHash("password123");
             u.setTelefono("600" + (100000 + (int) (Math.random() * 899999))); // 9 digits
             u.setDireccion("Calle Test " + UUID.randomUUID().toString().substring(0, 5));
             u.setRol(Rol.CLIENTE);
-            u.setIdEmpresa(idEmp);
+            // u.setIdEmpresa(idEmp); // Cliente no tiene empresa
 
             // Registro
             usuarioService.registrarUsuario(u);
@@ -137,7 +137,7 @@ public class ServiceTest {
     @Test
     @DisplayName("Usuario: Validación (Fallos)")
     void testUsuarioValidacion() {
-        Usuario u = new Usuario();
+        Cliente u = new Cliente();
         u.setEmail("invalid");
         Exception ex = assertThrows(ServiceException.class, () -> usuarioService.registrarUsuario(u));
         assertTrue(ex.getMessage().contains("formato del email"), "Debe validar email");
@@ -227,11 +227,11 @@ public class ServiceTest {
         int idEmp = ensureEmpresaExists();
 
         if (idUsuarioRegistrado == null) {
-            Usuario u = new Usuario();
+            Cliente u = new Cliente();
             u.setEmail(generateUniqueEmail());
             u.setNombreCompleto("Fallback User");
             u.setRol(Rol.CLIENTE);
-            u.setIdEmpresa(idEmp);
+            // u.setIdEmpresa(idEmp);
             usuarioService.registrarUsuario(u);
             idUsuarioRegistrado = u.getId();
         }
@@ -310,19 +310,36 @@ public class ServiceTest {
             int idEmp = ensureEmpresaExists();
 
             if (idUsuarioRegistrado == null) {
-                Usuario u = new Usuario();
+                Cliente u = new Cliente();
                 u.setEmail(generateUniqueEmail());
                 u.setRol(Rol.CLIENTE);
-                u.setIdEmpresa(idEmp);
+                // u.setIdEmpresa(idEmp);
                 usuarioService.registrarUsuario(u);
                 idUsuarioRegistrado = u.getId();
             }
 
-            Trabajo tPresu = trabajoService.solicitarReparacion(idUsuarioRegistrado, CategoriaServicio.ELECTRICIDAD,
+            Trabajo tPresu = trabajoService.solicitarReparacion(idUsuarioRegistrado, CategoriaServicio.FONTANERIA,
                     "Enchufe roto " + UUID.randomUUID(), "Salon", 1);
 
             assertNotNull(tPresu, "El trabajo creado para presupuesto no debe ser nulo");
             assertTrue(tPresu.getId() > 0, "El trabajo debe tener ID");
+
+            // ASIGNAR OPERARIO (Requerido para generar presupuesto según reglas de negocio)
+            if (idOperarioRegistrado == null) {
+                // idEmp ya existe en el scope superior
+                Operario op = new Operario();
+                op.setNombreCompleto("Operario Fallback Finanzas");
+                op.setEmail(generateUniqueEmail());
+                op.setPasswordHash("pass123");
+                op.setDni(generateUniqueDni());
+                op.setIdEmpresa(idEmp);
+                op.setRol(Rol.OPERARIO);
+                op.setEspecialidad(CategoriaServicio.FONTANERIA);
+                op.setEstaActivo(true);
+                operarioService.altaOperario(op);
+                idOperarioRegistrado = op.getId();
+            }
+            trabajoService.asignarOperario(tPresu.getId(), idOperarioRegistrado);
 
             // Presupuesto
             // Verify Presupuesto table existence via TestHelper in initDb, but double check

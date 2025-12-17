@@ -1,5 +1,6 @@
 package com.fixfinder.data;
 
+import com.fixfinder.data.dao.ClienteDAOImpl;
 import com.fixfinder.data.dao.EmpresaDAOImpl;
 import com.fixfinder.data.dao.FacturaDAOImpl;
 import com.fixfinder.data.dao.FotoTrabajoDAOImpl;
@@ -7,6 +8,7 @@ import com.fixfinder.data.dao.OperarioDAOImpl;
 import com.fixfinder.data.dao.PresupuestoDAOImpl;
 import com.fixfinder.data.dao.TrabajoDAOImpl;
 import com.fixfinder.data.dao.UsuarioDAOImpl;
+import com.fixfinder.data.interfaces.ClienteDAO;
 import com.fixfinder.data.interfaces.EmpresaDAO;
 import com.fixfinder.data.interfaces.FacturaDAO;
 import com.fixfinder.data.interfaces.FotoTrabajoDAO;
@@ -15,16 +17,31 @@ import com.fixfinder.data.interfaces.PresupuestoDAO;
 import com.fixfinder.data.interfaces.TrabajoDAO;
 import com.fixfinder.data.interfaces.UsuarioDAO;
 
+/**
+ * Implementación básica del Repositorio.
+ * Simplemente instancia los DAOs concretos.
+ */
 public class DataRepositoryImpl implements DataRepository {
 
-    // Instancias Singleton de los DAOs
-    private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
-    private final EmpresaDAO empresaDAO = new EmpresaDAOImpl();
-    private final TrabajoDAO trabajoDAO = new TrabajoDAOImpl();
-    private final OperarioDAO operarioDAO = new OperarioDAOImpl();
-    private final FacturaDAO facturaDAO = new FacturaDAOImpl();
-    private final PresupuestoDAO presupuestoDAO = new PresupuestoDAOImpl();
-    private final FotoTrabajoDAO fotoTrabajoDAO = new FotoTrabajoDAOImpl();
+    private final UsuarioDAO usuarioDAO;
+    private final EmpresaDAO empresaDAO;
+    private final TrabajoDAO trabajoDAO;
+    private final OperarioDAO operarioDAO;
+    private final FacturaDAO facturaDAO;
+    private final PresupuestoDAO presupuestoDAO;
+    private final FotoTrabajoDAO fotoTrabajoDAO;
+    private final ClienteDAO clienteDAO;
+
+    public DataRepositoryImpl() {
+        this.usuarioDAO = new UsuarioDAOImpl();
+        this.empresaDAO = new EmpresaDAOImpl();
+        this.trabajoDAO = new TrabajoDAOImpl();
+        this.operarioDAO = new OperarioDAOImpl();
+        this.facturaDAO = new FacturaDAOImpl();
+        this.presupuestoDAO = new PresupuestoDAOImpl();
+        this.fotoTrabajoDAO = new FotoTrabajoDAOImpl();
+        this.clienteDAO = new ClienteDAOImpl();
+    }
 
     @Override
     public UsuarioDAO getUsuarioDAO() {
@@ -59,5 +76,10 @@ public class DataRepositoryImpl implements DataRepository {
     @Override
     public FotoTrabajoDAO getFotoTrabajoDAO() {
         return fotoTrabajoDAO;
+    }
+
+    @Override
+    public ClienteDAO getClienteDAO() {
+        return clienteDAO;
     }
 }

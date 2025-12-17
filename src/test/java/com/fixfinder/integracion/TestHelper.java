@@ -4,7 +4,9 @@ import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.DataRepository;
 import com.fixfinder.data.DataRepositoryImpl;
 import com.fixfinder.data.interfaces.*;
+import com.fixfinder.data.interfaces.ClienteDAO;
 import com.fixfinder.modelos.*;
+import com.fixfinder.modelos.Cliente;
 import com.fixfinder.modelos.enums.*;
 import com.fixfinder.utilidades.DataAccessException;
 
@@ -17,6 +19,7 @@ public class TestHelper {
     private final UsuarioDAO usuarioDAO;
     private final OperarioDAO operarioDAO;
     private final EmpresaDAO empresaDAO;
+    private final ClienteDAO clienteDAO;
     private final Random random;
 
     public TestHelper() {
@@ -24,7 +27,29 @@ public class TestHelper {
         this.usuarioDAO = repo.getUsuarioDAO();
         this.operarioDAO = repo.getOperarioDAO();
         this.empresaDAO = repo.getEmpresaDAO();
+        this.clienteDAO = repo.getClienteDAO(); // Inicializar
         this.random = new Random();
+    }
+
+    // ... (omitiendo metodos intermedios no cambiados) ...
+
+    public void generarClientesSimulados(int cantidad, int idEmpresa) {
+        System.out.println("🤖 Generando " + cantidad + " clientes simulados...");
+        for (int i = 0; i < cantidad; i++) {
+            try {
+                Cliente u = new Cliente();
+                String id = String.valueOf(System.currentTimeMillis() + i);
+                u.setNombreCompleto("Cliente Test " + i);
+                u.setEmail("cliente" + id + "@test.com");
+                u.setPasswordHash("pass123");
+                u.setRol(Rol.CLIENTE);
+                u.setDni(id.substring(id.length() - 8) + "C"); // Necesario DNI
+
+                clienteDAO.insertar(u);
+            } catch (DataAccessException e) {
+                System.err.println("   - Error creando cliente test: " + e.getMessage());
+            }
+        }
     }
 
     /**
@@ -32,7 +57,8 @@ public class TestHelper {
      */
     public void limpiarBaseDeDatos() {
         System.out.println("[TEST HELPER] Limpiando base de datos...");
-        String[] tablas = { "mensaje_chat", "factura", "foto_trabajo", "presupuesto", "trabajo", "operario", "usuario",
+        String[] tablas = { "mensaje_chat", "factura", "foto_trabajo", "presupuesto", "trabajo", "cliente", "operario",
+                "usuario",
                 "empresa_especialidad", "empresa" };
 
         try (Connection conn = ConexionDB.getConnection()) {
@@ -58,6 +84,7 @@ public class TestHelper {
                 stmt.execute("SET FOREIGN_KEY_CHECKS=0");
                 for (String tabla : tablas) {
                     try {
+                        System.out.println("   -> Limpiando tabla: " + tabla);
                         stmt.executeUpdate("DELETE FROM " + tabla);
                         stmt.executeUpdate("ALTER TABLE " + tabla + " AUTO_INCREMENT = 1");
                     } catch (Exception e) {
@@ -84,25 +111,6 @@ public class TestHelper {
         emp.getEspecialidades().add(CategoriaServicio.ELECTRICIDAD);
         empresaDAO.insertar(emp);
         return emp;
-    }
-
-    public void generarClientesSimulados(int cantidad, int idEmpresa) {
-        System.out.println("🤖 Generando " + cantidad + " clientes simulados...");
-        for (int i = 0; i < cantidad; i++) {
-            try {
-                Usuario u = new Usuario();
-                String id = String.valueOf(System.currentTimeMillis() + i);
-                u.setNombreCompleto("Cliente Test " + i);
-                u.setEmail("cliente" + id + "@test.com");
-                u.setPasswordHash("pass123");
-                u.setRol(Rol.CLIENTE);
-                u.setIdEmpresa(idEmpresa);
-
-                usuarioDAO.insertar(u);
-            } catch (DataAccessException e) {
-                System.err.println("   - Error creando cliente test: " + e.getMessage());
-            }
-        }
     }
 
     public void generarOperariosSimulados(int cantidad, int idEmpresa) {

@@ -1,5 +1,6 @@
 -- Base de datos para FIXFINDER
 -- Arquitectura Centralizada
+-- REFACTORIZADO: Jerarquía de Usuarios (Usuario -> Operario / Cliente)
 
 DROP DATABASE IF EXISTS fixfinder;
 
@@ -36,16 +37,17 @@ CREATE TABLE empresa_especialidad (
     FOREIGN KEY (id_empresa) REFERENCES empresa (id) ON DELETE CASCADE
 );
 
--- 2. Tabla Base de Usuarios (Herencia para Operarios y Clientes)
+-- 2. Tabla Base de Usuarios (Común para Operarios y Clientes)
 CREATE TABLE usuario (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_empresa INT NOT NULL, -- FK a Empresa
+    -- id_empresa ELIMINADO de aquí (ahora es específico de Operario)
     email VARCHAR(100) NOT NULL,
     password_hash VARCHAR(255) NOT NULL, -- BCrypt
     nombre_completo VARCHAR(100) NOT NULL,
     telefono VARCHAR(20),
     direccion VARCHAR(200),
     url_foto VARCHAR(255),
+    dni VARCHAR(20) UNIQUE, -- MOVIDO aquí (era de Operario, ahora común)
     rol ENUM(
         'ADMIN',
         'GERENTE',
@@ -53,14 +55,13 @@ CREATE TABLE usuario (
         'CLIENTE'
     ) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (email),
-    FOREIGN KEY (id_empresa) REFERENCES empresa (id) ON DELETE CASCADE
+    UNIQUE (email)
 );
 
 -- 3. Tabla Específica de Operarios (Extensión de Usuario)
 CREATE TABLE operario (
     id_usuario INT PRIMARY KEY, -- FK y PK al mismo tiempo (1:1)
-    dni VARCHAR(20) UNIQUE NOT NULL,
+    id_empresa INT NOT NULL, -- MOVIDO aquí (Vinculación laboral)
     especialidad ENUM(
         'FONTANERIA',
         'ELECTRICIDAD',
@@ -80,17 +81,22 @@ CREATE TABLE operario (
     latitud DOUBLE,
     longitud DOUBLE,
     ultima_actualizacion TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id) ON DELETE CASCADE,
+    FOREIGN KEY (id_empresa) REFERENCES empresa (id) ON DELETE CASCADE
+);
+
+-- 4. Tabla Específica de Clientes (Extensión de Usuario)
+CREATE TABLE cliente (
+    id_usuario INT PRIMARY KEY, -- FK y PK al mismo tiempo (1:1)
+    -- Aquí irían campos específicos de cliente si los hubiera
     FOREIGN KEY (id_usuario) REFERENCES usuario (id) ON DELETE CASCADE
 );
 
--- 4. Trabajos / Solicitudes de Servicio (Categoria TABLE ELIMINADA)
-
-
+-- 5. Trabajos / Solicitudes de Servicio
 CREATE TABLE trabajo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
     id_operario INT, -- Puede ser NULL si aún no se ha asignado
-    
     categoria ENUM(
         'FONTANERIA',
         'ELECTRICIDAD',
@@ -102,12 +108,11 @@ CREATE TABLE trabajo (
         'CERRAJERIA',
         'OTROS'
     ) NOT NULL,
-    
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT,
-    direccion VARCHAR(200) NOT NULL,
-    latitud DOUBLE,
-    longitud DOUBLE,
+    direccion VARCHAR(200),
+    ubicacion_lat DOUBLE,
+    ubicacion_lon DOUBLE,
     estado ENUM(
         'PENDIENTE',
         'ASIGNADO',
@@ -117,15 +122,10 @@ CREATE TABLE trabajo (
     ) DEFAULT 'PENDIENTE',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_finalizacion TIMESTAMP,
-
--- Calidad y Feedback
-
-
-valoracion INT DEFAULT 0, -- 1 a 5 estrellas
+    valoracion INT DEFAULT 0, -- 1 a 5 estrellas
     comentario_cliente TEXT,
-
     FOREIGN KEY (id_cliente) REFERENCES usuario (id),
-    FOREIGN KEY (id_operario) REFERENCES operario (id_usuario)
+    FOREIGN KEY (id_operario) REFERENCES usuario (id)
 );
 
 -- Tabla para almacenar las URLs de las fotos de los trabajos
@@ -137,7 +137,7 @@ CREATE TABLE foto_trabajo (
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE
 );
 
--- 5. Presupuestos (NEW)
+-- 6. Presupuestos
 CREATE TABLE presupuesto (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_trabajo INT NOT NULL,
@@ -149,21 +149,21 @@ CREATE TABLE presupuesto (
     FOREIGN KEY (id_empresa) REFERENCES empresa (id)
 );
 
--- 6. Facturas
+-- 7. Facturas
 CREATE TABLE factura (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_trabajo INT UNIQUE NOT NULL, -- 1:1 con Trabajo
-    numero_factura VARCHAR(50) UNIQUE NOT NULL, -- Ej: 2023-0001
+    id_trabajo INT UNIQUE NOT NULL,
+    numero_factura VARCHAR(50) UNIQUE NOT NULL,
     base_imponible DECIMAL(10, 2) NOT NULL,
-    iva DECIMAL(10, 2) NOT NULL, -- Porcentaje o monto, mejor monto calculado
+    iva DECIMAL(10, 2) NOT NULL,
     total DECIMAL(10, 2) NOT NULL,
     fecha_emision TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ruta_pdf VARCHAR(255), -- Ruta local en el servidor
+    ruta_pdf VARCHAR(255),
     pagada BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id)
 );
 
--- 7. Mensajes de Chat (Opcional pero recomendado para Sockets)
+-- 8. Mensajes de Chat
 CREATE TABLE mensaje_chat (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_trabajo INT NOT NULL,
@@ -182,30 +182,46 @@ VALUES (
         'Reparaciones Express S.L.',
         'B12345678'
     );
--- La contraseña sería un hash real en producción
+
+-- Usuario 1 (Admin)
 INSERT INTO
     usuario (
-        id_empresa,
         email,
         password_hash,
         nombre_completo,
-        rol
+        rol,
+        dni
     )
 VALUES (
-        1,
         'admin@express.com',
         'hash123',
         'Admin Sistema',
-        'ADMIN'
-    ),
-    (
-        1,
+        'ADMIN',
+        '00000000A'
+    );
+
+-- Usuario 2 (Operario)
+INSERT INTO
+    usuario (
+        email,
+        password_hash,
+        nombre_completo,
+        rol,
+        dni
+    )
+VALUES (
         'pepe@express.com',
         'hash123',
         'Pepe Gotera',
-        'OPERARIO'
+        'OPERARIO',
+        '12345678Z'
     );
 
+-- Operario asociado
 INSERT INTO
-    operario (id_usuario, dni, especialidad)
-VALUES (2, '12345678Z', 'FONTANERIA');
+    operario (
+        id_usuario,
+        id_empresa,
+        especialidad
+    )
+VALUES (2, 1, 'FONTANERIA');

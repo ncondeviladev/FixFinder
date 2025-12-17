@@ -1,7 +1,6 @@
 package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
-import com.fixfinder.data.interfaces.BaseDAO;
 import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.Rol;
@@ -19,9 +18,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public void insertar(Usuario usuario) throws DataAccessException {
-        String sql = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, id_empresa, telefono, direccion, url_foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // SQL actualizada: dni incuido, id_empresa eliminado
+        String sql = "INSERT INTO usuario (email, password_hash, nombre_completo, rol, telefono, direccion, url_foto, dni) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        // Try-with-resources: Cierra automáticamente PreparedStatement y ResultSet
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -29,17 +28,16 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             stmt.setString(2, usuario.getPasswordHash());
             stmt.setString(3, usuario.getNombreCompleto());
             stmt.setString(4, usuario.getRol().toString());
-            stmt.setInt(5, usuario.getIdEmpresa());
-            stmt.setString(6, usuario.getTelefono());
-            stmt.setString(7, usuario.getDireccion());
-            stmt.setString(8, usuario.getUrlFoto());
+            stmt.setString(5, usuario.getTelefono());
+            stmt.setString(6, usuario.getDireccion());
+            stmt.setString(7, usuario.getUrlFoto());
+            stmt.setString(8, usuario.getDni());
 
             int filasAfectadas = stmt.executeUpdate();
             if (filasAfectadas == 0) {
                 throw new DataAccessException("No se pudo insertar el usuario, ninguna fila afectada.");
             }
 
-            // Recuperar el ID generado automáticamente (AUTO_INCREMENT)
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     usuario.setId(generatedKeys.getInt(1));
@@ -49,14 +47,14 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             }
 
         } catch (SQLException e) {
-            // Elevamos la excepción SQL a nuestra excepción personalizada
             throw new DataAccessException("Error al insertar usuario: " + usuario.getEmail(), e);
         }
     }
 
     @Override
     public void actualizar(Usuario usuario) throws DataAccessException {
-        String sql = "UPDATE usuario SET email = ?, password_hash = ?, nombre_completo = ?, rol = ?, id_empresa = ?, telefono = ?, direccion = ?, url_foto = ? WHERE id = ?";
+        // SQL actualizada
+        String sql = "UPDATE usuario SET email = ?, password_hash = ?, nombre_completo = ?, rol = ?, telefono = ?, direccion = ?, url_foto = ?, dni = ? WHERE id = ?";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -65,10 +63,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             stmt.setString(2, usuario.getPasswordHash());
             stmt.setString(3, usuario.getNombreCompleto());
             stmt.setString(4, usuario.getRol().toString());
-            stmt.setInt(5, usuario.getIdEmpresa());
-            stmt.setString(6, usuario.getTelefono());
-            stmt.setString(7, usuario.getDireccion());
-            stmt.setString(8, usuario.getUrlFoto());
+            stmt.setString(5, usuario.getTelefono());
+            stmt.setString(6, usuario.getDireccion());
+            stmt.setString(7, usuario.getUrlFoto());
+            stmt.setString(8, usuario.getDni());
             stmt.setInt(9, usuario.getId());
 
             stmt.executeUpdate();
@@ -135,7 +133,6 @@ public class UsuarioDAOImpl implements UsuarioDAO {
                 } catch (SQLException e) {
                 }
             }
-            // No cerramos conexión compartida
         }
         return usuario;
     }
@@ -159,14 +156,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return lista;
     }
 
-    /**
-     * Busca un usuario por su email.
-     * Útil para el proceso de login.
-     *
-     * @param email Email del usuario.
-     * @return El objeto Usuario si existe, null en caso contrario.
-     * @throws DataAccessException Si ocurre un error SQL.
-     */
+    @Override
     public Usuario obtenerPorEmail(String email) throws DataAccessException {
         String sql = "SELECT * FROM usuario WHERE email = ?";
         Usuario usuario = null;
@@ -188,30 +178,35 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     /**
-     * Método auxiliar para convertir una fila de la BD en un objeto Usuario.
-     * Evita repetir código en cada consulta.
+     * Mapea un ResultSet a un objeto Usuario (Operario o Cliente).
      */
     private Usuario mapearResultSet(ResultSet rs) throws SQLException {
-        Usuario u = new Usuario();
+        Rol rol;
+        try {
+            rol = Rol.valueOf(rs.getString("rol"));
+        } catch (IllegalArgumentException e) {
+            rol = Rol.CLIENTE; // Default
+        }
+
+        Usuario u;
+        if (rol == Rol.OPERARIO) {
+            u = new com.fixfinder.modelos.Operario();
+        } else {
+            // Cliente, Admin, Gerente, etc. se tratan como Cliente/Usuario genérico por
+            // ahora
+            u = new com.fixfinder.modelos.Cliente();
+        }
+
+        u.setRol(rol);
         u.setId(rs.getInt("id"));
         u.setEmail(rs.getString("email"));
         u.setPasswordHash(rs.getString("password_hash"));
         u.setNombreCompleto(rs.getString("nombre_completo"));
-        u.setIdEmpresa(rs.getInt("id_empresa"));
         u.setTelefono(rs.getString("telefono"));
         u.setDireccion(rs.getString("direccion"));
         u.setUrlFoto(rs.getString("url_foto"));
+        u.setDni(rs.getString("dni"));
 
-        // Convertir String a Enum de forma segura
-        try {
-            u.setRol(Rol.valueOf(rs.getString("rol")));
-        } catch (IllegalArgumentException e) {
-            // Si la BD tiene un rol desconocido, asignamos CLIENTE por defecto o lanzamos
-            // error
-            u.setRol(Rol.CLIENTE);
-        }
-
-        // Convertir Timestamp SQL a LocalDateTime Java
         Timestamp ts = rs.getTimestamp("fecha_registro");
         if (ts != null) {
             u.setFechaRegistro(ts.toLocalDateTime());

@@ -3,7 +3,8 @@ package com.fixfinder.red;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.modelos.Usuario;
-import com.fixfinder.modelos.enums.Rol;
+import com.fixfinder.modelos.Usuario;
+// import com.fixfinder.modelos.enums.Rol; // Eliminated unused import
 import com.fixfinder.service.interfaz.UsuarioService;
 import com.fixfinder.service.impl.UsuarioServiceImpl;
 import com.fixfinder.utilidades.ServiceException;
@@ -105,8 +106,9 @@ public class GestorCliente implements Runnable {
                                 datosUsuario.put("fechaRegistro", usuario.getFechaRegistro().toString());
                             }
 
-                            if (usuario.getRol() != Rol.CLIENTE && usuario.getIdEmpresa() != 0) {
-                                datosUsuario.put("idEmpresa", usuario.getIdEmpresa());
+                            if (usuario instanceof com.fixfinder.modelos.Operario) {
+                                datosUsuario.put("idEmpresa",
+                                        ((com.fixfinder.modelos.Operario) usuario).getIdEmpresa());
                             }
 
                         } catch (ServiceException e) {

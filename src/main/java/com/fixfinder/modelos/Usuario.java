@@ -6,37 +6,36 @@ import java.time.LocalDateTime;
 /**
  * Clase base que representa a cualquier usuario del sistema.
  *
- * Esta clase es utilizada directamente para representar a:
- * - CLIENTES: Usuarios que solicitan servicios.
- * - ADMINS/GERENTES: Usuarios de gestión.
- *
- * Para los técnicos, se utiliza la subclase {@link Operario}.
+ * Contiene los atributos comunes: ID, credenciales, datos personales básicos.
+ * Es extendida por {@link Operario} y {@link Cliente}.
  */
-public class Usuario {
+public abstract class Usuario {
     protected int id;
     protected String nombreCompleto;
     protected String email;
     protected String passwordHash;
-    protected String dni;
     protected String urlFoto;
     protected LocalDateTime fechaRegistro;
     protected String telefono;
     protected String direccion;
+    protected String dni;
+
     /**
      * Rol del usuario en el sistema (ADMIN, GERENTE, OPERARIO, CLIENTE).
      */
     protected Rol rol;
-    protected int idEmpresa;
 
     public Usuario() {
     }
 
-    public Usuario(int id, String email, String passwordHash, Rol rol, int idEmpresa) {
+    // Constructor completo con todos los campos comunes
+    protected Usuario(int id, String email, String passwordHash, Rol rol, String nombreCompleto, String dni) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
         this.rol = rol;
-        this.idEmpresa = idEmpresa;
+        this.nombreCompleto = nombreCompleto;
+        this.dni = dni;
     }
 
     public int getId() {
@@ -69,14 +68,6 @@ public class Usuario {
 
     public void setRol(Rol rol) {
         this.rol = rol;
-    }
-
-    public int getIdEmpresa() {
-        return idEmpresa;
-    }
-
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
     }
 
     public String getNombreCompleto() {
@@ -117,5 +108,13 @@ public class Usuario {
 
     public void setUrlFoto(String urlFoto) {
         this.urlFoto = urlFoto;
+    }
+
+    public String getDni() {
+        return dni;
+    }
+
+    public void setDni(String dni) {
+        this.dni = dni;
     }
 }

@@ -169,8 +169,9 @@ public class TrabajoServiceImpl implements TrabajoService {
 
             return todos.stream()
                     .filter(t -> t.getEstado() == EstadoTrabajo.PENDIENTE)
-                    .filter(t -> idEmpresa == null ||
-                            (t.getCliente() != null && t.getCliente().getIdEmpresa() == idEmpresa.intValue()))
+                    // Filtro de empresa eliminado porque el Cliente ya no pertenece a una empresa.
+                    // Ahora los trabajos pendientes son visibles para todos (Modelo Marketplace)
+                    // .filter(t -> idEmpresa == null || ... )
                     .collect(Collectors.toList());
 
         } catch (DataAccessException e) {

@@ -4,11 +4,17 @@ A continuación se presentan los diagramas de clases del **Modelo de Dominio**, 
 
 ## 1. Diagrama Simplificado (Solo Clases y Relaciones)
 
-Vista de alto nivel para entender las entidades y cómo se relacionan entre sí.
+
+
+![Diagrama Simplificado](diagramaDeClasesSimple.png)
 
 ```mermaid
+---
+config:
+  layout: elk
+  theme: redux-dark
+---
 classDiagram
-    %% CLASES
     class Usuario
     class Operario
     class Empresa
@@ -17,37 +23,21 @@ classDiagram
     class Presupuesto
     class FotoTrabajo
     class Ubicacion
-
-    %% ENUMS
     class Rol { <<enumeration>> }
     class CategoriaServicio { <<enumeration>> }
     class EstadoTrabajo { <<enumeration>> }
-
-    %% RELACIONES
-
-    %% Herencia
     Usuario <|-- Operario : Es un<br/>(Herencia)
-
-    %% Asociaciones Principales
     Empresa "1" --> "1..*" CategoriaServicio : Ofrece<br/>(Asociación)
-
-    %% RELACIÓN USUARIO - EMPRESA AGREGADA
     Usuario "*" --> "0..1" Empresa : Pertenece a<br/>(Asociación)
 
     Trabajo "*" --> "1" Usuario : Solicitado por<br/>(Asociación)
     Trabajo "*" --> "0..1" Operario : Asignado a<br/>(Asociación)
     Trabajo "*" ..> "1" CategoriaServicio : Clasificado como<br/>(Dependencia)
     Trabajo "*" ..> "1" EstadoTrabajo : Tiene estado<br/>(Dependencia)
-
-    %% Composiciones
     Trabajo "1" *-- "0..*" FotoTrabajo : Contiene<br/>(Composición)
     Trabajo "1" *-- "1" Ubicacion : Localizada en<br/>(Composición)
-
-    %% Dependencias de Enums
     Usuario "1" ..> "1" Rol : Tiene rol<br/>(Dependencia)
     Operario "*" ..> "1" CategoriaServicio : Especialidad<br/>(Dependencia)
-
-    %% Documentos
     Factura "0..1" --> "1" Trabajo : Facturación de<br/>(Asociación)
     Presupuesto "0..*" --> "1" Trabajo : Presupuesto para<br/>(Asociación)
     Presupuesto "*" --> "1" Empresa : Emitido por<br/>(Asociación)
@@ -61,19 +51,18 @@ Vista técnica alineada con el código Java, incluyendo atributos completos y to
 classDiagram
     %% --- CLASES ---
     class Usuario {
+        <<Abstract>>
         #int id
         #String nombreCompleto
         #String email
         #String passwordHash
         #Rol rol
-        #int idEmpresa
+        #String dni
         #LocalDateTime fechaRegistro
         #String telefono
         #String direccion
         #String urlFoto
 
-        +Usuario()
-        +Usuario(int id, String email, String passwordHash, Rol rol, int idEmpresa)
         +getId() int
         +setId(int id)
         +getNombreCompleto() String
@@ -84,20 +73,16 @@ classDiagram
         +setPasswordHash(String passwordHash)
         +getRol() Rol
         +setRol(Rol rol)
-        +getIdEmpresa() int
-        +setIdEmpresa(int idEmpresa)
-        +getFechaRegistro() LocalDateTime
-        +setFechaRegistro(LocalDateTime fechaRegistro)
-        +getTelefono() String
-        +setTelefono(String telefono)
-        +getDireccion() String
-        +setDireccion(String direccion)
-        +getUrlFoto() String
-        +setUrlFoto(String urlFoto)
+        +getDni() String
+        +setDni(String dni)
+    }
+
+    class Cliente {
+        +Cliente()
     }
 
     class Operario {
-        -String dni
+        -int idEmpresa
         -CategoriaServicio especialidad
         -boolean estaActivo
         -double latitud
@@ -105,18 +90,12 @@ classDiagram
         -LocalDateTime ultimaActualizacion
 
         +Operario()
-        +getDni() String
-        +setDni(String dni)
+        +getIdEmpresa() int
+        +setIdEmpresa(int idEmpresa)
         +getEspecialidad() CategoriaServicio
         +setEspecialidad(CategoriaServicio especialidad)
         +isEstaActivo() boolean
         +setEstaActivo(boolean estaActivo)
-        +getLatitud() double
-        +setLatitud(double latitud)
-        +getLongitud() double
-        +setLongitud(double longitud)
-        +getUltimaActualizacion() LocalDateTime
-        +setUltimaActualizacion(LocalDateTime ultimaActualizacion)
     }
 
     class Empresa {
@@ -129,24 +108,13 @@ classDiagram
         -String urlFoto
         -List~CategoriaServicio~ especialidades
 
-        +Empresa()
-        +Empresa(int id, String nombre, String cif)
         +getId() int
         +setId(int id)
         +getNombre() String
         +setNombre(String nombre)
         +getCif() String
         +setCif(String cif)
-        +getDireccion() String
-        +setDireccion(String direccion)
-        +getTelefono() String
-        +setTelefono(String telefono)
-        +getEmailContacto() String
-        +setEmailContacto(String emailContacto)
-        +getUrlFoto() String
-        +setUrlFoto(String urlFoto)
         +getEspecialidades() List~CategoriaServicio~
-        +setEspecialidades(List~CategoriaServicio~ especialidades)
     }
 
     class Trabajo {
@@ -165,67 +133,27 @@ classDiagram
         -String comentarioCliente
         -List~FotoTrabajo~ fotos
 
-        +Trabajo()
         +getId() int
         +setId(int id)
         +getCliente() Usuario
         +setCliente(Usuario cliente)
         +getOperarioAsignado() Operario
         +setOperarioAsignado(Operario operarioAsignado)
-        +getCategoria() CategoriaServicio
-        +setCategoria(CategoriaServicio categoria)
-        +getTitulo() String
-        +setTitulo(String titulo)
-        +getDescripcion() String
-        +setDescripcion(String descripcion)
-        +getUbicacion() Ubicacion
-        +setUbicacion(Ubicacion ubicacion)
-        +getDireccion() String
-        +setDireccion(String direccion)
         +getEstado() EstadoTrabajo
         +setEstado(EstadoTrabajo estado)
-        +getFechaCreacion() LocalDateTime
-        +setFechaCreacion(LocalDateTime fechaCreacion)
-        +getFechaFinalizacion() LocalDateTime
-        +setFechaFinalizacion(LocalDateTime fechaFinalizacion)
-        +getValoracion() int
-        +setValoracion(int valoracion)
-        +getComentarioCliente() String
-        +setComentarioCliente(String comentarioCliente)
-        +getFotos() List~FotoTrabajo~
-        +setFotos(List~FotoTrabajo~ fotos)
     }
 
     class Factura {
         -int id
         -Trabajo trabajo
         -String numeroFactura
-        -double baseImponible
-        -double iva
         -double total
         -LocalDateTime fechaEmision
-        -String rutaPdf
         -boolean pagada
 
-        +Factura()
         +getId() int
         +setId(int id)
-        +getTrabajo() Trabajo
-        +setTrabajo(Trabajo trabajo)
-        +getNumeroFactura() String
-        +setNumeroFactura(String numeroFactura)
-        +getBaseImponible() double
-        +setBaseImponible(double baseImponible)
-        +getIva() double
-        +setIva(double iva)
-        +getTotal() double
-        +setTotal(double total)
-        +getFechaEmision() LocalDateTime
-        +setFechaEmision(LocalDateTime fechaEmision)
-        +getRutaPdf() String
-        +setRutaPdf(String rutaPdf)
         +isPagada() boolean
-        +setPagada(boolean pagada)
     }
 
     class Presupuesto {
@@ -235,43 +163,21 @@ classDiagram
         -double monto
         -Date fechaEnvio
 
-        +Presupuesto()
         +getId() int
         +setId(int id)
-        +getTrabajo() Trabajo
-        +setTrabajo(Trabajo trabajo)
-        +getEmpresa() Empresa
-        +setEmpresa(Empresa empresa)
         +getMonto() double
         +setMonto(double monto)
-        +getFechaEnvio() Date
-        +setFechaEnvio(Date fechaEnvio)
     }
 
     class FotoTrabajo {
         -int id
         -int idTrabajo
         -String url
-
-        +FotoTrabajo()
-        +FotoTrabajo(int id, int idTrabajo, String url)
-        +getId() int
-        +setId(int id)
-        +getIdTrabajo() int
-        +setIdTrabajo(int idTrabajo)
-        +getUrl() String
-        +setUrl(String url)
     }
 
     class Ubicacion {
         -double latitud
         -double longitud
-
-        +Ubicacion()
-        +getLatitud() double
-        +setLatitud(double latitud)
-        +getLongitud() double
-        +setLongitud(double longitud)
     }
 
     %% --- ENUMS ---
@@ -289,12 +195,7 @@ classDiagram
         ELECTRICIDAD
         ALBANILERIA
         PINTURA
-        LIMPIEZA
-        CLIMATIZACION
-        CARPINTERIA
-        CERRAJERIA
-        OTROS
-        MULTISERVICIO
+        ETC
     }
 
     class EstadoTrabajo {
@@ -306,34 +207,29 @@ classDiagram
         CANCELADO
     }
 
-    %% --- RELACIONES CON SALTO DE LINEA <br/> ---
+    %% --- RELACIONES ---
 
     %% 1. Herencia (IS-A)
-    Usuario <|-- Operario : Es un<br/>(Herencia)
+    Usuario <|-- Cliente : Es un
+    Usuario <|-- Operario : Es un
 
-    %% 2. Asociaciones y Dependencias
-    %% Empresa
-    Empresa "1" --> "1..*" CategoriaServicio : Ofrece<br/>(Asociación)
-
-    %% RELACIÓN USUARIO - EMPRESA (AÑADIDA)
-    Usuario "*" --> "0..1" Empresa : Pertenece a<br/>(Asociación)
+    %% 2. Asociaciones Clave
+    Operario "*" --> "1" Empresa : Trabaja para
 
     %% Trabajo
-    Trabajo "*" --> "1" Usuario : Solicitado por<br/>(Asociación)
-    Trabajo "*" --> "0..1" Operario : Asignado a<br/>(Asociación)
-    Trabajo "*" ..> "1" CategoriaServicio : Clasificado como<br/>(Dependencia)
-    Trabajo "*" ..> "1" EstadoTrabajo : Tiene estado<br/>(Dependencia)
+    Trabajo "*" --> "1" Cliente : Solicitado por
+    Trabajo "*" --> "0..1" Operario : Asignado a
+    Trabajo "*" ..> "1" EstadoTrabajo : Tiene
 
-    %% Composiciones
-    Trabajo "1" *-- "0..*" FotoTrabajo : Contiene<br/>(Composición)
-    Trabajo "1" *-- "1" Ubicacion : Localizada en<br/>(Composición)
+    %% Documentos
+    Factura "0..1" --> "1" Trabajo : Facturación de
+    Presupuesto "0..*" --> "1" Trabajo : Para
+    Presupuesto "*" --> "1" Empresa : Emitido por
 
-    %% Roles y Especialidades
-    Usuario "1" ..> "1" Rol : Tiene rol<br/>(Dependencia)
-    Operario "*" ..> "1" CategoriaServicio : Especialidad<br/>(Dependencia)
-
-    %% Documentos Financieros
-    Factura "0..1" --> "1" Trabajo : Facturacion de<br/>(Asociación)
-    Presupuesto "0..*" --> "1" Trabajo : Presupuesto para<br/>(Asociación)
-    Presupuesto "*" --> "1" Empresa : Emitido por<br/>(Asociación)
+    %% Otros
+    Empresa "1" --> "*" CategoriaServicio : Ofrece
+    Usuario ..> Rol : Tiene
+    Operario ..> CategoriaServicio : Especialidad
+    Trabajo *-- Ubicacion : Lugar
+    Trabajo *-- FotoTrabajo : Evidencia
 ```
