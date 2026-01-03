@@ -10,35 +10,103 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fixfinder.controladores.DashboardController">
+<BorderPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fixfinder.controladores.DashboardController">
    <top>
       <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #2c3e50; -fx-padding: 15;" BorderPane.alignment="CENTER">
          <children>
-            <Label text="FIXFINDER Dashboard" textFill="WHITE">
+            <Label text="FIXFINDER Tester" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="24.0" />
                </font>
             </Label>
-            <TextField fx:id="txtStatus" editable="false" text="DESCONECTADO" style="-fx-background-color: transparent; -fx-text-fill: red; -fx-font-weight: bold;" />
+            <TextField fx:id="txtStatus" editable="false" style="-fx-background-color: transparent; -fx-text-fill: red; -fx-font-weight: bold;" text="DESCONECTADO" />
             <Button fx:id="btnConectar" mnemonicParsing="false" onAction="#onConectarClick" text="Conectar" />
          </children>
       </HBox>
    </top>
    <center>
-      <VBox spacing="10.0" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
-         <children>
-            <Label text="Log de Comunicaciones">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </Label>
-            <TextArea fx:id="txtLog" editable="false" prefHeight="400.0" prefWidth="200.0" wrapText="true" style="-fx-font-family: 'Consolas'; -fx-control-inner-background: #ecf0f1;" />
-            <HBox spacing="10.0">
-               <children>
-                  <Button fx:id="btnPing" disable="true" mnemonicParsing="false" onAction="#onPingClick" text="Enviar PING" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
+      <javafx.scene.control.TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        <tabs>
+          <!-- Pestaña LOG -->
+          <javafx.scene.control.Tab text="Conexión y Log">
+            <content>
+              <VBox spacing="10.0" style="-fx-padding: 20;">
+                 <children>
+                    <Label text="Log de Comunicaciones">
+                       <font><Font size="18.0" /></font>
+                    </Label>
+                    <TextArea fx:id="txtLog" editable="false" prefHeight="400.0" prefWidth="200.0" style="-fx-font-family: 'Consolas'; -fx-control-inner-background: #ecf0f1;" wrapText="true" />
+                    <HBox spacing="10.0">
+                       <children>
+                          <Button fx:id="btnPing" disable="true" mnemonicParsing="false" onAction="#onPingClick" text="Enviar PING" />
+                          <Button fx:id="btnLimpiarLog" mnemonicParsing="false" onAction="#onLimpiarLogClick" text="Limpiar Log" />
+                       </children>
+                    </HBox>
+                 </children>
+              </VBox>
+            </content>
+          </javafx.scene.control.Tab>
+
+          <!-- Pestaña REGISTRO EMPRESA -->
+          <javafx.scene.control.Tab text="Registro Empresa">
+             <content>
+                <VBox spacing="15.0" style="-fx-padding: 20;">
+                   <children>
+                      <Label text="Datos de la Empresa" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <HBox spacing="10.0">
+                          <TextField fx:id="txtNombreEmpresa" promptText="Nombre Empresa" HBox.hgrow="ALWAYS" />
+                          <TextField fx:id="txtCif" promptText="CIF" prefWidth="150" />
+                      </HBox>
+                      <TextField fx:id="txtEmailEmpresa" promptText="Email Empresa" />
+                      <TextField fx:id="txtDireccionEmpresa" promptText="Dirección" />
+                      
+                      <Label text="Datos del Gerente (Admin)" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <TextField fx:id="txtNombreGerente" promptText="Nombre Completo Gerente" />
+                      <HBox spacing="10.0">
+                          <TextField fx:id="txtEmailGerente" promptText="Email Login Gerente" HBox.hgrow="ALWAYS" />
+                          <javafx.scene.control.PasswordField fx:id="txtPassGerente" promptText="Contraseña" />
+                      </HBox>
+                      <TextField fx:id="txtDniGerente" promptText="DNI Gerente" />
+
+                      <Button fx:id="btnRegEmpresa" onAction="#onRegistrarEmpresaClick" text="Registrar Empresa + Gerente" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                   </children>
+                </VBox>
+             </content>
+          </javafx.scene.control.Tab>
+
+          <!-- Pestaña REGISTRO USUARIOS (CLIENTE / OPERARIO) -->
+          <javafx.scene.control.Tab text="Registro Usuarios">
+             <content>
+                <VBox spacing="15.0" style="-fx-padding: 20;">
+                   <children>
+                      <Label text="Tipo de Usuario" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <HBox spacing="20.0">
+                          <javafx.scene.control.RadioButton fx:id="rbCliente" text="Cliente" selected="true" />
+                          <javafx.scene.control.RadioButton fx:id="rbOperario" text="Operario" />
+                      </HBox>
+                      
+                      <Label text="Datos del Usuario" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <TextField fx:id="txtNombreUsuario" promptText="Nombre Completo" />
+                      <TextField fx:id="txtDniUsuario" promptText="DNI" />
+                      <HBox spacing="10.0">
+                          <TextField fx:id="txtEmailUsuario" promptText="Email Login" HBox.hgrow="ALWAYS" />
+                          <javafx.scene.control.PasswordField fx:id="txtPassUsuario" promptText="Contraseña" />
+                      </HBox>
+                      <TextField fx:id="txtTelefonoUsuario" promptText="Teléfono" />
+                      <TextField fx:id="txtDireccionUsuario" promptText="Dirección" />
+                      
+                      <!-- Campo específico para Operario -->
+                      <HBox alignment="CENTER_LEFT" spacing="10.0" fx:id="boxIdEmpresa" disable="true">
+                          <Label text="ID Empresa (Solo Operarios):" />
+                          <TextField fx:id="txtIdEmpresaOperario" promptText="ID Empresa" prefWidth="100" />
+                      </HBox>
+
+                      <Button fx:id="btnRegUsuario" onAction="#onRegistrarUsuarioClick" text="Registrar Usuario" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                   </children>
+                </VBox>
+             </content>
+          </javafx.scene.control.Tab>
+        </tabs>
+      </javafx.scene.control.TabPane>
    </center>
 </BorderPane>

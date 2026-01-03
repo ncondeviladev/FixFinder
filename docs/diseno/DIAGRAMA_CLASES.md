@@ -5,9 +5,6 @@ A continuación se presentan los diagramas de clases del **Modelo de Dominio**, 
 ## 1. Diagrama Simplificado (Solo Clases y Relaciones)
 
 
-
-![Diagrama Simplificado](diagramaDeClasesSimple.png)
-
 ```mermaid
 ---
 config:
@@ -47,9 +44,14 @@ classDiagram
 
 Vista técnica alineada con el código Java, incluyendo atributos completos y todos los métodos (Constructores, Getters y Setters).
 
+
 ```mermaid
+---
+config:
+  layout: elk
+  theme: redux-dark
+---
 classDiagram
-    %% --- CLASES ---
     class Usuario {
         <<Abstract>>
         #int id
@@ -179,8 +181,6 @@ classDiagram
         -double latitud
         -double longitud
     }
-
-    %% --- ENUMS ---
     class Rol {
         <<enumeration>>
         ADMIN
@@ -206,27 +206,15 @@ classDiagram
         FINALIZADO
         CANCELADO
     }
-
-    %% --- RELACIONES ---
-
-    %% 1. Herencia (IS-A)
     Usuario <|-- Cliente : Es un
     Usuario <|-- Operario : Es un
-
-    %% 2. Asociaciones Clave
     Operario "*" --> "1" Empresa : Trabaja para
-
-    %% Trabajo
     Trabajo "*" --> "1" Cliente : Solicitado por
     Trabajo "*" --> "0..1" Operario : Asignado a
     Trabajo "*" ..> "1" EstadoTrabajo : Tiene
-
-    %% Documentos
     Factura "0..1" --> "1" Trabajo : Facturación de
     Presupuesto "0..*" --> "1" Trabajo : Para
     Presupuesto "*" --> "1" Empresa : Emitido por
-
-    %% Otros
     Empresa "1" --> "*" CategoriaServicio : Ofrece
     Usuario ..> Rol : Tiene
     Operario ..> CategoriaServicio : Especialidad

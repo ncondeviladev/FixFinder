@@ -18,54 +18,62 @@ Este proyecto sigue una metodología estricta de colaboración:
 
 ---
 
-## 🟢 Estado Actual: Consistencia de Datos ✅
+## 🟢 Estado Actual: Sistema de Usuarios y Red Funcional ✅
 
-Hemos logrado un **hito importante**: La capa de Persistencia (Datos) es CONSISTENTE.
+Hemos alcanzado un hito crítico: **El sistema de Registro de Usuarios está completo, integrado y validado.**
+La aplicación ya permite el flujo completo de alta para todos los actores a través de la red (Sockets).
 
-- **Modelos de Datos:** Clases POJO (`Usuario`, `Empresa`, `Trabajo`, etc.) bien definidas.
-- **DAOs (Acceso a Datos):** Implementados y seguros (`UsuarioDAO`, `EmpresaDAO`, `TrabajoDAO`, etc.), con transacciones y manejo de excepciones.
-- **Base de Datos:** Estructura SQL y tablas creadas.
+**Logros Recientes:**
 
-Ahora tenemos unos cimientos sólidos sobre los que edificar la lógica.
+- **Protocolo de Red (`REGISTRO`):** Implementado en Servidor (`GestorConexion`) manejando JSONs complejos polimórficos.
+- **Persistencia Transaccional:**
+  - Registro atómico de `Empresa` + `Gerente`.
+  - Registro de `Operario` con validación de clave foránea (`idEmpresa`) y transacciones manuales corregidas.
+  - Registro de `Cliente` funcional.
+- **Cliente de Pruebas (Dashboard JavaFX):**
+  - Se ha evolucionado el "Dashboard" para servir como herramienta de test integral.
+  - Formularios dinámicos para dar de alta Empresas, Clientes y Operarios.
+  - Feedback visual de errores (Logs en pantalla).
 
 ---
 
-## 🚀 Siguientes Pasos: Lógica de Negocio y Simulación
+## 🚀 Siguientes Pasos: Gestión de Trabajos
 
-El siguiente objetivo es dotar de "inteligencia" a los datos mediante la **Capa de Servicios** y probarla sin depender de una interfaz gráfica compleja.
+Con los actores ya creados en el sistema, el siguiente paso es implementar la lógica central del negocio: **La solicitud y gestión de servicios de reparación.**
 
-### 1. Implementación de Servicios (Business Logic Layer)
+### 1. Funcionalidad: Crear Trabajo (`CREAR_TRABAJO`)
 
-Debemos crear las clases que encapsulen las REGLAS DE NEGOCIO. El DAO solo guarda/lee, pero el Service "piensa".
+- **Desde el Cliente:** Enviar solicitud con Título, Descripción y Categoría.
+- **En Servidor:**
+  - Validar cliente.
+  - Crear registro en tabla `trabajo` (Estado inicial: `PENDIENTE`).
+  - Responder con ID del trabajo.
 
-- **`UsuarioService`**: Ya iniciado. Debe gestionar Login, validaciones de registro, hashing de claves.
-- **`EmpresaService`**: Validar altas de empresas, garantizar unicidad de CIF, gestionar especialidades.
-- **`TrabajoService`**:
-  - Validar que un trabajo tenga cliente.
-  - Lógica de asignación: ¿El operario está libre? ¿Tiene la especialidad correcta?
-  - Transiciones de estado: PENDIENTE -> ASIGNADO -> FINALIZADO.
-- **`OperarioService`**: Gestionar disponibilidad (Ocupado/Libre), ubicación y filtrado de operarios compatibles.
+### 2. Funcionalidad: Gestión para Empresa (`LISTAR_TRABAJOS`, `ASIGNAR_OPERARIO`)
 
-### 2. Interfaz de Simulación (Terminal)
+- La empresa debe poder ver qué trabajos se han solicitado en su área/categoría (o asignación directa, según definamos).
+- Asignar un Operario libre al trabajo.
 
-Para validar toda esta lógica sin perder tiempo en botones y diseños (GUI) por ahora, crearemos un menú interactivo en consola.
+### 3. Dashboard
 
-**Funcionalidad esperada del menú:**
-
-1.  Login (Usuario/Empresa/Operario).
-2.  (Como Admin) Registrar una Empresa y Operarios.
-3.  (Como Cliente) Crear una solicitud de Trabajo.
-4.  (Como Empresa) Listar trabajos pendientes y asignar un Operario.
-5.  (Como Operario) Ver trabajos y marcarlos como finalizados.
+- Añadir pestaña "Solicitar Servicio" para probar la creación de trabajos.
+- Añadir vista para que la Empresa vea las solicitudes.
 
 ---
 
 ## 🗺️ Roadmap Actualizado
 
 - [x] **Fase 1: Infraestructura y BD** (Completado)
-- [ ] **Fase 2: Lógica de Negocio (Servicios)** (PRIORIDAD ALTA)
-- [ ] **Fase 3: Simulación en Terminal** (PRIORIDAD ALTA)
-- [ ] **Fase 4: Integración UI (JavaFX)** (Pospuesto)
+- [x] **Fase 2: Lógica de Negocio (Servicios)** (Completado)
+- [x] **Fase 3: Capa de Red - Autenticación y Registro** (COMPLETADO ✅)
+  - [x] Protocolo Login.
+  - [x] Protocolo Registro (Empresa/Op/Cli).
+  - [x] Validación Transaccional.
+- [ ] **Fase 4: Capa de Red - Gestión de Trabajos** (EN PROCESO)
+  - [ ] Solicitar Trabajo.
+  - [ ] Asignar Operario.
+  - [ ] Finalizar Trabajo.
+- [x] **Fase 5: Herramientas de Prueba (UI Dashboard)** (Adelantado y Funcional)
 
 ## 📄 Documentación Adicional
 

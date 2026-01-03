@@ -51,7 +51,7 @@ public class ServidorCentral {
                     // 3. Crear el Runnable (GestorCliente)
                     // Le pasamos el socket para que hable con el cliente y el semáforo para que
                     // avise al salir.
-                    GestorCliente gestor = new GestorCliente(socketCliente, semaforo);
+                    GestorConexion gestor = new GestorConexion(socketCliente, semaforo);
 
                     // 4. Lanzar el Hilo manualmente (Requisito académico)
                     // Creamos un nuevo hilo de ejecución para que el servidor pueda volver a

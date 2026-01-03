@@ -19,6 +19,4 @@ public class Cliente extends Usuario {
         super(id, email, passwordHash, rol, nombreCompleto, dni);
     }
 
-    // Aquí se añadirían getters y setters específicos de Cliente si los hubiera en
-    // el futuro
 }

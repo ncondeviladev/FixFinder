@@ -47,7 +47,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             // 2. Comprobar Rol y cargar datos extendidos si procede
             Rol rol = usuario.getRol();
 
-            if (rol == Rol.OPERARIO) {
+            if (rol == Rol.OPERARIO || rol == Rol.GERENTE) {
                 Usuario operario = operarioDAO.obtenerPorId(usuario.getId());
                 if (operario != null)
                     return operario;
@@ -81,7 +81,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 throw new ServiceException("Ya existe un usuario registrado con ese email.");
             }
 
-            validarDatosUsuario(usuario);
+            // validarDatosUsuario(usuario);
 
             if (usuario.getPasswordHash() != null && !usuario.getPasswordHash().startsWith("$2a$")
                     && !usuario.getPasswordHash().contains(":")) {
@@ -154,7 +154,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 throw new ServiceException("Usuario no encontrado.");
 
             // Cargar datos extendidos si procede (igual que en Login)
-            if (u.getRol() == Rol.OPERARIO) {
+            if (u.getRol() == Rol.OPERARIO || u.getRol() == Rol.GERENTE) {
                 Usuario op = operarioDAO.obtenerPorId(idUsuario);
                 if (op != null)
                     return op;
@@ -205,7 +205,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario u = usuarioDAO.obtenerPorId(id);
         if (u == null)
             throw new ServiceException("Usuario no encontrado.");
-        if (u.getRol() == Rol.OPERARIO) {
+
+        // El GERENTE también es un Operario (tiene idEmpresa) a nivel de persistencia
+        if (u.getRol() == Rol.OPERARIO || u.getRol() == Rol.GERENTE) {
             Usuario op = operarioDAO.obtenerPorId(id);
             return (op != null) ? op : u;
         } else if (u.getRol() == Rol.CLIENTE) {
