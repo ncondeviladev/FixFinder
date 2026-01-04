@@ -139,7 +139,10 @@
                    <children>
                       <Label text="Nueva Solicitud de Reparación" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
                       
-                      <Label text="Describe el problema:" />
+                      <Label text="Título de la avería:" />
+                      <TextField fx:id="txtTituloTrabajo" promptText="Ej: Grifo roto en cocina" />
+
+                      <Label text="Descripción detallada:" />
                       <TextArea fx:id="txtDescripcionTrabajo" prefHeight="100.0" promptText="Ej: El grifo de la cocina pierde agua..." wrapText="true" />
                       
                       <Label text="Dirección (Dejar vacío para usar la de tu perfil):" />
@@ -148,12 +151,12 @@
                       <HBox spacing="20.0" alignment="CENTER_LEFT">
                           <VBox spacing="5.0">
                               <Label text="Categoría:" />
-                              <javafx.scene.control.ComboBox fx:id="comboCategoria" prefWidth="150.0" promptText="Selecciona..." />
+                              <javafx.scene.control.ComboBox fx:id="comboCategoria" prefWidth="250.0" promptText="Selecciona categoría..." />
                           </VBox>
                           
                           <VBox spacing="5.0">
-                              <Label text="Urgencia (1=Baja, 3=Urgente):" />
-                              <javafx.scene.control.Slider fx:id="sliderUrgencia" blockIncrement="1.0" majorTickUnit="1.0" max="3.0" min="1.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" prefWidth="200.0"/>
+                              <Label text="Nivel de Urgencia:" />
+                              <javafx.scene.control.ComboBox fx:id="comboUrgencia" prefWidth="150.0" promptText="Normal" />
                           </VBox>
                       </HBox>
 

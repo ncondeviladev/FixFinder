@@ -96,13 +96,15 @@ public class DashboardController {
 
     // Campos Crear Trabajo
     @FXML
+    private TextField txtTituloTrabajo;
+    @FXML
     private TextArea txtDescripcionTrabajo;
     @FXML
     private TextField txtDireccionTrabajo;
     @FXML
     private javafx.scene.control.ComboBox<String> comboCategoria;
     @FXML
-    private javafx.scene.control.Slider sliderUrgencia;
+    private javafx.scene.control.ComboBox<String> comboUrgencia;
     @FXML
     private Button btnCrearTrabajo;
     @FXML
@@ -128,6 +130,12 @@ public class DashboardController {
             comboCategoria.getItems().addAll("FONTANERIA", "ELECTRICIDAD", "ALBAÑILERIA", "CARPINTERIA", "PINTURA",
                     "LIMPIEZA", "OTROS");
             comboCategoria.getSelectionModel().selectFirst();
+        }
+
+        // Inicializar ComboBox Urgencia (Visual)
+        if (comboUrgencia != null) {
+            comboUrgencia.getItems().addAll("Normal", "Prioridad", "Urgente");
+            comboUrgencia.getSelectionModel().selectFirst();
         }
 
         // Listener para habilitar/deshabilitar campo ID Empresa
@@ -234,9 +242,19 @@ public class DashboardController {
 
         ObjectNode datos = mapper.createObjectNode();
         datos.put("idCliente", usuarioLogueadoId);
+        datos.put("titulo", txtTituloTrabajo.getText());
         datos.put("descripcion", txtDescripcionTrabajo.getText());
         datos.put("direccion", txtDireccionTrabajo.getText());
-        datos.put("urgencia", (int) sliderUrgencia.getValue());
+
+        // Convertir selección visual a entero (1=Normal, 2=Prioridad, 3=Urgente)
+        int nivelUrgencia = 1;
+        String seleccion = comboUrgencia.getValue();
+        if ("Prioridad".equals(seleccion))
+            nivelUrgencia = 2;
+        if ("Urgente".equals(seleccion))
+            nivelUrgencia = 3;
+        datos.put("urgencia", nivelUrgencia);
+
         datos.put("categoria", comboCategoria.getValue());
 
         enviarJson("CREAR_TRABAJO", datos);
@@ -364,6 +382,7 @@ public class DashboardController {
                 lblStatusTrabajo.setText(mensaje + " ✅");
                 lblStatusTrabajo.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
                 // Limpiar campos
+                txtTituloTrabajo.clear();
                 txtDescripcionTrabajo.clear();
                 txtDireccionTrabajo.clear();
             } else if (status >= 400 && usuarioLogueadoId != null && !mensaje.contains("login")

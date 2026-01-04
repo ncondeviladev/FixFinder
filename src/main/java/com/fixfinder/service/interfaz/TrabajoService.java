@@ -21,7 +21,8 @@ public interface TrabajoService {
      * @return El trabajo creado con estado PENDIENTE.
      * @throws ServiceException Error al crear.
      */
-    Trabajo solicitarReparacion(Integer idCliente, CategoriaServicio categoria, String descripcion, String direccion,
+    Trabajo solicitarReparacion(Integer idCliente, String titulo, CategoriaServicio categoria, String descripcion,
+            String direccion,
             int urgencia)
             throws ServiceException;
 

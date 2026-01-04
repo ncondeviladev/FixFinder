@@ -31,7 +31,8 @@ public class TrabajoServiceImpl implements TrabajoService {
     }
 
     @Override
-    public Trabajo solicitarReparacion(Integer idCliente, CategoriaServicio categoria, String descripcion,
+    public Trabajo solicitarReparacion(Integer idCliente, String titulo, CategoriaServicio categoria,
+            String descripcion,
             String direccion, int urgencia)
             throws ServiceException {
         try {
@@ -47,7 +48,22 @@ public class TrabajoServiceImpl implements TrabajoService {
             Trabajo trabajo = new Trabajo();
             trabajo.setCliente(cliente);
             trabajo.setCategoria(categoria != null ? categoria : CategoriaServicio.OTROS);
-            trabajo.setTitulo(descripcion.length() > 20 ? descripcion.substring(0, 20) + "..." : descripcion);
+
+            // Título: Usar el recibido o generarlo si está vacío/nulo
+            if (titulo == null || titulo.trim().isEmpty()) {
+                String tituloBase = descripcion;
+                // Intentar limpiar tags si el usuario no dio título pero sí descripción con tag
+                if (descripcion.startsWith("[URGENTE") || descripcion.startsWith("[PRIORIDAD")) {
+                    int finTag = descripcion.indexOf("] ");
+                    if (finTag != -1) {
+                        tituloBase = descripcion.substring(finTag + 2);
+                    }
+                }
+                trabajo.setTitulo(tituloBase.length() > 20 ? tituloBase.substring(0, 20) + "..." : tituloBase);
+            } else {
+                trabajo.setTitulo(titulo);
+            }
+
             trabajo.setDescripcion(descripcion);
             trabajo.setDireccion(direccion != null && !direccion.isEmpty() ? direccion : "Sin dirección especificada");
             trabajo.setEstado(EstadoTrabajo.PENDIENTE);

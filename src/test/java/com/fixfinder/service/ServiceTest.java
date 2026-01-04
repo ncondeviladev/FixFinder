@@ -257,6 +257,7 @@ public class ServiceTest {
         // 1. Solicitar
         Trabajo t = trabajoService.solicitarReparacion(
                 idUsuarioRegistrado,
+                "Título Test " + UUID.randomUUID(),
                 CategoriaServicio.FONTANERIA,
                 "Fuga de agua " + UUID.randomUUID(),
                 "Casa de Juan",
@@ -318,7 +319,8 @@ public class ServiceTest {
                 idUsuarioRegistrado = u.getId();
             }
 
-            Trabajo tPresu = trabajoService.solicitarReparacion(idUsuarioRegistrado, CategoriaServicio.FONTANERIA,
+            Trabajo tPresu = trabajoService.solicitarReparacion(idUsuarioRegistrado, "Título Finanzas",
+                    CategoriaServicio.FONTANERIA,
                     "Enchufe roto " + UUID.randomUUID(), "Salon", 1);
 
             assertNotNull(tPresu, "El trabajo creado para presupuesto no debe ser nulo");
