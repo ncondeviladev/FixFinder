@@ -47,6 +47,30 @@
             </content>
           </javafx.scene.control.Tab>
 
+
+          <!-- Pestaña LOGIN -->
+          <javafx.scene.control.Tab text="Login">
+             <content>
+                <VBox spacing="15.0" style="-fx-padding: 20;">
+                   <children>
+                      <Label text="Iniciar Sesión" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <TextField fx:id="txtLoginEmail" promptText="Email" />
+                      <javafx.scene.control.PasswordField fx:id="txtLoginPassword" promptText="Contraseña" />
+                      
+                      <Button fx:id="btnLogin" onAction="#onLoginClick" text="Iniciar Sesión" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                      
+                      <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-background-color: #ecf0f1; -fx-padding: 10;">
+                          <Label text="Sesión Actual:" style="-fx-font-weight: bold;" />
+                          <Label fx:id="lblUsuarioLogueado" text="Ninguna" textFill="#7f8c8d" />
+                          <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+                          <Button fx:id="btnLogout" text="Cerrar Sesión" onAction="#onLogoutClick" disable="true" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 10px;" />
+                      </HBox>
+                      <Label fx:id="lblStatusLogin" text="" wrapText="true" style="-fx-font-weight: bold;"/>
+                   </children>
+                </VBox>
+             </content>
+          </javafx.scene.control.Tab>
+
           <!-- Pestaña REGISTRO EMPRESA -->
           <javafx.scene.control.Tab text="Registro Empresa">
              <content>
@@ -69,6 +93,7 @@
                       <TextField fx:id="txtDniGerente" promptText="DNI Gerente" />
 
                       <Button fx:id="btnRegEmpresa" onAction="#onRegistrarEmpresaClick" text="Registrar Empresa + Gerente" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                      <Label fx:id="lblStatusEmpresa" text="" wrapText="true" style="-fx-font-weight: bold;"/>
                    </children>
                 </VBox>
              </content>
@@ -102,10 +127,43 @@
                       </HBox>
 
                       <Button fx:id="btnRegUsuario" onAction="#onRegistrarUsuarioClick" text="Registrar Usuario" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                      <Label fx:id="lblStatusUsuario" text="" wrapText="true" style="-fx-font-weight: bold;"/>
                    </children>
                 </VBox>
              </content>
           </javafx.scene.control.Tab>
+          <!-- Pestaña SOLICITAR SERVICIO (Crear Trabajo) -->
+          <javafx.scene.control.Tab text="Solicitar Servicio">
+             <content>
+                <VBox spacing="15.0" style="-fx-padding: 20;">
+                   <children>
+                      <Label text="Nueva Solicitud de Reparación" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      
+                      <Label text="Describe el problema:" />
+                      <TextArea fx:id="txtDescripcionTrabajo" prefHeight="100.0" promptText="Ej: El grifo de la cocina pierde agua..." wrapText="true" />
+                      
+                      <Label text="Dirección (Dejar vacío para usar la de tu perfil):" />
+                      <TextField fx:id="txtDireccionTrabajo" promptText="Dirección de la avería" />
+                      
+                      <HBox spacing="20.0" alignment="CENTER_LEFT">
+                          <VBox spacing="5.0">
+                              <Label text="Categoría:" />
+                              <javafx.scene.control.ComboBox fx:id="comboCategoria" prefWidth="150.0" promptText="Selecciona..." />
+                          </VBox>
+                          
+                          <VBox spacing="5.0">
+                              <Label text="Urgencia (1=Baja, 3=Urgente):" />
+                              <javafx.scene.control.Slider fx:id="sliderUrgencia" blockIncrement="1.0" majorTickUnit="1.0" max="3.0" min="1.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="1.0" prefWidth="200.0"/>
+                          </VBox>
+                      </HBox>
+
+                      <Button fx:id="btnCrearTrabajo" onAction="#onCrearTrabajoClick" text="Solicitar Reparación" disable="true" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
+                      <Label fx:id="lblStatusTrabajo" text="Debes iniciar sesión para solicitar servicios" style="-fx-text-fill: gray;" wrapText="true"/>
+                   </children>
+                </VBox>
+             </content>
+          </javafx.scene.control.Tab>
+
         </tabs>
       </javafx.scene.control.TabPane>
    </center>

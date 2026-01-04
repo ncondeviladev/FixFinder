@@ -129,9 +129,8 @@ public class GestorConexion implements Runnable {
                                 datosUsuario.put("fechaRegistro", usuario.getFechaRegistro().toString());
                             }
 
-                            if (usuario instanceof com.fixfinder.modelos.Operario) {
-                                datosUsuario.put("idEmpresa",
-                                        ((com.fixfinder.modelos.Operario) usuario).getIdEmpresa());
+                            if (usuario instanceof Operario) {
+                                datosUsuario.put("idEmpresa", ((Operario) usuario).getIdEmpresa());
                             }
 
                         } catch (ServiceException e) {
@@ -185,7 +184,9 @@ public class GestorConexion implements Runnable {
                                         datos.has("nombreGerente") ? datos.get("nombreGerente").asText() : "");
                                 gerente.setEmail(datos.has("emailGerente") ? datos.get("emailGerente").asText() : "");
                                 gerente.setPasswordHash(
-                                        datos.has("passwordGerente") ? datos.get("passwordGerente").asText() : "");
+                                        datos.has("password") ? datos.get("password").asText()
+                                                : (datos.has("passwordGerente") ? datos.get("passwordGerente").asText()
+                                                        : ""));
                                 gerente.setDni(datos.has("dniGerente") ? datos.get("dniGerente").asText() : "");
                                 gerente.setTelefono(
                                         datos.has("telefonoGerente") ? datos.get("telefonoGerente").asText() : "");
@@ -294,6 +295,58 @@ public class GestorConexion implements Runnable {
                             respuesta.put("status", 400);
                             respuesta.put("mensaje", "Faltan datos registro");
                         }
+                    }
+                    break;
+
+                case "CREAR_TRABAJO":
+                    if (datos != null) {
+                        try {
+                            // 1. Validaciones básicas
+                            if (!datos.has("idCliente"))
+                                throw new ServiceException("Falta ID Cliente");
+                            if (!datos.has("descripcion"))
+                                throw new ServiceException("Falta descripción");
+
+                            // 2. Extraer datos
+                            int idCliente = datos.get("idCliente").asInt();
+                            String descripcion = datos.get("descripcion").asText();
+                            String direccion = datos.has("direccion") ? datos.get("direccion").asText() : "";
+                            int urgencia = datos.has("urgencia") ? datos.get("urgencia").asInt() : 1;
+
+                            // 3. Convertir Categoría
+                            CategoriaServicio categoria = CategoriaServicio.OTROS;
+                            if (datos.has("categoria")) {
+                                try {
+                                    categoria = CategoriaServicio
+                                            .valueOf(datos.get("categoria").asText().toUpperCase());
+                                } catch (IllegalArgumentException e) {
+                                    categoria = CategoriaServicio.OTROS;
+                                }
+                            }
+
+                            // 4. Llamar al servicio
+                            // Nota: TrabajoServiceImpl ya se encarga de asignar fecha y estado inicial
+                            // (PENDIENTE)
+                            var nuevoTrabajo = trabajoService.solicitarReparacion(idCliente, categoria, descripcion,
+                                    direccion, urgencia);
+
+                            // 5. Respuesta
+                            respuesta.put("status", 201);
+                            respuesta.put("mensaje", "Trabajo creado correctamente");
+                            ObjectNode datosTrabajo = respuesta.putObject("datos");
+                            datosTrabajo.put("id", nuevoTrabajo.getId());
+
+                        } catch (ServiceException e) {
+                            respuesta.put("status", 400);
+                            respuesta.put("mensaje", "Error validación: " + e.getMessage());
+                        } catch (Exception e) {
+                            respuesta.put("status", 500);
+                            respuesta.put("mensaje", "Error servidor: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    } else {
+                        respuesta.put("status", 400);
+                        respuesta.put("mensaje", "Faltan datos para CREAR_TRABAJO");
                     }
                     break;
 

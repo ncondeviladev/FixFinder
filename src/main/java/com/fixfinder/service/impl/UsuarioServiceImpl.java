@@ -37,11 +37,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             Usuario usuario = usuarioDAO.obtenerPorEmail(email);
 
             if (usuario == null) {
-                throw new ServiceException("Credenciales inválidas.");
+                throw new ServiceException("No se encuentra al usuario.");
             }
 
             if (!GestorPassword.verificarPassword(password, usuario.getPasswordHash())) {
-                throw new ServiceException("Credenciales inválidas.");
+                throw new ServiceException("Contraseña incorrecta.");
             }
 
             // 2. Comprobar Rol y cargar datos extendidos si procede
@@ -81,7 +81,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 throw new ServiceException("Ya existe un usuario registrado con ese email.");
             }
 
-            // validarDatosUsuario(usuario);
+            validarDatosUsuario(usuario);
 
             if (usuario.getPasswordHash() != null && !usuario.getPasswordHash().startsWith("$2a$")
                     && !usuario.getPasswordHash().contains(":")) {

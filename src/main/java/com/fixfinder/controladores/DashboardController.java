@@ -1,8 +1,14 @@
 package com.fixfinder.controladores;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.cliente.ClienteSocket;
+import javafx.scene.control.Label;
+
+import com.fixfinder.utilidades.ClienteException;
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -44,6 +50,8 @@ public class DashboardController {
     private TextField txtDniGerente;
     @FXML
     private Button btnRegEmpresa;
+    @FXML
+    private Label lblStatusEmpresa;
 
     // Campos Registro Usuario Generico (Cli/Op)
     @FXML
@@ -69,6 +77,40 @@ public class DashboardController {
     private TextField txtIdEmpresaOperario;
     @FXML
     private Button btnRegUsuario;
+    @FXML
+    private Label lblStatusUsuario;
+
+    // Campos Login
+    @FXML
+    private TextField txtLoginEmail;
+    @FXML
+    private PasswordField txtLoginPassword;
+    @FXML
+    private Button btnLogin;
+    @FXML
+    private Button btnLogout;
+    @FXML
+    private Label lblUsuarioLogueado;
+    @FXML
+    private Label lblStatusLogin;
+
+    // Campos Crear Trabajo
+    @FXML
+    private TextArea txtDescripcionTrabajo;
+    @FXML
+    private TextField txtDireccionTrabajo;
+    @FXML
+    private javafx.scene.control.ComboBox<String> comboCategoria;
+    @FXML
+    private javafx.scene.control.Slider sliderUrgencia;
+    @FXML
+    private Button btnCrearTrabajo;
+    @FXML
+    private Label lblStatusTrabajo;
+    // Variables de estado para guardar la sesión en memoria
+    private Integer usuarioLogueadoId = null;
+    private String usuarioLogueadoNombre = null;
+    private String usuarioLogueadoRol = null;
 
     private ClienteSocket cliente;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -80,6 +122,13 @@ public class DashboardController {
         // Configurar RadioButtons
         rbCliente.setToggleGroup(tipoUsuarioGroup);
         rbOperario.setToggleGroup(tipoUsuarioGroup);
+
+        // Inicializar ComboBox Categorias
+        if (comboCategoria != null) {
+            comboCategoria.getItems().addAll("FONTANERIA", "ELECTRICIDAD", "ALBAÑILERIA", "CARPINTERIA", "PINTURA",
+                    "LIMPIEZA", "OTROS");
+            comboCategoria.getSelectionModel().selectFirst();
+        }
 
         // Listener para habilitar/deshabilitar campo ID Empresa
         tipoUsuarioGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
@@ -93,9 +142,15 @@ public class DashboardController {
 
         cliente.setOnMensajeRecibido(json -> {
             Platform.runLater(() -> {
-                log("📩 Servidor: " + json);
+                try {
+                    procesarRespuesta(json);
+                } catch (ClienteException e) {
+                    log("❌ Error crítico: " + e.getMessage());
+                    // Aquí en el futuro mostraremos un Alert(Error);
+                }
             });
         });
+
     }
 
     @FXML
@@ -136,6 +191,55 @@ public class DashboardController {
     @FXML
     private void onLimpiarLogClick() {
         txtLog.clear();
+    }
+
+    @FXML
+    private void onLoginClick() {
+        lblStatusLogin.setText("Conectando...");
+        lblStatusLogin.setStyle("-fx-text-fill: gray;");
+
+        ObjectNode datos = mapper.createObjectNode();
+
+        datos.put("email", txtLoginEmail.getText());
+        datos.put("password", txtLoginPassword.getText());
+        enviarJson("LOGIN", datos);
+    }
+
+    @FXML
+    private void onLogoutClick() {
+        usuarioLogueadoId = null;
+        usuarioLogueadoNombre = null;
+        usuarioLogueadoRol = null;
+
+        lblUsuarioLogueado.setText("Ninguna");
+        lblUsuarioLogueado.setStyle("-fx-text-fill: #7f8c8d;");
+
+        lblStatusLogin.setText("");
+        btnLogin.setDisable(false);
+        btnLogout.setDisable(true);
+
+        // Deshabilitar Crear Trabajo
+        btnCrearTrabajo.setDisable(true);
+        lblStatusTrabajo.setText("Debes iniciar sesión para solicitar servicios");
+
+        log("🔒 Sesión cerrada localmente.");
+    }
+
+    @FXML
+    private void onCrearTrabajoClick() {
+        if (usuarioLogueadoId == null) {
+            log("⚠️ Error: No hay usuario logueado.");
+            return;
+        }
+
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("idCliente", usuarioLogueadoId);
+        datos.put("descripcion", txtDescripcionTrabajo.getText());
+        datos.put("direccion", txtDireccionTrabajo.getText());
+        datos.put("urgencia", (int) sliderUrgencia.getValue());
+        datos.put("categoria", comboCategoria.getValue());
+
+        enviarJson("CREAR_TRABAJO", datos);
     }
 
     @FXML
@@ -189,6 +293,94 @@ public class DashboardController {
             log("📤 Enviado (" + accion + "): " + (datos != null ? datos.toString() : "null"));
         } catch (IOException e) {
             log("Error enviando: " + e.getMessage());
+        }
+    }
+
+    private void procesarRespuesta(String json) {
+        try {
+            JsonNode datos = mapper.readTree(json);
+
+            int status = datos.has("status") ? datos.get("status").asInt() : 0;
+            String mensaje = datos.has("mensaje") ? datos.get("mensaje").asText() : "";
+
+            // 1. GESTIÓN DE LOGIN
+            if (status == 200) {
+                if (datos.has("datos") && datos.get("datos").has("id") && datos.get("datos").has("rol")) {
+                    JsonNode datosUsuario = datos.get("datos");
+                    usuarioLogueadoId = datosUsuario.get("id").asInt();
+                    usuarioLogueadoNombre = datosUsuario.has("nombreCompleto")
+                            ? datosUsuario.get("nombreCompleto").asText()
+                            : "Usuario Desconocido";
+                    usuarioLogueadoRol = datosUsuario.get("rol").asText();
+
+                    lblUsuarioLogueado.setText(
+                            usuarioLogueadoNombre + " (" + usuarioLogueadoRol + ") - ID: " + usuarioLogueadoId);
+                    lblUsuarioLogueado.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+
+                    // Limpiar errores previos
+                    lblStatusLogin.setText("Login Correcto ✅");
+                    lblStatusLogin.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+
+                    // Activar Logout / Desactivar Login
+                    btnLogin.setDisable(true);
+                    btnLogout.setDisable(false);
+
+                    // Habilitar Crear Trabajo si es CLIENTE
+                    if ("CLIENTE".equalsIgnoreCase(usuarioLogueadoRol)) {
+                        btnCrearTrabajo.setDisable(false);
+                        lblStatusTrabajo.setText("Listo para solicitar servicios como " + usuarioLogueadoNombre);
+                        lblStatusTrabajo.setStyle("-fx-text-fill: green;");
+                    } else {
+                        lblStatusTrabajo.setText(
+                                "Solo los CLIENTES pueden solicitar servicios (Eres " + usuarioLogueadoRol + ")");
+                        lblStatusTrabajo.setStyle("-fx-text-fill: orange;");
+                    }
+
+                    log("✅ Sesión iniciada correctamente.");
+                }
+            } else if (status == 401 || mensaje.toLowerCase().contains("credenciales")
+                    || mensaje.toLowerCase().contains("login")) {
+                // Error específico de Login o Autenticación
+                lblStatusLogin.setText(mensaje + " ❌");
+                lblStatusLogin.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+                btnLogin.setDisable(false);
+            }
+
+            // 2. GESTIÓN DE FEEDBACK REGISTROS
+            String colorStyle = (status >= 200 && status < 300) ? "-fx-text-fill: green;" : "-fx-text-fill: red;";
+
+            if (mensaje.contains("Empresa")) {
+                lblStatusEmpresa.setText(mensaje + (status >= 200 && status < 300 ? " ✅" : " ❌"));
+                lblStatusEmpresa.setStyle(colorStyle + " -fx-font-weight: bold;");
+            }
+
+            if (mensaje.contains("Operario") || mensaje.contains("Cliente") || mensaje.contains("usuario")) {
+                lblStatusUsuario.setText(mensaje + (status >= 200 && status < 300 ? " ✅" : " ❌"));
+                lblStatusUsuario.setStyle(colorStyle + " -fx-font-weight: bold;");
+            }
+
+            // 4. FEEDBACK CREAR TRABAJO
+            if (mensaje.contains("Trabajo creado")) {
+                lblStatusTrabajo.setText(mensaje + " ✅");
+                lblStatusTrabajo.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+                // Limpiar campos
+                txtDescripcionTrabajo.clear();
+                txtDireccionTrabajo.clear();
+            } else if (status >= 400 && usuarioLogueadoId != null && !mensaje.contains("login")
+                    && !mensaje.contains("Empresa") && !mensaje.contains("Cliente")) {
+                // Si hay error y estamos logueados, asumimos que puede ser de aquí
+                lblStatusTrabajo.setText("Error: " + mensaje);
+                lblStatusTrabajo.setStyle("-fx-text-fill: red;");
+            }
+
+            // 3. LOG ERRORES GENÉRICOS
+            if (status >= 400) {
+                log("⚠️ Servidor reporta error (" + status + "): " + mensaje);
+            }
+        } catch (JsonProcessingException e) {
+            throw new ClienteException("Error de formato en el JSON recibido", e);
+        } catch (Exception e) {
+            throw new ClienteException("Error inesperado procesando la respuesta", e);
         }
     }
 

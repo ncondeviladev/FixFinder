@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
+import com.fixfinder.data.DataRepositoryImpl; // Importar para probar conexión
 
 /**
  * Servidor Central de Sockets.
@@ -31,6 +32,10 @@ public class ServidorCentral {
 
     public void iniciar() {
         System.out.println("🚀 Iniciando Servidor FIXFINDER en puerto " + PUERTO + "...");
+
+        // Esperar a que la Base de Datos esté lista (Docker)
+        esperarBaseDeDatos();
+
         System.out.println("ℹ️ Máximo de conexiones simultáneas: " + MAX_CONEXIONES);
 
         try (ServerSocket serverSocket = new ServerSocket(PUERTO)) {
@@ -68,6 +73,33 @@ public class ServidorCentral {
 
         } catch (IOException e) {
             System.err.println("🔥 Error crítico en el servidor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Intenta conectar a la BBDD repetidamente hasta tener éxito.
+     * Útil cuando Docker está arrancando.
+     */
+    private void esperarBaseDeDatos() {
+        boolean conectada = false;
+        System.out.println("⏳ Verificando conexión a Base de Datos...");
+        while (!conectada) {
+            try {
+                // Intentamos instanciar el repositorio.
+                // Si la BBDD no responde, esto suele fallar al intentar obtener conexión en el
+                // constructor o pool.
+                new DataRepositoryImpl();
+                conectada = true;
+                System.out.println("✅ Base de Datos ONLINE.");
+            } catch (Exception e) {
+                System.out.println("⚠️ BBDD no disponible aún (" + e.getMessage() + "). Reintentando en 3s...");
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return; // Salir si interrumpen el hilo principal
+                }
+            }
         }
     }
 
