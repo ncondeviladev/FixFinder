@@ -38,7 +38,8 @@ public class OperarioDAOImpl implements OperarioDAO {
                 stmtUser.setString(1, operario.getEmail());
                 stmtUser.setString(2, operario.getPasswordHash());
                 stmtUser.setString(3, operario.getNombreCompleto());
-                stmtUser.setString(4, Rol.OPERARIO.toString());
+                stmtUser.setString(4,
+                        operario.getRol() != null ? operario.getRol().toString() : Rol.OPERARIO.toString());
                 stmtUser.setString(5, operario.getDni()); // DNI va a usuario ahora
 
                 int filas = stmtUser.executeUpdate();
@@ -230,7 +231,11 @@ public class OperarioDAOImpl implements OperarioDAO {
         o.setPasswordHash(rs.getString("password_hash"));
         o.setNombreCompleto(rs.getString("nombre_completo"));
         o.setDni(rs.getString("dni")); // Ahora viene de usuario
-        o.setRol(Rol.OPERARIO);
+        try {
+            o.setRol(Rol.valueOf(rs.getString("rol")));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            o.setRol(Rol.OPERARIO);
+        }
 
         Timestamp ts = rs.getTimestamp("fecha_registro");
         if (ts != null)

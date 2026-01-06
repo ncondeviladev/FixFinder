@@ -2,6 +2,8 @@ package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.interfaces.UsuarioDAO;
+import com.fixfinder.modelos.Operario;
+import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.Rol;
 import com.fixfinder.utilidades.DataAccessException;
@@ -189,14 +191,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         }
 
         Usuario u;
-        if (rol == Rol.OPERARIO) {
-            u = new com.fixfinder.modelos.Operario();
+        if (rol == Rol.OPERARIO || rol == Rol.GERENTE) {
+            u = new Operario();
         } else {
-            // Cliente, Admin, Gerente, etc. se tratan como Cliente/Usuario genérico por
-            // ahora
+            // Cliente, Admin, etc. se tratan como Cliente/Usuario genérico
             u = new com.fixfinder.modelos.Cliente();
         }
-
         u.setRol(rol);
         u.setId(rs.getInt("id"));
         u.setEmail(rs.getString("email"));

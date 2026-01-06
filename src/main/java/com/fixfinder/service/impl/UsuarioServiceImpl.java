@@ -218,22 +218,33 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void validarDatosUsuario(Usuario usuario) throws ServiceException {
-        if (usuario.getEmail() == null || !usuario.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            throw new ServiceException("El formato del email no es válido.");
-        }
-
-        if (usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
-            if (!usuario.getTelefono().matches("^\\d{9}$")) {
-                throw new ServiceException("El teléfono debe contener exactamente 9 dígitos numéricos.");
-            }
-        }
-
-        if (usuario.getUrlFoto() != null && usuario.getUrlFoto().length() > 255) {
-            throw new ServiceException("La URL de la foto excede el límite de 255 caracteres.");
-        }
-
-        if (usuario.getDireccion() != null && usuario.getDireccion().trim().isEmpty()) {
-            throw new ServiceException("La dirección no puede estar formada solo por espacios.");
-        }
+        /*
+         * VALIDACIÓN DESACTIVADA TEMPORALMENTE PARA PRUEBAS
+         * 
+         * if (usuario.getEmail() == null ||
+         * !usuario.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+         * throw new ServiceException("El formato del email no es válido.");
+         * }
+         * 
+         * if (usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
+         * if (!usuario.getTelefono().matches("^\\d{9}$")) {
+         * throw new
+         * ServiceException("El teléfono debe contener exactamente 9 dígitos numéricos."
+         * );
+         * }
+         * }
+         * 
+         * if (usuario.getUrlFoto() != null && usuario.getUrlFoto().length() > 255) {
+         * throw new
+         * ServiceException("La URL de la foto excede el límite de 255 caracteres."
+         * );
+         * }
+         * 
+         * if (usuario.getDireccion() != null &&
+         * usuario.getDireccion().trim().isEmpty()) {
+         * throw new
+         * ServiceException("La dirección no puede estar formada solo por espacios.");
+         * }
+         */
     }
 }

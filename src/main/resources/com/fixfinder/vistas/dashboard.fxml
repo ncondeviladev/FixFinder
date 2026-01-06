@@ -9,6 +9,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fixfinder.controladores.DashboardController">
    <top>
@@ -25,10 +33,10 @@
       </HBox>
    </top>
    <center>
-      <javafx.scene.control.TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+      <TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
           <!-- Pestaña LOG -->
-          <javafx.scene.control.Tab text="Conexión y Log">
+          <Tab text="Conexión y Log">
             <content>
               <VBox spacing="10.0" style="-fx-padding: 20;">
                  <children>
@@ -45,34 +53,34 @@
                  </children>
               </VBox>
             </content>
-          </javafx.scene.control.Tab>
+          </Tab>
 
 
           <!-- Pestaña LOGIN -->
-          <javafx.scene.control.Tab text="Login">
+          <Tab text="Login">
              <content>
                 <VBox spacing="15.0" style="-fx-padding: 20;">
                    <children>
                       <Label text="Iniciar Sesión" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
                       <TextField fx:id="txtLoginEmail" promptText="Email" />
-                      <javafx.scene.control.PasswordField fx:id="txtLoginPassword" promptText="Contraseña" />
+                      <PasswordField fx:id="txtLoginPassword" promptText="Contraseña" />
                       
                       <Button fx:id="btnLogin" onAction="#onLoginClick" text="Iniciar Sesión" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;" />
                       
                       <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-background-color: #ecf0f1; -fx-padding: 10;">
                           <Label text="Sesión Actual:" style="-fx-font-weight: bold;" />
                           <Label fx:id="lblUsuarioLogueado" text="Ninguna" textFill="#7f8c8d" />
-                          <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+                          <Region HBox.hgrow="ALWAYS" />
                           <Button fx:id="btnLogout" text="Cerrar Sesión" onAction="#onLogoutClick" disable="true" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 10px;" />
                       </HBox>
                       <Label fx:id="lblStatusLogin" text="" wrapText="true" style="-fx-font-weight: bold;"/>
                    </children>
                 </VBox>
              </content>
-          </javafx.scene.control.Tab>
+          </Tab>
 
           <!-- Pestaña REGISTRO EMPRESA -->
-          <javafx.scene.control.Tab text="Registro Empresa">
+          <Tab text="Registro Empresa">
              <content>
                 <VBox spacing="15.0" style="-fx-padding: 20;">
                    <children>
@@ -88,7 +96,7 @@
                       <TextField fx:id="txtNombreGerente" promptText="Nombre Completo Gerente" />
                       <HBox spacing="10.0">
                           <TextField fx:id="txtEmailGerente" promptText="Email Login Gerente" HBox.hgrow="ALWAYS" />
-                          <javafx.scene.control.PasswordField fx:id="txtPassGerente" promptText="Contraseña" />
+                          <PasswordField fx:id="txtPassGerente" promptText="Contraseña" />
                       </HBox>
                       <TextField fx:id="txtDniGerente" promptText="DNI Gerente" />
 
@@ -97,17 +105,17 @@
                    </children>
                 </VBox>
              </content>
-          </javafx.scene.control.Tab>
+          </Tab>
 
           <!-- Pestaña REGISTRO USUARIOS (CLIENTE / OPERARIO) -->
-          <javafx.scene.control.Tab text="Registro Usuarios">
+          <Tab text="Registro Usuarios">
              <content>
                 <VBox spacing="15.0" style="-fx-padding: 20;">
                    <children>
                       <Label text="Tipo de Usuario" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
                       <HBox spacing="20.0">
-                          <javafx.scene.control.RadioButton fx:id="rbCliente" text="Cliente" selected="true" />
-                          <javafx.scene.control.RadioButton fx:id="rbOperario" text="Operario" />
+                          <RadioButton fx:id="rbCliente" text="Cliente" selected="true" />
+                          <RadioButton fx:id="rbOperario" text="Operario" />
                       </HBox>
                       
                       <Label text="Datos del Usuario" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
@@ -115,7 +123,7 @@
                       <TextField fx:id="txtDniUsuario" promptText="DNI" />
                       <HBox spacing="10.0">
                           <TextField fx:id="txtEmailUsuario" promptText="Email Login" HBox.hgrow="ALWAYS" />
-                          <javafx.scene.control.PasswordField fx:id="txtPassUsuario" promptText="Contraseña" />
+                          <PasswordField fx:id="txtPassUsuario" promptText="Contraseña" />
                       </HBox>
                       <TextField fx:id="txtTelefonoUsuario" promptText="Teléfono" />
                       <TextField fx:id="txtDireccionUsuario" promptText="Dirección" />
@@ -131,9 +139,9 @@
                    </children>
                 </VBox>
              </content>
-          </javafx.scene.control.Tab>
+          </Tab>
           <!-- Pestaña SOLICITAR SERVICIO (Crear Trabajo) -->
-          <javafx.scene.control.Tab text="Solicitar Servicio">
+          <Tab text="Solicitar Servicio">
              <content>
                 <VBox spacing="15.0" style="-fx-padding: 20;">
                    <children>
@@ -151,12 +159,12 @@
                       <HBox spacing="20.0" alignment="CENTER_LEFT">
                           <VBox spacing="5.0">
                               <Label text="Categoría:" />
-                              <javafx.scene.control.ComboBox fx:id="comboCategoria" prefWidth="250.0" promptText="Selecciona categoría..." />
+                              <ComboBox fx:id="comboCategoria" prefWidth="250.0" promptText="Selecciona categoría..." />
                           </VBox>
                           
                           <VBox spacing="5.0">
                               <Label text="Nivel de Urgencia:" />
-                              <javafx.scene.control.ComboBox fx:id="comboUrgencia" prefWidth="150.0" promptText="Normal" />
+                              <ComboBox fx:id="comboUrgencia" prefWidth="150.0" promptText="Normal" />
                           </VBox>
                       </HBox>
 
@@ -165,9 +173,31 @@
                    </children>
                 </VBox>
              </content>
-          </javafx.scene.control.Tab>
+          </Tab>
+
+          <!-- Pestaña MIS TRABAJOS -->
+          <Tab text="Mis Trabajos">
+             <content>
+                <VBox spacing="10.0" style="-fx-padding: 20;">
+                   <children>
+                      <Label text="Historial de Solicitudes" underline="true"><font><Font name="System Bold" size="14.0" /></font></Label>
+                      <Button fx:id="btnRefrescarTrabajos" onAction="#onRefrescarTrabajosClick" text="Refrescar Lista" />
+                      <TableView fx:id="tablaTrabajos" VBox.vgrow="ALWAYS">
+                          <columns>
+                              <TableColumn fx:id="colIdTrabajo" text="ID" prefWidth="50" />
+                              <TableColumn fx:id="colTituloTrabajo" text="Título" prefWidth="200" />
+                              <TableColumn fx:id="colClienteTrabajo" text="Cliente" prefWidth="150" visible="false" />
+                              <TableColumn fx:id="colOperarioTrabajo" text="Operario" prefWidth="150" visible="false" />
+                              <TableColumn fx:id="colEstadoTrabajo" text="Estado" prefWidth="100" />
+                              <TableColumn fx:id="colFechaTrabajo" text="Fecha" prefWidth="150" />
+                          </columns>
+                      </TableView>
+                   </children>
+                </VBox>
+             </content>
+          </Tab>
 
         </tabs>
-      </javafx.scene.control.TabPane>
+      </TabPane>
    </center>
 </BorderPane>

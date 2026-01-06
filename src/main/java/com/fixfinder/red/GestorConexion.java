@@ -6,19 +6,17 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.red.procesadores.ProcesadorAutenticacion;
 import com.fixfinder.red.procesadores.ProcesadorTrabajos;
 import com.fixfinder.service.impl.EmpresaServiceImpl;
+import com.fixfinder.service.impl.PresupuestoServiceImpl;
 import com.fixfinder.service.impl.TrabajoServiceImpl;
 import com.fixfinder.service.impl.UsuarioServiceImpl;
 import com.fixfinder.service.interfaz.EmpresaService;
+import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.service.interfaz.TrabajoService;
 import com.fixfinder.service.interfaz.UsuarioService;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
@@ -37,6 +35,7 @@ public class GestorConexion implements Runnable {
     private final UsuarioService usuarioService;
     private final TrabajoService trabajoService;
     private final EmpresaService empresaService;
+    private final PresupuestoService presupuestoService;
 
     // Procesadores Delegados
     private final ProcesadorAutenticacion procesadorAutenticacion;
@@ -51,10 +50,11 @@ public class GestorConexion implements Runnable {
         this.usuarioService = new UsuarioServiceImpl();
         this.trabajoService = new TrabajoServiceImpl();
         this.empresaService = new EmpresaServiceImpl();
+        this.presupuestoService = new PresupuestoServiceImpl();
 
         // Inicializamos procesadores delegados
         this.procesadorAutenticacion = new ProcesadorAutenticacion(usuarioService, empresaService);
-        this.procesadorTrabajos = new ProcesadorTrabajos(trabajoService);
+        this.procesadorTrabajos = new ProcesadorTrabajos(trabajoService, usuarioService, presupuestoService);
     }
 
     @Override
@@ -92,6 +92,10 @@ public class GestorConexion implements Runnable {
 
                             case "CREAR_TRABAJO":
                                 procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
+                                break;
+
+                            case "LISTAR_TRABAJOS":
+                                procesadorTrabajos.procesarListarTrabajos(datos, respuesta);
                                 break;
 
                             case "PING":

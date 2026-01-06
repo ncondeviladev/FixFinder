@@ -219,4 +219,13 @@ public class TrabajoServiceImpl implements TrabajoService {
             throw new ServiceException("Error al obtener historial del operario.", e);
         }
     }
+
+    @Override
+    public List<Trabajo> listarTodos() throws ServiceException {
+        try {
+            return trabajoDAO.obtenerTodos();
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al listar todos los trabajos.", e);
+        }
+    }
 }

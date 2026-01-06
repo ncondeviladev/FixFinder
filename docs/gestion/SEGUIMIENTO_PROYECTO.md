@@ -69,11 +69,49 @@ Con los actores ya creados en el sistema, el siguiente paso es implementar la l�
   - [x] Protocolo Login.
   - [x] Protocolo Registro (Empresa/Op/Cli).
   - [x] Validación Transaccional.
-- [ ] **Fase 4: Capa de Red - Gestión de Trabajos** (EN PROCESO)
-  - [ ] Solicitar Trabajo.
+- [x] **Fase 4: Capa de Red - Gestión de Trabajos** (EN PROCESO)
+  - [x] Solicitar Trabajo (`CREAR_TRABAJO`).
+  - [x] Listar Trabajos (`LISTAR_TRABAJOS`) con vista por roles.
+  - [ ] Filtrado Negocio Empresa (Privacidad).
+  - [ ] Detalle de Trabajo (UI).
   - [ ] Asignar Operario.
   - [ ] Finalizar Trabajo.
 - [x] **Fase 5: Herramientas de Prueba (UI Dashboard)** (Adelantado y Funcional)
+  - [x] Pestaña Registro.
+  - [x] Pestaña Login.
+  - [x] Pestaña Solicitar Servicio.
+  - [x] Pestaña Mis Trabajos (Tabla dinámica).
+
+---
+
+## 📝 Estado Detallado y Pendientes (Sesión Actual)
+
+### ✅ Completado
+
+1.  **Refactorización del Dashboard:**
+    - Limpieza de nombres de clase FXML y adición de imports para corregir `LoadException`.
+    - Modularización de la lógica de red en `ServicioCliente.java` y `RespuestaServidor.java`.
+2.  **Gestión de Trabajos (Básico):**
+    - Implementación del protocolo `CREAR_TRABAJO` con título y descripción.
+    - Implementación de `LISTAR_TRABAJOS`.
+3.  **Corrección de Bugs Críticos:**
+    - **Rol Gerente:** Se corrigió un error grave en `OperarioDAO` y `UsuarioDAO` donde el rol `GERENTE` se guardaba y leía hardcodeado como `OPERARIO`. Ahora el sistema distingue correctamente y permite al Gerente ver todos los trabajos.
+
+### ⏳ Pendiente (Próxima Prioridad)
+
+**1. Lógica de Negocio y Privacidad (Empresas)**
+El Gerente actualmente ve _todos_ los trabajos. Se debe refinar esta lógica para garantizar la privacidad y flujo correcto entre competencias:
+
+- **Regla de Visibilidad:**
+  - Un Gerente debe ver **Trabajos PENDIENTES** (Mercado libre, disponibles para coger).
+  - Un Gerente debe ver **Trabajos ASIGNADOS** a operarios de **SU** propia empresa.
+  - Un Gerente **NO** debe ver trabajos ya aceptados/asignados por **OTRAS** empresas.
+- **Implementación:** Requiere filtro en backend (Service/DAO) comparando `idEmpresa` del operario asignado.
+
+**2. Mejoras UI (Tabla de Trabajos)**
+
+- La tabla actual es básica. Se necesita ver todos los detalles del trabajo (descripción completa, dirección, datos extendidos del cliente/operario).
+- **Solución propuesta:** Implementar evento de selección o **Doble Clic** en la tabla para abrir una ventana emergente (Popup/Alert) con la ficha completa del trabajo.
 
 ## 📄 Documentación Adicional
 

@@ -68,3 +68,11 @@ task runSchemaUpdater(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.fixfinder.utilidades.SchemaUpdater'
 }
+
+task runSeeder(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Data Seeder for Testing'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.pruebas.PruebaIntegracion'
+    standardInput = System.in
+}

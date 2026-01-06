@@ -88,4 +88,12 @@ public interface TrabajoService {
      * @throws ServiceException Error de acceso.
      */
     List<Trabajo> historialOperario(Integer idOperario) throws ServiceException;
+
+    /**
+     * Lista TODOS los trabajos del sistema (Vista Admin/Gerente).
+     * 
+     * @return Lista completa de trabajos.
+     * @throws ServiceException Error de acceso.
+     */
+    List<Trabajo> listarTodos() throws ServiceException;
 }

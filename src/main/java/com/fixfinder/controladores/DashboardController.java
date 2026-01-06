@@ -1,23 +1,22 @@
 package com.fixfinder.controladores;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fixfinder.cliente.ClienteSocket;
-import javafx.scene.control.Label;
-
+import com.fixfinder.cliente.ServicioCliente;
+import com.fixfinder.cliente.RespuestaServidor;
 import com.fixfinder.utilidades.ClienteException;
 import java.io.IOException;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 
 public class DashboardController {
@@ -109,21 +108,41 @@ public class DashboardController {
     private Button btnCrearTrabajo;
     @FXML
     private Label lblStatusTrabajo;
+
+    // CAMPOS TABLA TRABAJOS
+    @FXML
+    private Button btnRefrescarTrabajos;
+    @FXML
+    private TableView<TrabajoModelo> tablaTrabajos;
+    @FXML
+    private TableColumn<TrabajoModelo, Integer> colIdTrabajo;
+    @FXML
+    private TableColumn<TrabajoModelo, String> colTituloTrabajo;
+    @FXML
+    private TableColumn<TrabajoModelo, String> colClienteTrabajo;
+    @FXML
+    private TableColumn<TrabajoModelo, String> colOperarioTrabajo;
+    @FXML
+    private TableColumn<TrabajoModelo, String> colEstadoTrabajo;
+    @FXML
+    private TableColumn<TrabajoModelo, String> colFechaTrabajo;
+
     // Variables de estado para guardar la sesión en memoria
     private Integer usuarioLogueadoId = null;
     private String usuarioLogueadoNombre = null;
     private String usuarioLogueadoRol = null;
 
-    private ClienteSocket cliente;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private ServicioCliente servicio;
     private final ToggleGroup tipoUsuarioGroup = new ToggleGroup();
 
     public void initialize() {
-        cliente = new ClienteSocket();
+        servicio = new ServicioCliente();
 
         // Configurar RadioButtons
-        rbCliente.setToggleGroup(tipoUsuarioGroup);
-        rbOperario.setToggleGroup(tipoUsuarioGroup);
+        if (rbCliente != null && rbOperario != null) {
+            rbCliente.setToggleGroup(tipoUsuarioGroup);
+            rbOperario.setToggleGroup(tipoUsuarioGroup);
+        }
 
         // Inicializar ComboBox Categorias
         if (comboCategoria != null) {
@@ -138,6 +157,16 @@ public class DashboardController {
             comboUrgencia.getSelectionModel().selectFirst();
         }
 
+        // Configurar Tabla Trabajos
+        if (tablaTrabajos != null) {
+            colIdTrabajo.setCellValueFactory(new PropertyValueFactory<>("id"));
+            colTituloTrabajo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
+            colClienteTrabajo.setCellValueFactory(new PropertyValueFactory<>("nombreCliente"));
+            colOperarioTrabajo.setCellValueFactory(new PropertyValueFactory<>("nombreOperario"));
+            colEstadoTrabajo.setCellValueFactory(new PropertyValueFactory<>("estado"));
+            colFechaTrabajo.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+        }
+
         // Listener para habilitar/deshabilitar campo ID Empresa
         tipoUsuarioGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean esOperario = rbOperario.isSelected();
@@ -148,14 +177,9 @@ public class DashboardController {
         toggleBotones(true);
         btnConectar.setDisable(false);
 
-        cliente.setOnMensajeRecibido(json -> {
+        servicio.setOnMensajeRecibido(json -> {
             Platform.runLater(() -> {
-                try {
-                    procesarRespuesta(json);
-                } catch (ClienteException e) {
-                    log("❌ Error crítico: " + e.getMessage());
-                    // Aquí en el futuro mostraremos un Alert(Error);
-                }
+                procesarRespuesta(json);
             });
         });
 
@@ -164,24 +188,24 @@ public class DashboardController {
     @FXML
     private void onConectarClick() {
         try {
-            if (!cliente.isConectado()) {
-                log("⏳ Conectando...");
-                cliente.conectar("localhost", 5000);
+            if (!servicio.isConectado()) {
+                log("Conectando...");
+                servicio.conectar("localhost", 5000);
                 txtStatus.setText("CONECTADO");
                 txtStatus.setStyle("-fx-text-fill: green;");
                 btnConectar.setText("Desconectar");
                 toggleBotones(false); // Habilitar
-                log("✅ Conexión establecida.");
+                log("Conexión establecida.");
             } else {
-                cliente.desconectar();
+                servicio.desconectar();
                 txtStatus.setText("DESCONECTADO");
                 txtStatus.setStyle("-fx-text-fill: red;");
                 btnConectar.setText("Conectar");
                 toggleBotones(true); // Deshabilitar
-                log("❌ Desconectado.");
+                log("Desconectado.");
             }
         } catch (IOException e) {
-            log("🔥 Error de conexión: " + e.getMessage());
+            log("Error de conexión: " + e.getMessage());
         }
     }
 
@@ -193,7 +217,12 @@ public class DashboardController {
 
     @FXML
     private void onPingClick() {
-        enviarJson("PING", mapper.createObjectNode()); // Datos vacíos
+        try {
+            servicio.enviarPing();
+            log("Enviado PING");
+        } catch (IOException e) {
+            log("Error enviando PING: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -206,11 +235,12 @@ public class DashboardController {
         lblStatusLogin.setText("Conectando...");
         lblStatusLogin.setStyle("-fx-text-fill: gray;");
 
-        ObjectNode datos = mapper.createObjectNode();
-
-        datos.put("email", txtLoginEmail.getText());
-        datos.put("password", txtLoginPassword.getText());
-        enviarJson("LOGIN", datos);
+        try {
+            servicio.enviarLogin(txtLoginEmail.getText(), txtLoginPassword.getText());
+            log("Enviado LOGIN");
+        } catch (IOException e) {
+            log("Error LOGIN: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -230,113 +260,120 @@ public class DashboardController {
         btnCrearTrabajo.setDisable(true);
         lblStatusTrabajo.setText("Debes iniciar sesión para solicitar servicios");
 
-        log("🔒 Sesión cerrada localmente.");
+        log("Sesión cerrada localmente.");
     }
 
     @FXML
     private void onCrearTrabajoClick() {
         if (usuarioLogueadoId == null) {
-            log("⚠️ Error: No hay usuario logueado.");
+            log("Error: No hay usuario logueado.");
             return;
         }
 
-        ObjectNode datos = mapper.createObjectNode();
-        datos.put("idCliente", usuarioLogueadoId);
-        datos.put("titulo", txtTituloTrabajo.getText());
-        datos.put("descripcion", txtDescripcionTrabajo.getText());
-        datos.put("direccion", txtDireccionTrabajo.getText());
-
-        // Convertir selección visual a entero (1=Normal, 2=Prioridad, 3=Urgente)
+        // Convertir selección visual a entero
         int nivelUrgencia = 1;
         String seleccion = comboUrgencia.getValue();
         if ("Prioridad".equals(seleccion))
             nivelUrgencia = 2;
         if ("Urgente".equals(seleccion))
             nivelUrgencia = 3;
-        datos.put("urgencia", nivelUrgencia);
 
-        datos.put("categoria", comboCategoria.getValue());
-
-        enviarJson("CREAR_TRABAJO", datos);
+        try {
+            servicio.enviarCrearTrabajo(
+                    usuarioLogueadoId,
+                    txtTituloTrabajo.getText(),
+                    txtDescripcionTrabajo.getText(),
+                    txtDireccionTrabajo.getText(),
+                    nivelUrgencia,
+                    comboCategoria.getValue());
+            log("Enviado CREAR_TRABAJO");
+        } catch (IOException e) {
+            log("Error CREAR_TRABAJO: " + e.getMessage());
+        }
     }
 
     @FXML
     private void onRegistrarEmpresaClick() {
-        ObjectNode datos = mapper.createObjectNode();
-        datos.put("tipo", "EMPRESA");
-        datos.put("nombreEmpresa", txtNombreEmpresa.getText());
-        datos.put("cif", txtCif.getText());
-        datos.put("emailEmpresa", txtEmailEmpresa.getText());
-        datos.put("direccion", txtDireccionEmpresa.getText());
-
-        // Datos Gerente
-        datos.put("nombreGerente", txtNombreGerente.getText());
-        datos.put("emailGerente", txtEmailGerente.getText());
-        datos.put("password", txtPassGerente.getText());
-        datos.put("dniGerente", txtDniGerente.getText());
-
-        enviarJson("REGISTRO", datos);
+        try {
+            servicio.enviarRegistroEmpresa(
+                    txtNombreEmpresa.getText(),
+                    txtCif.getText(),
+                    txtEmailEmpresa.getText(),
+                    txtDireccionEmpresa.getText(),
+                    txtNombreGerente.getText(),
+                    txtEmailGerente.getText(),
+                    txtPassGerente.getText(),
+                    txtDniGerente.getText());
+            log("Enviado REGISTRO EMPRESA");
+        } catch (IOException e) {
+            log("Error REGISTRO: " + e.getMessage());
+        }
     }
 
     @FXML
     private void onRegistrarUsuarioClick() {
-        ObjectNode datos = mapper.createObjectNode();
-
         boolean esOperario = rbOperario.isSelected();
-        datos.put("tipo", esOperario ? "OPERARIO" : "CLIENTE"); // Tipo dinámico
-
-        // Mapeo de campos comunes a los nombres que espera el servidor
-        if (esOperario) {
-            datos.put("nombreOperario", txtNombreUsuario.getText());
-            datos.put("dniOperario", txtDniUsuario.getText());
-            datos.put("emailOperario", txtEmailUsuario.getText());
-            datos.put("passwordOperario", txtPassUsuario.getText());
-            datos.put("telefonoOperario", txtTelefonoUsuario.getText());
-            datos.put("idEmpresa", txtIdEmpresaOperario.getText()); // Clave para operario
-        } else {
-            datos.put("nombre", txtNombreUsuario.getText());
-            datos.put("dni", txtDniUsuario.getText());
-            datos.put("email", txtEmailUsuario.getText());
-            datos.put("password", txtPassUsuario.getText());
-            datos.put("telefono", txtTelefonoUsuario.getText());
-            datos.put("direccion", txtDireccionUsuario.getText());
+        try {
+            servicio.enviarRegistroUsuario(
+                    esOperario,
+                    txtNombreUsuario.getText(),
+                    txtDniUsuario.getText(),
+                    txtEmailUsuario.getText(),
+                    txtPassUsuario.getText(),
+                    txtTelefonoUsuario.getText(),
+                    txtDireccionUsuario.getText(),
+                    txtIdEmpresaOperario.getText());
+            log("Enviado REGISTRO USUARIO (" + (esOperario ? "OP" : "CLI") + ")");
+        } catch (IOException e) {
+            log("Error REGISTRO: " + e.getMessage());
         }
-
-        enviarJson("REGISTRO", datos);
     }
 
-    private void enviarJson(String accion, ObjectNode datos) {
+    @FXML
+    private void onRefrescarTrabajosClick() {
+        if (usuarioLogueadoId == null) {
+            log("Debes iniciar sesión para ver tus trabajos.");
+            return;
+        }
+
+        // Configurar columnas según Rol
+        boolean verCliente = !"CLIENTE".equalsIgnoreCase(usuarioLogueadoRol);
+        boolean verOperario = "GERENTE".equalsIgnoreCase(usuarioLogueadoRol);
+
+        colClienteTrabajo.setVisible(verCliente);
+        colOperarioTrabajo.setVisible(verOperario);
+
         try {
-            cliente.enviar(accion, datos);
-            log("📤 Enviado (" + accion + "): " + (datos != null ? datos.toString() : "null"));
+            servicio.solicitarListaTrabajos(usuarioLogueadoId, usuarioLogueadoRol);
+            log("Enviada solicitud de LISTAR_TRABAJOS...");
         } catch (IOException e) {
-            log("Error enviando: " + e.getMessage());
+            log("Error al solicitar lista: " + e.getMessage());
         }
     }
 
     private void procesarRespuesta(String json) {
         try {
-            JsonNode datos = mapper.readTree(json);
+            // Usar el servicio para parsear la respuesta
+            RespuestaServidor respuesta = servicio.interpretarRespuesta(json);
 
-            int status = datos.has("status") ? datos.get("status").asInt() : 0;
-            String mensaje = datos.has("mensaje") ? datos.get("mensaje").asText() : "";
+            int status = respuesta.getStatus();
+            String mensaje = respuesta.getMensaje();
+            JsonNode datos = respuesta.getDatos();
 
             // 1. GESTIÓN DE LOGIN
-            if (status == 200) {
-                if (datos.has("datos") && datos.get("datos").has("id") && datos.get("datos").has("rol")) {
-                    JsonNode datosUsuario = datos.get("datos");
-                    usuarioLogueadoId = datosUsuario.get("id").asInt();
-                    usuarioLogueadoNombre = datosUsuario.has("nombreCompleto")
-                            ? datosUsuario.get("nombreCompleto").asText()
+            if (respuesta.esExito()) {
+                if (datos != null && datos.has("id") && datos.has("rol")) {
+                    usuarioLogueadoId = datos.get("id").asInt();
+                    usuarioLogueadoNombre = datos.has("nombreCompleto")
+                            ? datos.get("nombreCompleto").asText()
                             : "Usuario Desconocido";
-                    usuarioLogueadoRol = datosUsuario.get("rol").asText();
+                    usuarioLogueadoRol = datos.get("rol").asText();
 
                     lblUsuarioLogueado.setText(
                             usuarioLogueadoNombre + " (" + usuarioLogueadoRol + ") - ID: " + usuarioLogueadoId);
                     lblUsuarioLogueado.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
 
-                    // Limpiar errores previos
-                    lblStatusLogin.setText("Login Correcto ✅");
+                    lblStatusLogin.setText("Login Correcto");
                     lblStatusLogin.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
 
                     // Activar Logout / Desactivar Login
@@ -354,56 +391,112 @@ public class DashboardController {
                         lblStatusTrabajo.setStyle("-fx-text-fill: orange;");
                     }
 
-                    log("✅ Sesión iniciada correctamente.");
+                    log("Sesión iniciada correctamente.");
                 }
             } else if (status == 401 || mensaje.toLowerCase().contains("credenciales")
                     || mensaje.toLowerCase().contains("login")) {
                 // Error específico de Login o Autenticación
-                lblStatusLogin.setText(mensaje + " ❌");
+                lblStatusLogin.setText(mensaje);
                 lblStatusLogin.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
                 btnLogin.setDisable(false);
             }
 
-            // 2. GESTIÓN DE FEEDBACK REGISTROS
-            String colorStyle = (status >= 200 && status < 300) ? "-fx-text-fill: green;" : "-fx-text-fill: red;";
+            // GESTIÓN DE FEEDBACK GENÉRICO
+            String colorStyle = respuesta.esExito() ? "-fx-text-fill: green;" : "-fx-text-fill: red;";
 
             if (mensaje.contains("Empresa")) {
-                lblStatusEmpresa.setText(mensaje + (status >= 200 && status < 300 ? " ✅" : " ❌"));
+                lblStatusEmpresa.setText(mensaje + (respuesta.esExito() ? " [OK]" : " [ERROR]"));
                 lblStatusEmpresa.setStyle(colorStyle + " -fx-font-weight: bold;");
             }
 
             if (mensaje.contains("Operario") || mensaje.contains("Cliente") || mensaje.contains("usuario")) {
-                lblStatusUsuario.setText(mensaje + (status >= 200 && status < 300 ? " ✅" : " ❌"));
+                lblStatusUsuario.setText(mensaje + (respuesta.esExito() ? " [OK]" : " [ERROR]"));
                 lblStatusUsuario.setStyle(colorStyle + " -fx-font-weight: bold;");
             }
 
-            // 4. FEEDBACK CREAR TRABAJO
+            // FEEDBACK CREAR TRABAJO
             if (mensaje.contains("Trabajo creado")) {
-                lblStatusTrabajo.setText(mensaje + " ✅");
+                lblStatusTrabajo.setText(mensaje);
                 lblStatusTrabajo.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
                 // Limpiar campos
                 txtTituloTrabajo.clear();
                 txtDescripcionTrabajo.clear();
                 txtDireccionTrabajo.clear();
-            } else if (status >= 400 && usuarioLogueadoId != null && !mensaje.contains("login")
+            } else if (!respuesta.esExito() && usuarioLogueadoId != null && !mensaje.contains("login")
                     && !mensaje.contains("Empresa") && !mensaje.contains("Cliente")) {
-                // Si hay error y estamos logueados, asumimos que puede ser de aquí
                 lblStatusTrabajo.setText("Error: " + mensaje);
                 lblStatusTrabajo.setStyle("-fx-text-fill: red;");
             }
 
-            // 3. LOG ERRORES GENÉRICOS
-            if (status >= 400) {
-                log("⚠️ Servidor reporta error (" + status + "): " + mensaje);
+            // LOG GENERAL
+            if (mensaje.contains("Listado obtenido")) {
+                tablaTrabajos.getItems().clear();
+                if (datos != null && datos.isArray()) {
+                    for (JsonNode nodo : datos) {
+                        tablaTrabajos.getItems().add(new TrabajoModelo(
+                                nodo.get("id").asInt(),
+                                nodo.get("titulo").asText(),
+                                nodo.has("nombreCliente") ? nodo.get("nombreCliente").asText() : "",
+                                nodo.has("nombreOperario") ? nodo.get("nombreOperario").asText() : "",
+                                nodo.get("estado").asText(),
+                                nodo.get("fecha").asText()));
+                    }
+                    log("Lista actualizada: " + datos.size() + " elementos.");
+                }
+            } else if (!respuesta.esExito()) {
+                log("Servidor reporta error (" + status + "): " + mensaje);
             }
-        } catch (JsonProcessingException e) {
-            throw new ClienteException("Error de formato en el JSON recibido", e);
-        } catch (Exception e) {
-            throw new ClienteException("Error inesperado procesando la respuesta", e);
+
+        } catch (ClienteException e) {
+            log("Error procesando respuesta: " + e.getMessage());
         }
     }
 
     private void log(String mensaje) {
         txtLog.appendText(mensaje + "\n");
+    }
+
+    // Clase auxiliar para crear tabla de trabajos
+    public static class TrabajoModelo {
+        private final int id;
+        private final String titulo;
+        private final String nombreCliente;
+        private final String nombreOperario;
+        private final String estado;
+        private final String fecha;
+
+        public TrabajoModelo(int id, String titulo, String nombreCliente, String nombreOperario, String estado,
+                String fecha) {
+            this.id = id;
+            this.titulo = titulo;
+            this.nombreCliente = nombreCliente;
+            this.nombreOperario = nombreOperario;
+            this.estado = estado;
+            this.fecha = fecha;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getTitulo() {
+            return titulo;
+        }
+
+        public String getNombreCliente() {
+            return nombreCliente;
+        }
+
+        public String getNombreOperario() {
+            return nombreOperario;
+        }
+
+        public String getEstado() {
+            return estado;
+        }
+
+        public String getFecha() {
+            return fecha;
+        }
     }
 }
