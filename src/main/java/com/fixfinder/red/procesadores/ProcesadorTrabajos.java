@@ -19,6 +19,9 @@ import com.fixfinder.service.interfaz.FacturaService;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.service.interfaz.TrabajoService;
 import com.fixfinder.service.interfaz.UsuarioService;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.FotoTrabajoDAO;
+import com.fixfinder.modelos.componentes.FotoTrabajo;
 import com.fixfinder.utilidades.ServiceException;
 
 public class ProcesadorTrabajos {
@@ -27,6 +30,7 @@ public class ProcesadorTrabajos {
     private final UsuarioService usuarioService;
     private final PresupuestoService presupuestoService;
     private final FacturaService facturaService;
+    private final FotoTrabajoDAO fotoTrabajoDAO;
 
     public ProcesadorTrabajos(TrabajoService trabajoService, UsuarioService usuarioService,
             PresupuestoService presupuestoService, FacturaService facturaService) {
@@ -34,6 +38,7 @@ public class ProcesadorTrabajos {
         this.usuarioService = usuarioService;
         this.presupuestoService = presupuestoService;
         this.facturaService = facturaService;
+        this.fotoTrabajoDAO = new DataRepositoryImpl().getFotoTrabajoDAO();
     }
 
     public void procesarCrearTrabajo(JsonNode datos, ObjectNode respuesta) {
@@ -76,6 +81,21 @@ public class ProcesadorTrabajos {
 
                 System.out.println("[TRABAJO-CREADO] ID: " + nuevoTrabajo.getId() + " - "
                         + titulo + " (" + descripcionFinal + ") [Cliente ID: " + idCliente + "]");
+
+                // NUEVO: Procesar lista de fotos si vienen en el JSON
+                if (datos.has("urls_fotos") && datos.get("urls_fotos").isArray()) {
+                    JsonNode arrayFotos = datos.get("urls_fotos");
+                    for (JsonNode urlNode : arrayFotos) {
+                        String url = urlNode.asText();
+                        if (!url.isEmpty()) {
+                            FotoTrabajo foto = new FotoTrabajo();
+                            foto.setIdTrabajo(nuevoTrabajo.getId());
+                            foto.setUrl(url);
+                            fotoTrabajoDAO.insertar(foto);
+                            System.out.println("   📸 Foto vinculada: " + url);
+                        }
+                    }
+                }
 
                 respuesta.put("status", 201);
                 respuesta.put("mensaje", "Trabajo creado correctamente");

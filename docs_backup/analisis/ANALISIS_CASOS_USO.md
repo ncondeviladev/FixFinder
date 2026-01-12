@@ -108,7 +108,7 @@ A continuación explicamos paso a paso cómo funciona el ciclo principal de una 
 
 ## 5. Diagrama Casos de Uso
 
-![DiagramaCasosUso](DiagramaCasosUso.jpg)
+![DiagramaCasosUso](../assets/diagramaCasosUso.jpg)
 
 ```mermaid
 graph LR

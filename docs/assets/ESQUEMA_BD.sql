@@ -135,7 +135,7 @@ CREATE TABLE trabajo (
 CREATE TABLE foto_trabajo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_trabajo INT NOT NULL,
-    url_archivo VARCHAR(255) NOT NULL,
+    url_archivo TEXT NOT NULL,
     fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE
 );

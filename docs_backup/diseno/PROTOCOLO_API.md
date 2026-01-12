@@ -5,22 +5,24 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ## Estructura General
 
 ### Request (Cliente -> Servidor)
+
 ```json
 {
-  "action": "NOMBRE_ACCION",
+  "accion": "NOMBRE_ACCION",
   "token": "JWT_O_SESSION_ID",
-  "data": {
+  "datos": {
     // Parámetros específicos de la acción
   }
 }
 ```
 
 ### Response (Servidor -> Cliente)
+
 ```json
 {
   "status": 200, // Códigos estilo HTTP: 200 OK, 401 Unauthorized, 500 Error
-  "message": "Operación exitosa",
-  "data": {
+  "mensaje": "Operación exitosa",
+  "datos": {
     // Objeto o Array de respuesta
   }
 }
@@ -31,21 +33,25 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ### 1. Autenticación
 
 #### `LOGIN`
+
 **Request:**
+
 ```json
 {
-  "action": "LOGIN",
-  "data": {
+  "accion": "LOGIN",
+  "datos": {
     "email": "usuario@ejemplo.com",
     "password": "password123" // Se envía hasheada o en plano si hay SSL (para dev local: plano)
   }
 }
 ```
+
 **Response (Success):**
+
 ```json
 {
   "status": 200,
-  "data": {
+  "datos": {
     "token": "abc-123-xyz",
     "usuario": {
       "id": 1,
@@ -59,24 +65,28 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ### 2. Gestión de Trabajos
 
 #### `GET_JOBS` (Obtener trabajos)
+
 **Request:**
+
 ```json
 {
-  "action": "GET_JOBS",
+  "accion": "GET_JOBS",
   "token": "...",
-  "data": {
+  "datos": {
     "estado": "PENDIENTE" // Opcional, filtro
   }
 }
 ```
 
 #### `ASSIGN_JOB` (Asignar operario - Solo Gerente)
+
 **Request:**
+
 ```json
 {
-  "action": "ASSIGN_JOB",
+  "accion": "ASSIGN_JOB",
   "token": "...",
-  "data": {
+  "datos": {
     "id_trabajo": 105,
     "id_operario": 2
   }
@@ -84,12 +94,14 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ```
 
 #### `UPDATE_JOB_STATUS` (Operario actualiza estado)
+
 **Request:**
+
 ```json
 {
-  "action": "UPDATE_JOB_STATUS",
+  "accion": "UPDATE_JOB_STATUS",
   "token": "...",
-  "data": {
+  "datos": {
     "id_trabajo": 105,
     "nuevo_estado": "EN_PROCESO",
     "ubicacion": { "lat": 40.416, "lon": -3.703 }
@@ -100,21 +112,25 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ### 3. Facturación
 
 #### `GENERATE_INVOICE`
+
 **Request:**
+
 ```json
 {
-  "action": "GENERATE_INVOICE",
+  "accion": "GENERATE_INVOICE",
   "token": "...",
-  "data": {
+  "datos": {
     "id_trabajo": 105
   }
 }
 ```
+
 **Response:**
+
 ```json
 {
   "status": 200,
-  "data": {
+  "datos": {
     "id_factura": 5001,
     "pdf_base64": "JVBERi0xLjQKJ..." // Archivo PDF codificado
   }
@@ -122,14 +138,16 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ```
 
 ### 4. Notificaciones (Server Push)
+
 El servidor puede enviar mensajes asíncronos al cliente sin petición previa (si el socket se mantiene abierto).
 
 **Event:**
+
 ```json
 {
   "type": "EVENT",
   "event": "NEW_JOB_ASSIGNED",
-  "data": {
+  "datos": {
     "id_trabajo": 106,
     "titulo": "Fuga de agua"
   }

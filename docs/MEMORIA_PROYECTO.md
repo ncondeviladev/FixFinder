@@ -106,12 +106,12 @@ El proyecto presenta una **alta viabilidad** técnica y económica:
 
 - Diagrama de Gantt
 
-![Diagrama de Gantt](../gestion/diagramaGantt.png){width=90%}
+![Diagrama de Gantt](assets/diagramaGantt.png){width=90%}
 
 ### 3.3. Casos d’ús
 
 - Diagrama de casos d’ús
-  ![Diagrama de casos de uso](../analisis/diagramaCasosUso.jpg){width=90%}
+  ![Diagrama de casos de uso](assets/diagramaCasosUso.jpg){width=90%}
 
 - Descripció dels casos d’ús
   El sistema define tres actores principales con funcionalidades diferenciadas:
@@ -139,7 +139,7 @@ El proyecto presenta una **alta viabilidad** técnica y económica:
 
 - Diagrama de classes
 
-  ![Diagrama de clases](../diseno/diagramaDeClasesSimple.png){width=90%}
+  ![Diagrama de clases](assets/diagramaDeClasesSimple.png){width=90%}
 
 - Descripció de les classes
   El modelo de dominio se estructura en torno a las siguientes entidades clave:

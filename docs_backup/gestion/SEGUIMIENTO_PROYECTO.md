@@ -1,39 +1,15 @@
 # Seguimiento del Proyecto - FIXFINDER
 
-## 🛑 ROLES Y RESPONSABILIDADES
+## 🟢 ESTADO TÉCNICO: BACKEND VALIDADO ✅
 
-Este proyecto sigue una metodología estricta de colaboración:
+Se ha verificado satisfactoriamente el flujo completo del Backend a través del simulador:
 
-1.  **EL USUARIO (Arquitecto):**
-
-    - Toma TODAS las decisiones.
-    - Define el "qué" y el "cuándo".
-    - Tiene la última palabra en arquitectura y funcionalidad.
-
-2.  **LA IA (Profesor y Mano de Obra):**
-    - **NO escribe código sin permiso explícito.**
-    - Actúa como **PROFESOR**: Guía, explica conceptos, propone mejores prácticas, y expone PROS y CONTRAS de cada decisión.
-    - Actúa como **MANO DE OBRA**: Ejecuta las órdenes del Arquitecto una vez aprobadas.
-    - Su objetivo es que el usuario ENTIENDA lo que se está construyendo, no solo que funcione.
-
----
-
-## 🔴 BLOQUEO ACTUAL (Cierre de Sesión)
-
-A pesar de haber confirmado que:
-
-1.  El Backend recibe la orden `FINALIZAR_TRABAJO`.
-2.  El DAO ejecuta el UPDATE y muestra log `[DEBUG-DAO] ... a estado: REALIZADO`.
-3.  La Base de Datos (tras actualizar schema) lo guarda.
-4.  El Servidor envía la lista actualizada.
-
-**El usuario reporta que la UI del Simulador NO refleja el cambio a estado "REALIZADO" y por tanto no habilita el botón "Generar Factura".**
-
-**Hipótesis para investigar mañana:**
-
-- **Race Condition:** El cliente pide `LISTAR_TRABAJOS` milisegundos antes de que el commit de la DB sea visible.
-- **Parsing Cliente:** El cliente JavaFX recibe el JSON "REALIZADO" pero falla al actualizar la `StringProperty` de la tabla.
-- **Error Silencioso UI:** Excepción en el hilo JavaFX que aborta el refresco visual.
+1.  **Registro y Login:** Funcionando correctamente para todos los roles.
+2.  **Ciclo de Vida del Trabajo:** Flujo simplificado implementado:
+    - `PENDIENTE` -> `PRESUPUESTADO` -> `ACEPTADO`.
+    - `ASIGNADO` -> `FINALIZADO` (Generación automática de factura).
+    - `FINALIZADO` -> `PAGADO` (Cierre de ciclo).
+3.  **Integridad de Datos:** Persistencia correcta en MySQL y manejo de estados sincronizado entre Java y DB.
 
 ---
 
@@ -80,6 +56,14 @@ Se ha completado la implementación y refinamiento del ciclo de vida integral de
 - [x] **Fase 5: Herramientas de Prueba (Simulador E2E)** (COMPLETO ✅)
   - [x] Panel de Control Maestro para todos los roles.
   - [x] Flujo de estados validado y persistido.
+  - [x] Lógica simplificada: Facturación automática al finalizar.
+- [ ] **Fase 6: Aplicación Móvil (Flutter)** (PRÓXIMA PRIORIDAD 🚀)
+  - [ ] Configuración del entorno y conexión Socket (PC-Móvil).
+  - [ ] Implementación de MVP: Login y Listado de Trabajos.
+  - [ ] Interfaz visual (UI/UX Premium).
+- [ ] **Fase 7: Aplicación Escritorio (Gerente)**
+  - [ ] Sustitución del simulador por interfaz profesional.
+  - [ ] Gestión avanzada de empleados y finanzas.
 
 ---
 
@@ -132,4 +116,4 @@ Para soportar el simulador, necesitamos implementar la lógica real que nos hemo
 
 ## 📄 Documentación Adicional
 
-- [Flujo Principal de Uso (Happy Path)](FLUJO_PRINCIPAL.md): Descripción detallada del ciclo de vida del servicio.
+- [Flujo Principal de Uso (Happy Path)](../analisis/FLUJO_PRINCIPAL.md): Descripción detallada del ciclo de vida del servicio.

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="FIXFINDER - Sistema de Gestión de Mantenimiento" company="Academica" webLink="http://" view-date="2025-11-03" view-index="0" gantt-divider-location="436" resource-divider-location="300" version="3.3.3316" locale="es_ES">
+    <description><![CDATA[Planificación detallada del proyecto FIXFINDER para ciclo formativo. Duración extendida hasta Marzo 2026.]]></description>
+    <view zooming-state="default:7" id="gantt-chart">
+        <field id="tpd3" name="Nombre" width="250" order="0"/>
+        <field id="tpd4" name="Fecha de inicio" width="85" order="1"/>
+        <field id="tpd5" name="Fecha de fin" width="85" order="2"/>
+        <option id="filter.completedTasks" value="false"/>
+        <option id="filter.dueTodayTasks" value="false"/>
+        <option id="filter.overdueTasks" value="false"/>
+        <option id="filter.inProgressTodayTasks" value="false"/>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Nombre" width="210" order="0"/>
+        <field id="1" name="Función" width="86" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="0" mon="0" tue="0" wed="0" thu="0" fri="0" sat="0"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="0" uid="a79286942da74f69a795bebfccba39e5" name="1. FASE DE ANÁLISIS E INICIO" color="#8cb6ce" meeting="false" start="2025-11-15" duration="15" complete="100" expand="true">
+            <task id="1" uid="dec64a96fc4543bebfee872d9021a90b" name="1.1 Definición de Requisitos y Alcance" color="#8cb6ce" meeting="false" start="2025-11-15" duration="5" complete="100" expand="true"/>
+            <task id="2" uid="d984494e123d495f829bdf31d77fbea5" name="1.2 Diseño de Arquitectura (Cliente-Servidor)" color="#8cb6ce" meeting="false" start="2025-11-20" duration="5" complete="100" expand="true"/>
+            <task id="3" uid="1fa751dba3a344af89cde659ab82a898" name="1.3 Modelado de Base de Datos (E-R y Relacional)" color="#8cb6ce" meeting="false" start="2025-11-25" duration="5" complete="100" expand="true"/>
+        </task>
+        <task id="4" uid="428948f6a52f4b7eb1b3a2019a87d02e" name="2. INFRAESTRUCTURA Y NÚCLEO" color="#8cb6ce" meeting="false" start="2025-11-30" duration="15" complete="93" expand="true">
+            <task id="5" uid="808a9c2f9b2740cba6c66f26f5768568" name="2.1 Configuración de Entorno (Gradle, JavaFX, Docker)" color="#8cb6ce" meeting="false" start="2025-11-30" duration="3" complete="100" expand="true"/>
+            <task id="6" uid="64934c35b5b14e9a828887c8509735ff" name="2.2 Implementación Servidor Multihilo (Sockets)" color="#8cb6ce" meeting="false" start="2025-12-03" duration="7" complete="100" expand="true"/>
+            <task id="7" uid="c5814052b04845dd839299da4f807448" name="2.3 Desarrollo Capa Acceso Datos (DAOs Genéricos)" color="#8cb6ce" meeting="false" start="2025-12-10" duration="5" complete="80" expand="true"/>
+        </task>
+        <task id="8" uid="810665b07a00453896602b913ba27fb1" name="3. PROTOCOLO Y SEGURIDAD" color="#ff3333" meeting="false" start="2025-12-15" duration="24" complete="15" expand="true">
+            <notes><![CDATA[Desarrollo crítico del protocolo de comunicación y seguridad.]]></notes>
+            <task id="9" uid="59a25c5c8149462a85703b5da3ecba89" name="3.1 Diseño del Protocolo de Red (Petición/Respuesta)" color="#ff3333" meeting="false" start="2025-12-15" duration="5" complete="0" expand="true"/>
+            <task id="10" uid="c92ab52483374149ba2e0d73b6f04ed3" name="3.2 Implementación Capa Servicio Autenticación" color="#ff3333" meeting="false" start="2025-12-20" duration="5" complete="0" expand="true"/>
+            <task id="11" uid="5367750f6e474bc29c81547e79eb6588" name="3.3 Hashing y Seguridad (BCrypt)" color="#ff3333" meeting="false" start="2025-12-25" duration="3" complete="100" expand="true"/>
+            <task id="12" uid="897fefa68e274e3081ce58ec8ea82ab0" name="3.4 Integración Login Front-Back" color="#ff3333" meeting="false" start="2025-12-28" duration="7" complete="0" expand="true"/>
+            <task id="13" uid="4b18029ce8be448aab787f2f20fb1139" name="Hito: Protocolo Estable" color="#000000" meeting="true" start="2026-01-08" duration="0" complete="0" expand="true"/>
+        </task>
+        <task id="14" uid="da5519bea20149a9a2a481e199088e86" name="4. DESARROLLO APLICACIÓN ESCRITORIO (EMPRESA)" color="#009933" meeting="false" start="2026-01-09" duration="37" complete="0" expand="true">
+            <task id="15" uid="69946c4d5067426ca58bddea3c6c0930" name="4.1 Módulo: Dashboard y Visualización" color="#009933" meeting="false" start="2026-01-09" duration="7" complete="0" expand="true"/>
+            <task id="16" uid="b3743aa8a23d49808643ee0c73c4c909" name="4.2 Módulo: Gestión de Incidencias (CRUD Completo)" color="#009933" meeting="false" start="2026-01-16" duration="10" complete="0" expand="true"/>
+            <task id="17" uid="ea7d804e8b004ea3b516352a18f586da" name="4.3 Módulo: Gestión de Operarios y Asignaciones" color="#009933" meeting="false" start="2026-01-26" duration="10" complete="0" expand="true"/>
+            <task id="18" uid="b50a08378821459ea2aeb30c1e7ff7df" name="4.4 Generación de Informes y Facturas (PDF)" color="#009933" meeting="false" start="2026-02-05" duration="5" complete="0" expand="true"/>
+            <task id="19" uid="dcce10b4df944f828b7ff003db87b6c8" name="4.5 Pruebas Unitarias Interfaz" color="#009933" meeting="false" start="2026-02-10" duration="5" complete="0" expand="true"/>
+        </task>
+        <task id="20" uid="516c417c20ff42dcbc2fa02d7fa99757" name="5. MÓDULOS SATÉLITE (SIMULACIÓN)" color="#ff9900" meeting="false" start="2026-02-15" duration="15" complete="0" expand="true">
+            <task id="21" uid="008609e0865e428da60704acb20ca8da" name="5.1 Simulación Cliente (Alta Solicitudes)" color="#ff9900" meeting="false" start="2026-02-15" duration="5" complete="0" expand="true"/>
+            <task id="22" uid="ac032400cfc8483895029342bfcd2275" name="5.2 Simulación Operario (Cambio Estados)" color="#ff9900" meeting="false" start="2026-02-20" duration="5" complete="0" expand="true"/>
+            <task id="23" uid="3c8dc51c711744b1aee3fa5485096050" name="5.3 Pruebas de Concurrencia" color="#ff9900" meeting="false" start="2026-02-25" duration="5" complete="0" expand="true"/>
+        </task>
+        <task id="24" uid="6cda8c34080e43028ff87cf492f975bb" name="6. FASE DE CIERRE Y DOCUMENTACIÓN" color="#666666" meeting="false" start="2026-03-01" duration="24" complete="0" expand="true">
+            <task id="25" uid="2597cc6b04334c10883f76cf4b9dfa61" name="6.1 Refactorización y Limpieza de Código" color="#666666" meeting="false" start="2026-03-01" duration="5" complete="0" expand="true"/>
+            <task id="26" uid="3256d22e1c374c3abfa838da54dbc8bc" name="6.2 Redacción Memoria Técnica Final" color="#666666" meeting="false" start="2026-03-06" duration="7" complete="0" expand="true"/>
+            <task id="27" uid="b49c6347d5f342dab54ba21e77cc5d62" name="6.3 Elaboración Manual de Usuario" color="#666666" meeting="false" start="2026-03-13" duration="5" complete="0" expand="true"/>
+            <task id="28" uid="426c991226a1440aa89d729b5539f941" name="6.4 Preparación Presentación Defensa" color="#666666" meeting="false" start="2026-03-18" duration="5" complete="0" expand="true"/>
+            <task id="29" uid="4755ef058df6429d96ce2acf14abf0c0" name="ENTREGA FINAL PROYECTO" color="#000000" meeting="true" start="2026-03-25" duration="0" complete="0" expand="true"/>
+        </task>
+    </tasks>
+    <resources>
+        <resource id="0" name="Alumno (Desarrollador Fullstack)" function="Default:0" contacts="" phone=""/>
+    </resources>
+    <allocations>
+        <allocation task-id="1" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="6" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+        <allocation task-id="15" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
+    </allocations>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+</project>
