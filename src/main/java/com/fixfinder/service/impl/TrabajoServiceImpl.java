@@ -90,12 +90,21 @@ public class TrabajoServiceImpl implements TrabajoService {
                 throw new ServiceException("No se puede asignar operario a un trabajo finalizado o cancelado.");
             }
 
-            Operario operario = operarioDAO.obtenerPorId(idOperario);
-            if (operario == null)
-                throw new ServiceException("Operario no encontrado.");
+            // Lógica de DESASIGNACIÓN (Si idOperario es null o <= 0)
+            if (idOperario == null || idOperario <= 0) {
+                trabajo.setOperarioAsignado(null);
+                trabajo.setEstado(EstadoTrabajo.PENDIENTE); // Vuelve al mercado
+            }
+            // Lógica de ASIGNACIÓN
+            else {
+                Operario operario = operarioDAO.obtenerPorId(idOperario);
+                if (operario == null)
+                    throw new ServiceException("Operario no encontrado.");
 
-            trabajo.setOperarioAsignado(operario);
-            trabajo.setEstado(EstadoTrabajo.ASIGNADO);
+                trabajo.setOperarioAsignado(operario);
+                trabajo.setEstado(EstadoTrabajo.ASIGNADO);
+            }
+
             trabajoDAO.actualizar(trabajo);
 
         } catch (DataAccessException e) {
@@ -113,8 +122,11 @@ public class TrabajoServiceImpl implements TrabajoService {
             if (trabajo.getOperarioAsignado() == null)
                 throw new ServiceException("No se puede iniciar un trabajo sin operario asignado.");
 
-            trabajo.setEstado(EstadoTrabajo.EN_PROCESO);
-            trabajoDAO.actualizar(trabajo);
+            // ASIGNADO ya implica que está en proceso
+            if (trabajo.getEstado() != EstadoTrabajo.ASIGNADO) {
+                trabajo.setEstado(EstadoTrabajo.ASIGNADO);
+                trabajoDAO.actualizar(trabajo);
+            }
 
         } catch (DataAccessException e) {
             throw new ServiceException("Error al iniciar el trabajo.", e);
@@ -128,14 +140,11 @@ public class TrabajoServiceImpl implements TrabajoService {
             if (trabajo == null)
                 throw new ServiceException("Trabajo no encontrado.");
 
-            if (trabajo.getEstado() != EstadoTrabajo.EN_PROCESO) {
-                // Se podría permitir finalizar desde Asignado si fue express, pero lo ideal es
-                // seguir flujo
-                // throw new ServiceException("El trabajo debe estar EN_PROCESO para
-                // finalizarse.");
+            if (trabajo.getEstado() != EstadoTrabajo.ASIGNADO) {
+                throw new ServiceException("El trabajo debe estar ASIGNADO para finalizarse.");
             }
 
-            trabajo.setEstado(EstadoTrabajo.FINALIZADO);
+            trabajo.setEstado(EstadoTrabajo.REALIZADO);
             trabajo.setFechaFinalizacion(LocalDateTime.now());
             // Si el modelo tuviera campo para 'informeTecnico', lo setearíamos aquí.
             // Por ahora lo añadimos a la descripción o comentarios si es necesario.
@@ -159,9 +168,9 @@ public class TrabajoServiceImpl implements TrabajoService {
                 throw new ServiceException("No se puede cancelar un trabajo ya finalizado.");
             }
 
-            if (trabajo.getEstado() == EstadoTrabajo.EN_PROCESO) {
+            if (trabajo.getEstado() == EstadoTrabajo.ASIGNADO) {
                 throw new ServiceException(
-                        "No se puede cancelar un trabajo que ya está en proceso. Contacte con la empresa.");
+                        "No se puede cancelar un trabajo que ya está asignado. Contacte con la empresa.");
             }
 
             // Si tenía operario asignado (pero no empezó), lo liberamos

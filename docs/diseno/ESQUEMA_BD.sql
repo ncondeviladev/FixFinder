@@ -115,9 +115,12 @@ CREATE TABLE trabajo (
     ubicacion_lon DOUBLE,
     estado ENUM(
         'PENDIENTE',
+        'PRESUPUESTADO',
+        'ACEPTADO',
         'ASIGNADO',
-        'EN_PROCESO',
+        'REALIZADO',
         'FINALIZADO',
+        'PAGADO',
         'CANCELADO'
     ) DEFAULT 'PENDIENTE',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -142,7 +145,7 @@ CREATE TABLE presupuesto (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_trabajo INT NOT NULL,
     id_empresa INT NOT NULL,
-    monto DECIMAL(10, 2) NOT NULL,
+    monto DECIMAL(15, 2) NOT NULL,
     estado VARCHAR(50) DEFAULT 'PENDIENTE',
     fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE,

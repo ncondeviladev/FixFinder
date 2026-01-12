@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fixfinder.controladores.SimuladorController" style="-fx-background-color: #f4f6f8;">
+   
+   <top>
+      <VBox spacing="10" style="-fx-padding: 20; -fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);">
+         <Label text="Simulador de Flujo Completo (E2E)" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+         <Label text="Selecciona un trabajo y simula las acciones de los diferentes roles." style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;" />
+      </VBox>
+   </top>
+
+   <center>
+      <TableView fx:id="tablaTrabajos" style="-fx-background-color: transparent; -fx-padding: 20;">
+         <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="50" />
+            <TableColumn fx:id="colTitulo" text="Título" prefWidth="200" />
+            <TableColumn fx:id="colCliente" text="Cliente" prefWidth="150" />
+            <TableColumn fx:id="colEstado" text="Estado" prefWidth="120" />
+            <TableColumn fx:id="colOperario" text="Operario" prefWidth="150" />
+            <TableColumn fx:id="colPresupuesto" text="Presupuesto" prefWidth="100" />
+            <TableColumn fx:id="colFactura" text="Factura" prefWidth="100" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+   </center>
+   
+   <bottom>
+      <VBox spacing="15" style="-fx-padding: 20; -fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1 0 0 0;">
+         <Label text="Acciones Contextuales" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+         <HBox spacing="15" alignment="CENTER_LEFT">
+            <!-- Botones de Acción -->
+            <!-- Paso 1: Presupuesto (Gerente) -->
+            <Button fx:id="btnCrearPresupuesto" text="1. Enviar Presupuesto" 
+                    style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+            
+            <!-- Paso 2: Aceptación (Cliente) -->
+            <Button fx:id="btnAceptarPresupuesto" text="2. Aceptar Presupuesto" 
+                    style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+            
+            <!-- Paso 3: Asignación (Gerente) -->
+            <Button fx:id="btnAsignarOperario" text="3. Asignar Operario" 
+                    style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+            
+            <!-- Paso 4: Finalización (Operario) -->
+            <Button fx:id="btnFinalizarTrabajo" text="4. Finalizar Trabajo" 
+                    style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+
+            <!-- Paso 5: Facturación (Cliente/Sistema) -->
+            <Button fx:id="btnGenerarFactura" text="5. Generar Factura" 
+                    style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+            
+             <!-- Paso 6: Pago (Cliente) -->
+            <Button fx:id="btnPagarFactura" text="6. Pagar y Cerrar" 
+                    style="-fx-background-color: #f1c40f; -fx-text-fill: black; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 10 20;" />
+
+         </HBox>
+         <Label fx:id="lblEstadoAccion" text="Listo." style="-fx-font-style: italic; -fx-text-fill: #95a5a6;" />
+      </VBox>
+   </bottom>
+
+</BorderPane>

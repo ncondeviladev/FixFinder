@@ -3,239 +3,214 @@ package com.fixfinder.pruebas;
 import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.DataRepository;
 import com.fixfinder.data.DataRepositoryImpl;
-import com.fixfinder.data.interfaces.*;
+import com.fixfinder.data.dao.*;
+import com.fixfinder.data.interfaces.EmpresaDAO;
+import com.fixfinder.data.interfaces.OperarioDAO;
+import com.fixfinder.data.interfaces.TrabajoDAO;
+import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.*;
-import com.fixfinder.modelos.enums.*;
-import com.fixfinder.utilidades.DataAccessException;
-import com.fixfinder.utilidades.GestorPassword;
+import com.fixfinder.modelos.enums.CategoriaServicio;
+import com.fixfinder.modelos.enums.EstadoTrabajo;
+import com.fixfinder.modelos.enums.Rol;
 
+import com.fixfinder.utilidades.GestorPassword;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PruebaIntegracion {
 
-    public static void main(String[] args) {
-        System.out.println("=========================================");
-        System.out.println("   SEMILLA DE DATOS REALISTAS (SEEDER)");
-        System.out.println("=========================================");
+        private static final AtomicInteger uniqueId = new AtomicInteger(100);
 
-        try {
-            // 0. Limpieza TOTAL
-            limpiarBaseDeDatos();
+        public static void main(String[] args) {
+                System.out.println("🚀 INICIANDO CARGA DE DATOS LIMPIOS Y SEGUROS...");
 
-            DataRepository repo = new DataRepositoryImpl();
-            EmpresaDAO empresaDAO = repo.getEmpresaDAO();
-            OperarioDAO operarioDAO = repo.getOperarioDAO();
-            com.fixfinder.data.interfaces.ClienteDAO clienteDAO = repo.getClienteDAO();
-            TrabajoDAO trabajoDAO = repo.getTrabajoDAO();
-            PresupuestoDAO presupuestoDAO = repo.getPresupuestoDAO();
+                try {
+                        // 1. Recrear Esquema (Asegura ENUMs actualizados)
+                        com.fixfinder.utilidades.SchemaUpdater.actualizarEsquema();
 
-            // -------------------------------------------------------------------
-            // 1. EMPRESAS
-            // -------------------------------------------------------------------
+                        // 2. Limpiar datos viejos residuales (opcional pero seguro)
+                        limpiarBaseDeDatos();
 
-            // TU EMPRESA
-            Empresa miEmpresa = new Empresa();
-            miEmpresa.setNombre("Servicios Técnicos Levante S.L.");
-            miEmpresa.setCif("B98765432");
-            miEmpresa.setDireccion("Gran Vía Marqués del Turia, 45, Valencia");
-            miEmpresa.setTelefono("960112233");
-            miEmpresa.setEmailContacto("contacto@levante.sl");
-            miEmpresa.getEspecialidades().add(CategoriaServicio.FONTANERIA);
-            miEmpresa.getEspecialidades().add(CategoriaServicio.ELECTRICIDAD);
-            miEmpresa.getEspecialidades().add(CategoriaServicio.CLIMATIZACION);
-            empresaDAO.insertar(miEmpresa);
-            System.out.println("🏢 Empresa Creada: " + miEmpresa.getNombre());
+                        // 2. Inicializar DAOs
+                        DataRepository repo = new DataRepositoryImpl();
+                        EmpresaDAO empresaDAO = repo.getEmpresaDAO();
+                        UsuarioDAO usuarioDAO = repo.getUsuarioDAO(); // Para clientes
+                        OperarioDAO operarioDAO = repo.getOperarioDAO(); // Para operarios y gerentes
+                        TrabajoDAO trabajoDAO = repo.getTrabajoDAO();
 
-            // LA COMPETENCIA
-            Empresa competencia = new Empresa();
-            competencia.setNombre("Reformas Manolo y Benito C.B.");
-            competencia.setCif("B12312312");
-            competencia.setDireccion("Calle de la Paella, 5, Valencia");
-            competencia.setTelefono("666777888");
-            competencia.setEmailContacto("info@reformasmanolo.com");
-            competencia.getEspecialidades().add(CategoriaServicio.ALBANILERIA);
-            competencia.getEspecialidades().add(CategoriaServicio.PINTURA);
-            empresaDAO.insertar(competencia);
-            System.out.println("🏢 Empresa Competencia Creada: " + competencia.getNombre());
+                        // -------------------------------------------------------------------
+                        // 1. EMPRESAS (Usando categorias basicas para evitar errores SQL)
+                        // -------------------------------------------------------------------
+                        Empresa empresaA = new Empresa();
+                        empresaA.setNombre("Servicios Técnicos Levante");
+                        empresaA.setCif("B12345678");
+                        empresaA.setDireccion("Av. del Cid 45, Valencia");
+                        empresaA.setTelefono("960000001");
+                        empresaA.setEmailContacto("contacto@levante.com");
+                        // Usamos OTROS para asegurar compatibilidad BD
+                        empresaA.getEspecialidades().add(CategoriaServicio.OTROS);
+                        empresaDAO.insertar(empresaA);
 
-            // EMPRESAS DE RELLENO (3 EXTRA)
-            for (int i = 1; i <= 3; i++) {
-                Empresa e = new Empresa();
-                e.setNombre("Empresa Relleno " + i);
-                e.setCif("R" + i + i + i + i + i);
-                e.setDireccion("Calle Relleno " + i);
-                e.setTelefono("90000000" + i);
-                e.setEmailContacto("contacto@relleno" + i + ".com");
-                e.getEspecialidades().add(CategoriaServicio.OTROS);
-                empresaDAO.insertar(e);
-            }
-            System.out.println("🏢 +3 Empresas de relleno creadas.");
+                        Empresa empresaB = new Empresa();
+                        empresaB.setNombre("Reformas Express S.L.");
+                        empresaB.setCif("B87654321");
+                        empresaB.setDireccion("Calle Colón 10, Valencia");
+                        empresaB.setTelefono("960000002");
+                        empresaB.setEmailContacto("contacto@express.com");
+                        // Usamos OTROS para asegurar compatibilidad BD
+                        empresaB.getEspecialidades().add(CategoriaServicio.OTROS);
+                        empresaDAO.insertar(empresaB);
 
-            // -------------------------------------------------------------------
-            // 2. EQUIPO HUMANO (Gerentes y Operarios)
-            // -------------------------------------------------------------------
+                        System.out.println(
+                                        "🏢 Empresas creadas: " + empresaA.getNombre() + " y " + empresaB.getNombre());
 
-            // TÚ (Gerente)
-            crearOperario(operarioDAO, miEmpresa.getId(), "Carlos Martínez", "gerente@levante.com", Rol.GERENTE,
-                    CategoriaServicio.CLIMATIZACION);
+                        // -------------------------------------------------------------------
+                        // 2. GERENTES
+                        // -------------------------------------------------------------------
 
-            // TUS OPERARIOS
-            Operario miOp1 = crearOperario(operarioDAO, miEmpresa.getId(), "Paco El Fontanero", "paco@levante.com",
-                    Rol.OPERARIO, CategoriaServicio.FONTANERIA);
-            Operario miOp2 = crearOperario(operarioDAO, miEmpresa.getId(), "Laura Electricista", "laura@levante.com",
-                    Rol.OPERARIO, CategoriaServicio.ELECTRICIDAD);
-            crearOperario(operarioDAO, miEmpresa.getId(), "Javi El Becario", "javi@levante.com", Rol.OPERARIO,
-                    CategoriaServicio.OTROS);
+                        // Gerente Empresa A (ELECTRICIDAD es segura)
+                        crearOperario(operarioDAO, empresaA.getId(), "Carlos (Gerente A)", "gerente.a@levante.com",
+                                        Rol.GERENTE,
+                                        CategoriaServicio.ELECTRICIDAD);
 
-            // OPERARIO COMPETENCIA
-            Operario opCompetencia = crearOperario(operarioDAO, competencia.getId(), "Benito Goteras",
-                    "benito@manolo.com", Rol.OPERARIO, CategoriaServicio.ALBANILERIA);
+                        // Gerente Empresa B (OTROS es seguro)
+                        crearOperario(operarioDAO, empresaB.getId(), "Manolo (Gerente B)", "gerente.b@express.com",
+                                        Rol.GERENTE,
+                                        CategoriaServicio.OTROS);
 
-            System.out.println("👷 Equipo y Usuarios creados.");
+                        // -------------------------------------------------------------------
+                        // 3. OPERARIOS
+                        // -------------------------------------------------------------------
 
-            // -------------------------------------------------------------------
-            // 3. CLIENTES REALES
-            // -------------------------------------------------------------------
-            Cliente c1 = crearCliente(clienteDAO, "Marta López", "marta@gmail.com", "44556677A");
-            Cliente c2 = crearCliente(clienteDAO, "Roberto Beltrán", "roberto@hotmail.com", "99887766B");
-            Cliente c3 = crearCliente(clienteDAO, "Elena Nito", "elena@yahoo.es", "12344321C");
+                        // Equipo A
+                        crearOperario(operarioDAO, empresaA.getId(), "Paco Fontanero", "paco@levante.com", Rol.OPERARIO,
+                                        CategoriaServicio.FONTANERIA);
+                        crearOperario(operarioDAO, empresaA.getId(), "Laura Electricista", "laura@levante.com",
+                                        Rol.OPERARIO,
+                                        CategoriaServicio.ELECTRICIDAD);
 
-            // CLIENTES DE RELLENO (5 EXTRA)
-            for (int i = 1; i <= 5; i++) {
-                crearCliente(clienteDAO, "Cliente Extra " + i, "extra" + i + "@mail.com", "X" + i + i + "X");
-            }
-            System.out.println("👥 Clientes creados (+5 extra).");
+                        // Equipo B
+                        crearOperario(operarioDAO, empresaB.getId(), "Benito Albañil", "benito@express.com",
+                                        Rol.OPERARIO,
+                                        CategoriaServicio.OTROS);
+                        crearOperario(operarioDAO, empresaB.getId(), "Pepe Pintor", "pepe@express.com", Rol.OPERARIO,
+                                        CategoriaServicio.OTROS);
 
-            // -------------------------------------------------------------------
-            // 4. TRABAJOS (EL ESCENARIO)
-            // -------------------------------------------------------------------
+                        System.out.println("👷 Equipo humano creado.");
 
-            // A) TRABAJOS PENDIENTES (Mercado Libre - Todos los ven)
-            crearTrabajo(trabajoDAO, c1, "Gotea un radiador",
-                    "En el salón, el radiador de la derecha pierde agua y mancha el parquet.",
-                    CategoriaServicio.FONTANERIA, "Calle Colón 10, 3º", EstadoTrabajo.PENDIENTE, null);
+                        // -------------------------------------------------------------------
+                        // 4. CLIENTES
+                        // -------------------------------------------------------------------
+                        Usuario c1 = crearCliente(usuarioDAO, "Marta Cliente", "marta@gmail.com");
+                        Usuario c2 = crearCliente(usuarioDAO, "Juan Cliente", "juan@hotmail.com");
+                        Usuario c3 = crearCliente(usuarioDAO, "Elena Cliente", "elena@yahoo.com");
 
-            crearTrabajo(trabajoDAO, c3, "Persiana atascada", "La persiana del dormitorio principal no sube ni baja.",
-                    CategoriaServicio.OTROS, "Avda. Puerto 200, 1º", EstadoTrabajo.PENDIENTE, null);
+                        System.out.println("👤 Clientes creados.");
 
-            // B) TUS TRABAJOS - CON PRESUPUESTO (Ganados, sin asignar operario aún)
-            Trabajo tPresu = crearTrabajo(trabajoDAO, c2, "Instalar Aire Acondicionado",
-                    "Split 3000 frigorías en comedor. Tengo la máquina.",
-                    CategoriaServicio.CLIMATIZACION, "Calle Xàtiva 5", EstadoTrabajo.PENDIENTE, null);
-            // Creamos Presupuesto
-            Presupuesto p = new Presupuesto();
-            p.setEmpresa(miEmpresa);
-            p.setTrabajo(tPresu);
-            p.setMonto(250.00);
-            p.setFechaEnvio(java.sql.Timestamp.valueOf(LocalDateTime.now().minusDays(1)));
-            presupuestoDAO.insertar(p);
-            System.out.println("   + Trabajo PRESUPUESTADO insertado (Instalar Aire).");
+                        // -------------------------------------------------------------------
+                        // 5. TRABAJOS (Todos PENDIENTES, usar categorias seguras)
+                        // -------------------------------------------------------------------
 
-            // C) TUS TRABAJOS - EN PROCESO (Asignados a tu gente)
-            crearTrabajo(trabajoDAO, c1, "Cortocircuito Cocina", "Saltan los plomos al encender el horno.",
-                    CategoriaServicio.ELECTRICIDAD, "Calle Colón 10, 3º", EstadoTrabajo.EN_PROCESO, miOp2); // Laura
+                        crearTrabajo(trabajoDAO, c1, "Fuga de agua en cocina",
+                                        "Pierde mucha agua bajo el fregadero, urge reparar.",
+                                        CategoriaServicio.FONTANERIA, "Calle Paz 5, 2ºA", EstadoTrabajo.PENDIENTE);
 
-            crearTrabajo(trabajoDAO, c2, "Cambiar Grifo Bañera", "El grifo termostático no regula bien.",
-                    CategoriaServicio.FONTANERIA, "Calle Xàtiva 5", EstadoTrabajo.ASIGNADO, miOp1); // Paco
+                        crearTrabajo(trabajoDAO, c2, "Instalación de enchufes",
+                                        "Necesito poner 3 enchufes nuevos en el salón.",
+                                        CategoriaServicio.ELECTRICIDAD, "Av. del Puerto 120", EstadoTrabajo.PENDIENTE);
 
-            // D) TUS TRABAJOS - FINALIZADOS (Histórico)
-            Trabajo tFin = crearTrabajo(trabajoDAO, c3, "Revisión Caldera Gas", "Revisión anual obligatoria.",
-                    CategoriaServicio.CLIMATIZACION, "Avda. Puerto 200, 1º", EstadoTrabajo.FINALIZADO, miOp1);
-            tFin.setValoracion(5);
-            tFin.setComentarioCliente("Paco es un crack, muy rápido.");
-            trabajoDAO.actualizar(tFin);
+                        crearTrabajo(trabajoDAO, c3, "Reforma baño completo",
+                                        "Picar azulejos y cambiar bañera por plato de ducha.",
+                                        CategoriaServicio.OTROS, "Calle Xàtiva 22", EstadoTrabajo.PENDIENTE);
 
-            // E) TRABAJOS DE LA COMPETENCIA (NO DEBERÍAS VERLOS)
-            crearTrabajo(trabajoDAO, c1, "Pintar Salón", "Pintar de blanco mate, techo incl.",
-                    CategoriaServicio.PINTURA, "Calle Colón 10, 3º", EstadoTrabajo.EN_PROCESO, opCompetencia); // Benito
+                        crearTrabajo(trabajoDAO, c1, "Revisión Aire Acondicionado",
+                                        "No enfría bien, hace ruido extraño.",
+                                        CategoriaServicio.OTROS, "Calle Paz 5, 2ºA", EstadoTrabajo.PENDIENTE);
 
-            System.out.println("\n✅ SEMILLA COMPLETADA.");
-            System.out.println("----------------------------------------------");
-            System.out.println("👉 ACCESO GERENTE: gerente@levante.com  / 1234");
-            System.out.println("👉 ACCESO PACO:    paco@levante.com     / 1234");
-            System.out.println("👉 ACCESO CLIENTE: marta@gmail.com      / 1234");
-            System.out.println("ℹ️  NOTA: Todos los usuarios tienen pass: '1234'");
-            System.out.println("----------------------------------------------");
+                        crearTrabajo(trabajoDAO, c2, "Pintar habitación",
+                                        "Pintar dormitorio de blanco, unos 15m2.",
+                                        CategoriaServicio.OTROS, "Av. del Puerto 120", EstadoTrabajo.PENDIENTE);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            ConexionDB.cerrarConexion();
-        }
-    }
+                        System.out.println("📋 Trabajos creados (Todos PENDIENTES).");
+                        System.out.println("✅ CARGA COMPLETADA EXITOSAMENTE.");
 
-    // --- MÉTODOS AUXILIARES ---
-
-    private static Operario crearOperario(OperarioDAO dao, int idEmpresa, String nombre, String email, Rol rol,
-            CategoriaServicio especialidad) throws DataAccessException {
-        Operario op = new Operario();
-        op.setIdEmpresa(idEmpresa);
-        op.setNombreCompleto(nombre);
-        op.setEmail(email);
-        // Hasheamos la contraseña para que el login funcione
-        op.setPasswordHash(GestorPassword.hashearPassword("1234"));
-        op.setRol(rol);
-        op.setDni(System.currentTimeMillis() % 100000 + "X");
-        op.setEspecialidad(especialidad);
-        op.setEstaActivo(true);
-        op.setLatitud(39.4);
-        op.setLongitud(-0.3);
-        dao.insertar(op);
-        return op;
-    }
-
-    private static Cliente crearCliente(com.fixfinder.data.interfaces.ClienteDAO dao, String nombre, String email,
-            String dni) throws DataAccessException {
-        Cliente c = new Cliente();
-        c.setNombreCompleto(nombre);
-        c.setEmail(email);
-        // Hasheamos la contraseña
-        c.setPasswordHash(GestorPassword.hashearPassword("1234"));
-        c.setRol(Rol.CLIENTE);
-        c.setDni(dni);
-        dao.insertar(c);
-        return c;
-    }
-
-    private static Trabajo crearTrabajo(TrabajoDAO dao, Cliente cli, String titulo, String desc, CategoriaServicio cat,
-            String dir, EstadoTrabajo estado, Operario op) throws DataAccessException {
-        Trabajo t = new Trabajo();
-        t.setCliente(cli);
-        t.setTitulo(titulo);
-        t.setDescripcion(desc);
-        t.setCategoria(cat);
-        t.setDireccion(dir);
-        t.setEstado(estado);
-        if (op != null)
-            t.setOperarioAsignado(op);
-        t.setFechaCreacion(LocalDateTime.now().minusDays((long) (Math.random() * 10))); // Fechas variadas
-        dao.insertar(t);
-        System.out.println("   + Trabajo: '" + titulo + "' [" + estado + "]");
-        return t;
-    }
-
-    private static void limpiarBaseDeDatos() {
-        System.out.println("🧹 Limpiando base de datos...");
-        String[] tablas = { "presupuesto", "mensaje_chat", "factura", "foto_trabajo", "trabajo", "operario", "cliente",
-                "usuario", "empresa_especialidad", "empresa" };
-
-        try (Connection conn = ConexionDB.getConnection()) {
-            conn.setAutoCommit(false);
-            try (java.sql.Statement stmt = conn.createStatement()) {
-                stmt.execute("SET FOREIGN_KEY_CHECKS=0");
-                for (String tabla : tablas) {
-                    try {
-                        stmt.executeUpdate("DELETE FROM " + tabla);
-                        stmt.executeUpdate("ALTER TABLE " + tabla + " AUTO_INCREMENT = 1");
-                    } catch (Exception e) {
-                    }
+                } catch (Exception e) {
+                        e.printStackTrace();
                 }
-                stmt.execute("SET FOREIGN_KEY_CHECKS=1");
-            }
-            conn.commit();
-        } catch (Exception e) {
-            System.err.println("Error limpiando: " + e.getMessage());
         }
-    }
+
+        // --- MÉTODOS AUXILIARES ---
+
+        private static void limpiarBaseDeDatos() {
+                try (Connection conn = ConexionDB.getConnection();
+                                Statement stmt = conn.createStatement()) {
+                        // Orden de borrado por FKs
+                        stmt.executeUpdate("DELETE FROM mensaje_chat");
+                        stmt.executeUpdate("DELETE FROM factura");
+                        stmt.executeUpdate("DELETE FROM foto_trabajo");
+                        stmt.executeUpdate("DELETE FROM presupuesto");
+                        stmt.executeUpdate("DELETE FROM trabajo");
+
+                        // Usuarios y Roles
+                        stmt.executeUpdate("DELETE FROM cliente");
+                        stmt.executeUpdate("DELETE FROM operario");
+                        stmt.executeUpdate("DELETE FROM usuario");
+
+                        // Empresas
+                        stmt.executeUpdate("DELETE FROM empresa_especialidad");
+                        stmt.executeUpdate("DELETE FROM empresa");
+                        System.out.println("🧹 Base de datos limpiada.");
+                } catch (Exception e) {
+                        System.err.println("Error limpiando BD: " + e.getMessage());
+                }
+        }
+
+        private static Operario crearOperario(OperarioDAO dao, int idEmpresa, String nombre, String email, Rol rol,
+                        CategoriaServicio cat) throws Exception {
+                Operario op = new Operario();
+                op.setNombreCompleto(nombre);
+                op.setEmail(email);
+                op.setPasswordHash(GestorPassword.hashearPassword("1234")); // Hash Correcto
+                // FIX: Identificador único garantizado
+                op.setDni(uniqueId.getAndIncrement() + "X");
+                op.setDireccion("Calle Test");
+                op.setTelefono("600000000");
+                op.setRol(rol);
+                op.setIdEmpresa(idEmpresa);
+                op.setEspecialidad(cat);
+                op.setEstaActivo(true);
+                dao.insertar(op);
+                return op;
+        }
+
+        private static Usuario crearCliente(UsuarioDAO dao, String nombre, String email) throws Exception {
+                Usuario u = new Cliente();
+                u.setNombreCompleto(nombre);
+                u.setEmail(email);
+                u.setPasswordHash(GestorPassword.hashearPassword("1234")); // Hash Correcto
+                // FIX: Identificador único garantizado
+                u.setDni(uniqueId.getAndIncrement() + "X");
+                u.setDireccion("Calle Cliente");
+                u.setTelefono("699000000");
+                u.setRol(Rol.CLIENTE);
+                dao.insertar(u);
+                return u;
+        }
+
+        private static Trabajo crearTrabajo(TrabajoDAO dao, Usuario cliente, String titulo, String descripcion,
+                        CategoriaServicio cat, String direccion, EstadoTrabajo estado) throws Exception {
+                Trabajo t = new Trabajo();
+                t.setCliente(cliente);
+                t.setTitulo(titulo);
+                t.setDescripcion(descripcion);
+                t.setCategoria(cat);
+                t.setDireccion(direccion);
+                t.setEstado(estado);
+                t.setFechaCreacion(LocalDateTime.now());
+                t.setOperarioAsignado(null);
+                dao.insertar(t);
+                return t;
+        }
 }

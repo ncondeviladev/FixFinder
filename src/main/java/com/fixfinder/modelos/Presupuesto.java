@@ -1,18 +1,18 @@
 package com.fixfinder.modelos;
 
-import java.util.Date;
+import com.fixfinder.modelos.enums.EstadoPresupuesto;
+import java.time.LocalDateTime;
 
 /**
  * Representa una oferta económica previa a la realización del trabajo.
- *
- * (Opcional en el flujo básico, pero útil para ampliaciones).
  */
 public class Presupuesto {
     private int id;
     private Trabajo trabajo;
     private Empresa empresa;
     private double monto;
-    private Date fechaEnvio;
+    private LocalDateTime fechaEnvio;
+    private EstadoPresupuesto estado;
 
     public Presupuesto() {
     }
@@ -49,11 +49,30 @@ public class Presupuesto {
         this.monto = monto;
     }
 
-    public Date getFechaEnvio() {
+    public LocalDateTime getFechaEnvio() {
         return fechaEnvio;
     }
 
-    public void setFechaEnvio(Date fechaEnvio) {
+    public void setFechaEnvio(LocalDateTime fechaEnvio) {
         this.fechaEnvio = fechaEnvio;
+    }
+
+    public EstadoPresupuesto getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoPresupuesto estado) {
+        this.estado = estado;
+    }
+
+    // Campo informativo (No persistido en BD actual, pero útil para el cliente)
+    private String notas = "El precio es orientativo y puede estar sujeto a modificaciones por material o reparación.";
+
+    public String getNotas() {
+        return notas;
+    }
+
+    public void setNotas(String notas) {
+        this.notas = notas;
     }
 }

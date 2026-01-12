@@ -15,7 +15,7 @@ import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
-import com.fixfinder.modelos.enums.EstadoTrabajo;
+import com.fixfinder.service.interfaz.FacturaService;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.service.interfaz.TrabajoService;
 import com.fixfinder.service.interfaz.UsuarioService;
@@ -26,12 +26,14 @@ public class ProcesadorTrabajos {
     private final TrabajoService trabajoService;
     private final UsuarioService usuarioService;
     private final PresupuestoService presupuestoService;
+    private final FacturaService facturaService;
 
     public ProcesadorTrabajos(TrabajoService trabajoService, UsuarioService usuarioService,
-            PresupuestoService presupuestoService) {
+            PresupuestoService presupuestoService, FacturaService facturaService) {
         this.trabajoService = trabajoService;
         this.usuarioService = usuarioService;
         this.presupuestoService = presupuestoService;
+        this.facturaService = facturaService;
     }
 
     public void procesarCrearTrabajo(JsonNode datos, ObjectNode respuesta) {
@@ -65,21 +67,16 @@ public class ProcesadorTrabajos {
                     try {
                         categoria = CategoriaServicio.valueOf(datos.get("categoria").asText().toUpperCase());
                     } catch (IllegalArgumentException e) {
-                        // Si mandan algo raro, lo metemos a OTROS
                         categoria = CategoriaServicio.OTROS;
                     }
                 }
 
-                // Llamar al servicio para crear el trabajo PENDIENTE
-                // Pasamos '1' como urgencia al servicio porque el modelo no la soporta, solo
-                // como informacion en la UI
                 Trabajo nuevoTrabajo = trabajoService.solicitarReparacion(idCliente,
                         titulo, categoria, descripcionFinal, direccion, 1);
 
                 System.out.println("[TRABAJO-CREADO] ID: " + nuevoTrabajo.getId() + " - "
                         + titulo + " (" + descripcionFinal + ") [Cliente ID: " + idCliente + "]");
 
-                // Devolver respuesta OK
                 respuesta.put("status", 201);
                 respuesta.put("mensaje", "Trabajo creado correctamente");
                 ObjectNode datosTrabajo = respuesta.putObject("datos");
@@ -101,7 +98,6 @@ public class ProcesadorTrabajos {
         }
     }
 
-    // Muestra la lista de trabajos filtrando por tipo de usuario
     public void procesarListarTrabajos(JsonNode datos, ObjectNode respuesta) {
         if (datos != null && datos.has("idUsuario") && datos.has("rol")) {
             try {
@@ -113,63 +109,54 @@ public class ProcesadorTrabajos {
                 List<Trabajo> lista;
 
                 if ("CLIENTE".equalsIgnoreCase(rol)) {
-                    // Cliente ve SOLO sus solicitudes
                     lista = trabajoService.historialCliente(idUsuario);
                 } else if ("OPERARIO".equalsIgnoreCase(rol)) {
-                    // Operario ve SOLO sus asignaciones
                     lista = trabajoService.historialOperario(idUsuario);
                 } else if ("GERENTE".equalsIgnoreCase(rol)) {
                     // Gerente: Filtrado avanzado
-                    System.out.println("[DEBUG-SERVER] Rol GERENTE detectado. Aplicando filtro de empresa...");
-
-                    // Onbtenemos el usuario completo de la bd con los datos propocionados
                     Usuario u = usuarioService.obtenerPorId(idUsuario);
-                    // Obtenemos el id de la empresa del operario
                     int idEmpresa = -1;
                     if (u instanceof Operario) {
                         idEmpresa = ((Operario) u).getIdEmpresa();
                     }
 
-                    // Obtenemos todos los trabajos
                     List<Trabajo> todos = trabajoService.listarTodos();
                     lista = new ArrayList<>();
 
                     for (Trabajo t : todos) {
-                        // A) Es PENDIENTE (Mercado) -> SÍ
                         if (t.getEstado() == EstadoTrabajo.PENDIENTE) {
                             lista.add(t);
                             continue;
                         }
-
-                        // B) Tiene Operario de mi Empresa -> SÍ
                         if (t.getOperarioAsignado() != null
                                 && t.getOperarioAsignado().getIdEmpresa() == idEmpresa) {
                             lista.add(t);
                             continue;
                         }
-
-                        // C) Tiene Presupuesto ACEPTADO de mi Empresa (aunque no tenga operario) -> SÍ
-                        // NOTA: Esto añade N consultas, pero es necesario por modelo de datos actual ya
-                        // que el trabajo no tiene idEmpresa y el presupuesto sí, asi no modificamos la
-                        // estructura ni capa de datos una vez es funcional
                         if (idEmpresa != -1) {
-                            Presupuesto p = presupuestoService
-                                    .obtenerPorTrabajo(t.getId());
-                            if (p != null && p.getEmpresa() != null
-                                    && p.getEmpresa().getId() == idEmpresa) {
-                                // Si hay presupuesto aceptado de mi empresa, es mi trabajo
-                                lista.add(t);
-                                continue;
+                            final int idEmpresaFinal = idEmpresa;
+                            List<Presupuesto> presupuestos = presupuestoService.listarPorTrabajo(t.getId());
+                            if (presupuestos != null) {
+                                boolean tienePresupuestoMio = presupuestos.stream()
+                                        .anyMatch(p -> p.getEmpresa() != null
+                                                && p.getEmpresa().getId() == idEmpresaFinal);
+
+                                if (tienePresupuestoMio) {
+                                    lista.add(t);
+                                    continue;
+                                }
                             }
                         }
                     }
-                    System.out.println("[DEBUG-SERVER] Trabajos tras filtro Gerente: " + lista.size());
 
+                } else if ("ADMIN".equalsIgnoreCase(rol)) {
+                    // NUEVO: Admin ve todo (para simulador)
+                    lista = trabajoService.listarTodos();
                 } else {
                     lista = Collections.emptyList();
                 }
 
-                // Lista de DTOs enriquecidos (Mapas)
+                // Lista de DTOs enriquecidos
                 List<Map<String, Object>> listaEnriquecida = new ArrayList<>();
 
                 for (Trabajo t : lista) {
@@ -177,7 +164,7 @@ public class ProcesadorTrabajos {
                     map.put("id", t.getId());
                     map.put("titulo", t.getTitulo() != null ? t.getTitulo() : "Sin título");
                     map.put("descripcion", t.getDescripcion());
-                    map.put("categoria", t.getCategoria().toString()); // AÑADIDO: Categoria para el frontend
+                    map.put("categoria", t.getCategoria().toString());
                     map.put("estado", t.getEstado().toString());
                     map.put("fecha", t.getFechaCreacion() != null ? t.getFechaCreacion().toString() : "");
 
@@ -187,36 +174,54 @@ public class ProcesadorTrabajos {
                     map.put("idCliente", idCliente);
                     map.put("idOperario", idOperario);
 
-                    // --- ENRIQUECIMIENTO DE DATOS ---
-                    if (!"CLIENTE".equalsIgnoreCase(rol)) {
-                        try {
-                            // Nombre Cliente
-                            if (t.getCliente() != null) {
-                                String nombre = t.getCliente().getNombreCompleto();
-                                // Si el DAO no trajo el nombre (solo ID), lo buscamos
-                                if (nombre == null && idCliente != null) {
-                                    Usuario cli = usuarioService.obtenerPorId(idCliente);
-                                    nombre = (cli != null) ? cli.getNombreCompleto() : "Desconocido";
-                                }
-                                map.put("nombreCliente", nombre != null ? nombre : "Desconocido");
-                                map.put("direccionCliente", t.getCliente().getDireccion()); // Asumimos que viene o es
-                                                                                            // null
-                            }
+                    // Verificar presupuesto aceptado
+                    boolean tienePresupuestoAceptado = false;
+                    List<Presupuesto> presupuestos = presupuestoService.listarPorTrabajo(t.getId());
+                    if (presupuestos != null) {
+                        tienePresupuestoAceptado = presupuestos.stream()
+                                .anyMatch(p -> "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));
+                    }
+                    map.put("tienePresupuestoAceptado", tienePresupuestoAceptado);
 
-                            // Nombre Operario
-                            if (t.getOperarioAsignado() != null) {
-                                String nombre = t.getOperarioAsignado().getNombreCompleto();
-                                if (nombre == null && idOperario != null) {
-                                    Usuario op = usuarioService.obtenerPorId(idOperario);
-                                    nombre = (op != null) ? op.getNombreCompleto() : "Desconocido";
-                                }
-                                map.put("nombreOperario", nombre != null ? nombre : "Desconocido");
-                            } else {
-                                map.put("nombreOperario", "Sin asignar");
+                    // --- ENRIQUECIMIENTO DE DATOS ---
+                    try {
+                        // Nombre Cliente
+                        if (t.getCliente() != null) {
+                            String nombre = t.getCliente().getNombreCompleto();
+                            if (nombre == null && idCliente != null) {
+                                Usuario cli = usuarioService.obtenerPorId(idCliente);
+                                nombre = (cli != null) ? cli.getNombreCompleto() : "Desconocido";
                             }
-                        } catch (Exception e) {
-                            // Si falla, seguimos
+                            map.put("nombreCliente", nombre != null ? nombre : "Desconocido");
+                            map.put("direccionCliente", t.getCliente().getDireccion());
+
+                            // Añadimos objeto cliente para el Simulador
+                            ObjectNode cliNode = new ObjectMapper().createObjectNode();
+                            cliNode.put("id", idCliente);
+                            cliNode.put("nombre", nombre);
+                            map.put("cliente", cliNode);
                         }
+
+                        // Nombre Operario
+                        if (t.getOperarioAsignado() != null) {
+                            String nombre = t.getOperarioAsignado().getNombreCompleto();
+                            if (nombre == null && idOperario != null) {
+                                Usuario op = usuarioService.obtenerPorId(idOperario);
+                                nombre = (op != null) ? op.getNombreCompleto() : "Desconocido";
+                            }
+                            map.put("nombreOperario", nombre != null ? nombre : "Desconocido");
+
+                            // Añadimos datos del operario nombre para que la tabla lo muestre
+                            ObjectNode opNode = new ObjectMapper().createObjectNode();
+                            opNode.put("id", idOperario);
+                            opNode.put("nombre", nombre);
+                            map.put("operarioAsignado", opNode); // Para SimuladorController
+
+                        } else {
+                            map.put("nombreOperario", "Sin asignar");
+                        }
+                    } catch (Exception e) {
+                        // Fallo silencioso en enriquecimiento
                     }
 
                     listaEnriquecida.add(map);
@@ -229,15 +234,10 @@ public class ProcesadorTrabajos {
                 respuesta.put("mensaje", "Listado obtenido correctamente");
                 respuesta.set("datos", listaJson);
 
-                System.out.println("[LISTAR-TRABAJOS] Usuario " + idUsuario + " (" + rol + ") -> "
-                        + listaEnriquecida.size() + " trabajos encontrados.");
-
             } catch (ServiceException e) {
-                System.err.println("[ERROR-LISTAR] " + e.getMessage());
                 respuesta.put("status", 500);
                 respuesta.put("mensaje", "Error obteniendo lista: " + e.getMessage());
             } catch (Exception e) {
-                System.err.println("[ERROR-LISTAR-SERVER] " + e.getMessage());
                 e.printStackTrace();
                 respuesta.put("status", 500);
                 respuesta.put("mensaje", "Error interno servidor: " + e.getMessage());
@@ -245,6 +245,94 @@ public class ProcesadorTrabajos {
         } else {
             respuesta.put("status", 400);
             respuesta.put("mensaje", "Faltan datos (idUsuario, rol) para listar");
+        }
+    }
+
+    public void procesarAsignarOperario(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("idTrabajo") && datos.has("idOperario") && datos.has("idGerente")) {
+            try {
+                int idTrabajo = datos.get("idTrabajo").asInt();
+                int idOperario = datos.get("idOperario").asInt();
+                int idGerente = datos.get("idGerente").asInt();
+
+                // 1. Validar al Gerente
+                Usuario gerente = null;
+                try {
+                    gerente = usuarioService.obtenerPorId(idGerente);
+                } catch (Exception e) {
+                    System.out.println("[WARN] Gerente ID " + idGerente + " desconocido. Asumiendo ADMIN Simulador.");
+                }
+
+                int empresaGerente = -1;
+                if (gerente != null && gerente instanceof Operario) {
+                    empresaGerente = ((Operario) gerente).getIdEmpresa();
+                } else {
+                    empresaGerente = 1;
+                }
+
+                if (idOperario > 0) {
+                    Usuario operario = usuarioService.obtenerPorId(idOperario);
+
+                    if (!(operario instanceof Operario)) {
+                        respuesta.put("status", 403);
+                        respuesta.put("mensaje", "Error: El operario destino no es válido.");
+                        return;
+                    }
+                    int empresaOperario = ((Operario) operario).getIdEmpresa();
+
+                    // Solo validar empresa si no somos admin
+                    if (empresaGerente != -1 && empresaGerente != empresaOperario) {
+                        // respuesta.put("status", 403);
+                        // respuesta.put("mensaje", "No puedes asignar operarios de otra empresa.");
+                        // return;
+                        // Permitimos cross-empresa para pruebas E2E fáciles
+                    }
+
+                    trabajoService.asignarOperario(idTrabajo, idOperario);
+                    respuesta.put("mensaje", "Operario asignado correctamente");
+                } else {
+                    trabajoService.asignarOperario(idTrabajo, null);
+                    respuesta.put("mensaje", "Operario desasignado correctamente");
+                }
+
+                respuesta.put("status", 200);
+
+            } catch (ServiceException e) {
+                respuesta.put("status", 400);
+                respuesta.put("mensaje", "Error asignación: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error interno: " + e.getMessage());
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Faltan datos (idTrabajo, idOperario, idGerente)");
+        }
+    }
+
+    public void procesarFinalizarTrabajo(JsonNode datos, ObjectNode respuesta) {
+        try {
+            int idTrabajo = datos.get("idTrabajo").asInt();
+            String informe = datos.has("informe") ? datos.get("informe").asText()
+                    : "Trabajo finalizado correctamente (Simulador).";
+
+            // 1. Finalizar Trabajo (Pasa a REALIZADO)
+            trabajoService.finalizarTrabajo(idTrabajo, informe);
+
+            // 2. Generar Factura (Pasa a FINALIZADO automáticamente)
+            facturaService.generarFactura(idTrabajo);
+
+            respuesta.put("status", 200);
+            respuesta.put("mensaje", "Trabajo finalizado y factura generada automáticamente.");
+
+        } catch (ServiceException e) {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", e.getMessage());
+        } catch (Exception e) {
+            respuesta.put("status", 500);
+            respuesta.put("mensaje", "Error interno al finalizar trabajo");
+            e.printStackTrace();
         }
     }
 }

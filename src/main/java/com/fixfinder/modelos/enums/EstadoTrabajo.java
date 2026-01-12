@@ -10,9 +10,12 @@ package com.fixfinder.modelos.enums;
  * - CANCELADO: Trabajo anulado.
  */
 public enum EstadoTrabajo {
-    PENDIENTE,
-    ASIGNADO,
-    EN_PROCESO,
-    FINALIZADO,
-    CANCELADO
+    PENDIENTE, // Sin presupuestos
+    PRESUPUESTADO, // Con presupuestos enviados
+    ACEPTADO, // Presupuesto aceptado
+    ASIGNADO, // Operario asignado
+    REALIZADO, // Trabajo técnico terminado, pendiente de facturación
+    FINALIZADO, // Cerrado y facturado, pendiente de pago
+    PAGADO, // Ciclo completo, pagado por el cliente
+    CANCELADO // Cancelado por cliente
 }

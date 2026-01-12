@@ -4,15 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.red.procesadores.ProcesadorAutenticacion;
+import com.fixfinder.red.procesadores.ProcesadorFacturas;
+import com.fixfinder.red.procesadores.ProcesadorPresupuestos;
 import com.fixfinder.red.procesadores.ProcesadorTrabajos;
 import com.fixfinder.service.impl.EmpresaServiceImpl;
+import com.fixfinder.service.impl.FacturaServiceImpl;
 import com.fixfinder.service.impl.PresupuestoServiceImpl;
 import com.fixfinder.service.impl.TrabajoServiceImpl;
 import com.fixfinder.service.impl.UsuarioServiceImpl;
 import com.fixfinder.service.interfaz.EmpresaService;
+import com.fixfinder.service.interfaz.FacturaService;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.service.interfaz.TrabajoService;
 import com.fixfinder.service.interfaz.UsuarioService;
+import com.fixfinder.service.interfaz.OperarioService;
+import com.fixfinder.service.impl.OperarioServiceImpl;
+import com.fixfinder.red.procesadores.ProcesadorUsuarios;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -20,11 +27,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.Semaphore;
 
-/**
- * Gestor de Conexión (Refactorizado).
- * Actúa como enrutador, recibiendo los mensajes y delegándolos
- * a los procesadores correspondientes.
- */
 public class GestorConexion implements Runnable {
 
     private final Socket socket;
@@ -36,10 +38,15 @@ public class GestorConexion implements Runnable {
     private final TrabajoService trabajoService;
     private final EmpresaService empresaService;
     private final PresupuestoService presupuestoService;
+    private final OperarioService operarioService;
+    private final FacturaService facturaService;
 
     // Procesadores Delegados
     private final ProcesadorAutenticacion procesadorAutenticacion;
     private final ProcesadorTrabajos procesadorTrabajos;
+    private final ProcesadorUsuarios procesadorUsuarios;
+    private final ProcesadorPresupuestos procesadorPresupuestos;
+    private final ProcesadorFacturas procesadorFacturas;
 
     public GestorConexion(Socket socket, Semaphore semaforo) {
         this.socket = socket;
@@ -51,10 +58,16 @@ public class GestorConexion implements Runnable {
         this.trabajoService = new TrabajoServiceImpl();
         this.empresaService = new EmpresaServiceImpl();
         this.presupuestoService = new PresupuestoServiceImpl();
+        this.operarioService = new OperarioServiceImpl();
+        this.facturaService = new FacturaServiceImpl();
 
         // Inicializamos procesadores delegados
         this.procesadorAutenticacion = new ProcesadorAutenticacion(usuarioService, empresaService);
-        this.procesadorTrabajos = new ProcesadorTrabajos(trabajoService, usuarioService, presupuestoService);
+        this.procesadorTrabajos = new ProcesadorTrabajos(trabajoService, usuarioService, presupuestoService,
+                facturaService);
+        this.procesadorUsuarios = new ProcesadorUsuarios(operarioService);
+        this.procesadorPresupuestos = new ProcesadorPresupuestos(presupuestoService);
+        this.procesadorFacturas = new ProcesadorFacturas(facturaService);
     }
 
     @Override
@@ -96,6 +109,42 @@ public class GestorConexion implements Runnable {
 
                             case "LISTAR_TRABAJOS":
                                 procesadorTrabajos.procesarListarTrabajos(datos, respuesta);
+                                break;
+
+                            case "ASIGNAR_OPERARIO":
+                                procesadorTrabajos.procesarAsignarOperario(datos, respuesta);
+                                break;
+
+                            case "FINALIZAR_TRABAJO":
+                                procesadorTrabajos.procesarFinalizarTrabajo(datos, respuesta);
+                                break;
+
+                            case "GET_OPERARIOS":
+                                procesadorUsuarios.procesarListarOperarios(datos, respuesta);
+                                break;
+
+                            case "LISTAR_EMPRESAS":
+                                procesadorUsuarios.procesarListarEmpresas(datos, respuesta);
+                                break;
+
+                            case "CREAR_PRESUPUESTO":
+                                procesadorPresupuestos.procesarCrearPresupuesto(datos, respuesta);
+                                break;
+
+                            case "LISTAR_PRESUPUESTOS":
+                                procesadorPresupuestos.procesarListarPresupuestos(datos, respuesta);
+                                break;
+
+                            case "ACEPTAR_PRESUPUESTO":
+                                procesadorPresupuestos.procesarAceptarPresupuesto(datos, respuesta);
+                                break;
+
+                            case "GENERAR_FACTURA":
+                                procesadorFacturas.procesarGenerarFactura(datos, respuesta);
+                                break;
+
+                            case "PAGAR_FACTURA":
+                                procesadorFacturas.procesarPagarFactura(datos, respuesta);
                                 break;
 
                             case "PING":

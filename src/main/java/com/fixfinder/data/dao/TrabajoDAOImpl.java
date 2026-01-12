@@ -137,6 +137,8 @@ public class TrabajoDAOImpl implements TrabajoDAO {
             }
 
             stmt.setString(9, trabajo.getEstado().toString());
+            System.out.println(
+                    "[DEBUG-DAO] Actualizando trabajo ID " + trabajo.getId() + " a estado: " + trabajo.getEstado());
 
             if (trabajo.getFechaFinalizacion() != null) {
                 stmt.setTimestamp(10, Timestamp.valueOf(trabajo.getFechaFinalizacion()));

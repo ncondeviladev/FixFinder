@@ -6,6 +6,10 @@ import com.fixfinder.cliente.RespuestaServidor;
 import com.fixfinder.utilidades.ClienteException;
 import java.io.IOException;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
@@ -18,6 +22,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
+import java.util.List;
+import java.util.ArrayList;
 
 public class DashboardController {
 
@@ -25,6 +34,8 @@ public class DashboardController {
     private Button btnConectar;
     @FXML
     private Button btnPing;
+    @FXML
+    private Button btnAbrirSimulador;
     @FXML
     private TextArea txtLog;
     @FXML
@@ -131,6 +142,10 @@ public class DashboardController {
     private Integer usuarioLogueadoId = null;
     private String usuarioLogueadoNombre = null;
     private String usuarioLogueadoRol = null;
+    private Integer usuarioLogueadoIdEmpresa = null;
+
+    // Cache de operarios para asignación (solo Gerentes)
+    private List<OperarioModelo> listaOperarios = new ArrayList<>();
 
     private ServicioCliente servicio;
     private final ToggleGroup tipoUsuarioGroup = new ToggleGroup();
@@ -165,6 +180,13 @@ public class DashboardController {
             colOperarioTrabajo.setCellValueFactory(new PropertyValueFactory<>("nombreOperario"));
             colEstadoTrabajo.setCellValueFactory(new PropertyValueFactory<>("estado"));
             colFechaTrabajo.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+
+            // Evento Doble Clic para detalles
+            tablaTrabajos.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && tablaTrabajos.getSelectionModel().getSelectedItem() != null) {
+                    mostrarDetalleTrabajo(tablaTrabajos.getSelectionModel().getSelectedItem());
+                }
+            });
         }
 
         // Listener para habilitar/deshabilitar campo ID Empresa
@@ -226,6 +248,22 @@ public class DashboardController {
     }
 
     @FXML
+    private void onAbrirSimuladorClick() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/fixfinder/vistas/VistaSimulador.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Simulador E2E - God Mode");
+            stage.setScene(new Scene(root, 1000, 600));
+            stage.show();
+            log("Abriendo Simulador E2E...");
+        } catch (IOException e) {
+            log("Error abriendo simulador: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
     private void onLimpiarLogClick() {
         txtLog.clear();
     }
@@ -247,7 +285,10 @@ public class DashboardController {
     private void onLogoutClick() {
         usuarioLogueadoId = null;
         usuarioLogueadoNombre = null;
+        usuarioLogueadoNombre = null;
         usuarioLogueadoRol = null;
+        usuarioLogueadoIdEmpresa = null;
+        listaOperarios.clear();
 
         lblUsuarioLogueado.setText("Ninguna");
         lblUsuarioLogueado.setStyle("-fx-text-fill: #7f8c8d;");
@@ -368,6 +409,19 @@ public class DashboardController {
                             ? datos.get("nombreCompleto").asText()
                             : "Usuario Desconocido";
                     usuarioLogueadoRol = datos.get("rol").asText();
+                    if (datos.has("idEmpresa")) {
+                        usuarioLogueadoIdEmpresa = datos.get("idEmpresa").asInt();
+                        // Si es gerente, pedir la lista de sus operarios de inmediato
+                        if ("GERENTE".equalsIgnoreCase(usuarioLogueadoRol)) {
+                            try {
+                                servicio.solicitarListaOperarios(usuarioLogueadoIdEmpresa);
+                            } catch (IOException e) {
+                                log("Error solicitando operarios: " + e.getMessage());
+                            }
+                        }
+                    } else {
+                        usuarioLogueadoIdEmpresa = null;
+                    }
 
                     lblUsuarioLogueado.setText(
                             usuarioLogueadoNombre + " (" + usuarioLogueadoRol + ") - ID: " + usuarioLogueadoId);
@@ -439,10 +493,28 @@ public class DashboardController {
                                 nodo.has("nombreCliente") ? nodo.get("nombreCliente").asText() : "",
                                 nodo.has("nombreOperario") ? nodo.get("nombreOperario").asText() : "",
                                 nodo.get("estado").asText(),
-                                nodo.get("fecha").asText()));
+                                nodo.get("fecha").asText(),
+                                nodo.has("descripcion") ? nodo.get("descripcion").asText() : "",
+                                nodo.has("direccion") ? nodo.get("direccion").asText() : "",
+                                nodo.has("categoria") ? nodo.get("categoria").asText() : ""));
                     }
                     log("Lista actualizada: " + datos.size() + " elementos.");
                 }
+            } else if (mensaje.contains("Lista de operarios obtenida")) {
+                listaOperarios.clear();
+                if (datos != null && datos.isArray()) {
+                    for (JsonNode nodo : datos) {
+                        listaOperarios.add(new OperarioModelo(
+                                nodo.get("id").asInt(),
+                                nodo.get("nombre").asText(),
+                                nodo.get("especialidad").asText()));
+                    }
+                    log("Cache de operarios actualizada: " + listaOperarios.size());
+                }
+            } else if (mensaje.contains("Operario asignado") || mensaje.contains("desasignado")) {
+                log("GESTIÓN ASIGNACIÓN: " + mensaje);
+                // Refrescar la tabla
+                onRefrescarTrabajosClick();
             } else if (!respuesta.esExito()) {
                 log("Servidor reporta error (" + status + "): " + mensaje);
             }
@@ -456,6 +528,93 @@ public class DashboardController {
         txtLog.appendText(mensaje + "\n");
     }
 
+    private void mostrarDetalleTrabajo(TrabajoModelo t) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Detalle del Trabajo #" + t.getId());
+        alert.setHeaderText(t.getTitulo());
+
+        VBox content = new VBox(10);
+        content.getChildren().add(new Label("Categoría: " + t.getCategoria()));
+        content.getChildren().add(new Label("Estado: " + t.getEstado()));
+
+        // Mostrar siempre Cliente y Dirección
+        String nCliente = (t.getNombreCliente() == null || t.getNombreCliente().isEmpty()) ? "No especificado"
+                : t.getNombreCliente();
+        content.getChildren().add(new Label("Cliente: " + nCliente));
+
+        String nDir = (t.getDireccion() == null || t.getDireccion().isEmpty()) ? "No especificada" : t.getDireccion();
+        content.getChildren().add(new Label("Dirección: " + nDir));
+
+        content.getChildren().add(new Label("Descripción:"));
+
+        TextArea areaDesc = new TextArea(t.getDescripcion());
+        areaDesc.setEditable(false);
+        areaDesc.setWrapText(true);
+        areaDesc.setPrefHeight(80);
+        content.getChildren().add(areaDesc);
+
+        String nOp = (t.getNombreOperario() == null || t.getNombreOperario().isEmpty()) ? "Pendiente de asignar"
+                : t.getNombreOperario();
+        content.getChildren().add(new Label("Operario Asignado: " + nOp));
+
+        // Sección de Asignación (Solo para GERENTES y si el trabajo no está FINALIZADO)
+        if ("GERENTE".equalsIgnoreCase(usuarioLogueadoRol) && !"FINALIZADO".equals(t.getEstado())) {
+
+            content.getChildren().add(new Label("Gestión de Asignación:"));
+            VBox boxGestion = new VBox(5);
+            boxGestion.setStyle("-fx-border-color: #ccc; -fx-padding: 10; -fx-background-color: #f9f9f9;");
+
+            // ASIGNAR / REASIGNAR
+            HBox boxAsignar = new HBox(10);
+            ComboBox<OperarioModelo> comboOps = new ComboBox<>();
+            comboOps.setPromptText("Seleccionar Técnico");
+            comboOps.getItems().addAll(listaOperarios);
+
+            Button btnAsignar = new Button("Asignar / Cambiar");
+            btnAsignar.setOnAction(e -> {
+                OperarioModelo seleccionado = comboOps.getValue();
+                if (seleccionado != null) {
+                    try {
+                        servicio.enviarAsignarOperario(t.getId(), seleccionado.getId(), usuarioLogueadoId);
+                        log("Enviando asignación...");
+                        alert.close();
+                    } catch (IOException ex) {
+                        log("Error al asignar: " + ex.getMessage());
+                    }
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Selecciona un operario").showAndWait();
+                }
+            });
+            boxAsignar.getChildren().addAll(comboOps, btnAsignar);
+            boxGestion.getChildren().add(boxAsignar);
+
+            // DESASIGNAR (Solo si hay operario real)
+            boolean tieneOperario = (t.getNombreOperario() != null && !t.getNombreOperario().isEmpty()
+                    && !t.getNombreOperario().equals("Sin asignar")
+                    && !t.getNombreOperario().equals("Pendiente de asignar"));
+
+            if (tieneOperario) {
+                Button btnDesasignar = new Button("Desasignar Operario");
+                btnDesasignar.setStyle("-fx-background-color: #ffcccc; -fx-text-fill: red;");
+                btnDesasignar.setOnAction(e -> {
+                    try {
+                        // Enviamos -1 para desasignar
+                        servicio.enviarAsignarOperario(t.getId(), -1, usuarioLogueadoId);
+                        log("Enviando desasignación...");
+                        alert.close();
+                    } catch (IOException ex) {
+                        log("Error al desasignar: " + ex.getMessage());
+                    }
+                });
+                boxGestion.getChildren().add(btnDesasignar);
+            }
+            content.getChildren().add(boxGestion);
+        }
+
+        alert.getDialogPane().setContent(content);
+        alert.showAndWait();
+    }
+
     // Clase auxiliar para crear tabla de trabajos
     public static class TrabajoModelo {
         private final int id;
@@ -464,15 +623,22 @@ public class DashboardController {
         private final String nombreOperario;
         private final String estado;
         private final String fecha;
+        // Datos extendidos (ocultos en tabla, visibles en detalle)
+        private final String descripcion;
+        private final String direccion;
+        private final String categoria;
 
         public TrabajoModelo(int id, String titulo, String nombreCliente, String nombreOperario, String estado,
-                String fecha) {
+                String fecha, String descripcion, String direccion, String categoria) {
             this.id = id;
             this.titulo = titulo;
             this.nombreCliente = nombreCliente;
             this.nombreOperario = nombreOperario;
             this.estado = estado;
             this.fecha = fecha;
+            this.descripcion = descripcion;
+            this.direccion = direccion;
+            this.categoria = categoria;
         }
 
         public int getId() {
@@ -497,6 +663,39 @@ public class DashboardController {
 
         public String getFecha() {
             return fecha;
+        }
+
+        public String getDescripcion() {
+            return descripcion;
+        }
+
+        public String getDireccion() {
+            return direccion;
+        }
+
+        public String getCategoria() {
+            return categoria;
+        }
+    }
+
+    public static class OperarioModelo {
+        private final int id;
+        private final String nombre;
+        private final String especialidad;
+
+        public OperarioModelo(int id, String nombre, String especialidad) {
+            this.id = id;
+            this.nombre = nombre;
+            this.especialidad = especialidad;
+        }
+
+        @Override
+        public String toString() {
+            return nombre + " (" + especialidad + ")";
+        }
+
+        public int getId() {
+            return id;
         }
     }
 }

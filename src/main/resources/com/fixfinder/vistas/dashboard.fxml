@@ -29,6 +29,7 @@
             </Label>
             <TextField fx:id="txtStatus" editable="false" style="-fx-background-color: transparent; -fx-text-fill: red; -fx-font-weight: bold;" text="DESCONECTADO" />
             <Button fx:id="btnConectar" mnemonicParsing="false" onAction="#onConectarClick" text="Conectar" />
+            <Button fx:id="btnAbrirSimulador" text="Simulador E2E (God Mode)" onAction="#onAbrirSimuladorClick" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;" />
          </children>
       </HBox>
    </top>

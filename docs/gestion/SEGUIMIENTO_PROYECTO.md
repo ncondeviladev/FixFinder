@@ -18,46 +18,49 @@ Este proyecto sigue una metodología estricta de colaboración:
 
 ---
 
-## 🟢 Estado Actual: Sistema de Usuarios y Red Funcional ✅
+## 🔴 BLOQUEO ACTUAL (Cierre de Sesión)
 
-Hemos alcanzado un hito crítico: **El sistema de Registro de Usuarios está completo, integrado y validado.**
-La aplicación ya permite el flujo completo de alta para todos los actores a través de la red (Sockets).
+A pesar de haber confirmado que:
 
-**Logros Recientes:**
+1.  El Backend recibe la orden `FINALIZAR_TRABAJO`.
+2.  El DAO ejecuta el UPDATE y muestra log `[DEBUG-DAO] ... a estado: REALIZADO`.
+3.  La Base de Datos (tras actualizar schema) lo guarda.
+4.  El Servidor envía la lista actualizada.
 
-- **Protocolo de Red (`REGISTRO`):** Implementado en Servidor (`GestorConexion`) manejando JSONs complejos polimórficos.
-- **Persistencia Transaccional:**
-  - Registro atómico de `Empresa` + `Gerente`.
-  - Registro de `Operario` con validación de clave foránea (`idEmpresa`) y transacciones manuales corregidas.
-  - Registro de `Cliente` funcional.
-- **Cliente de Pruebas (Dashboard JavaFX):**
-  - Se ha evolucionado el "Dashboard" para servir como herramienta de test integral.
-  - Formularios dinámicos para dar de alta Empresas, Clientes y Operarios.
-  - Feedback visual de errores (Logs en pantalla).
+**El usuario reporta que la UI del Simulador NO refleja el cambio a estado "REALIZADO" y por tanto no habilita el botón "Generar Factura".**
+
+**Hipótesis para investigar mañana:**
+
+- **Race Condition:** El cliente pide `LISTAR_TRABAJOS` milisegundos antes de que el commit de la DB sea visible.
+- **Parsing Cliente:** El cliente JavaFX recibe el JSON "REALIZADO" pero falla al actualizar la `StringProperty` de la tabla.
+- **Error Silencioso UI:** Excepción en el hilo JavaFX que aborta el refresco visual.
 
 ---
 
-## 🚀 Siguientes Pasos: Gestión de Trabajos
+## 🟢 Estado Actual (Actualizado Sesión Actual): Ciclo de Vida de Trabajo Refinado ✅
 
-Con los actores ya creados en el sistema, el siguiente paso es implementar la lógica central del negocio: **La solicitud y gestión de servicios de reparación.**
+Se ha completado la implementación y refinamiento del ciclo de vida integral de los trabajos, resolviendo ambigüedades en la lógica de estados y persistencia.
 
-### 1. Funcionalidad: Crear Trabajo (`CREAR_TRABAJO`)
+**Logros Clave de esta Sesión:**
 
-- **Desde el Cliente:** Enviar solicitud con Título, Descripción y Categoría.
-- **En Servidor:**
-  - Validar cliente.
-  - Crear registro en tabla `trabajo` (Estado inicial: `PENDIENTE`).
-  - Responder con ID del trabajo.
+1.  **Refinamiento de Estados (`EstadoTrabajo`):**
+    - Se han introducido y persistido nuevos estados para mayor precisión: `PRESUPUESTADO`, `ACEPTADO`, `ASIGNADO` y el crítico **`REALIZADO`** (trabajo técnico finalizado pero pendiente de facturación).
+2.  **Lógica de Flujo Backend:**
+    - `PresupuestoService`: Transición automática `PENDIENTE -> PRESUPUESTADO -> ACEPTADO`.
+    - `TrabajoService`: Transición `ASIGNADO -> REALIZADO` al finalizar tarea técnica.
+    - `FacturaService`: Transición `REALIZADO -> FINALIZADO` solo tras emitir factura.
+3.  **Simulador E2E (UI):**
+    - Habilitación dinámica de botones ("Generar Factura" solo activa tras estar `REALIZADO`).
+    - Feedback visual mejorado y corrección de UX (preservar selección al refrescar tabla).
+4.  **Base de Datos:**
+    - Actualización del esquema (`ESQUEMA_BD.sql`) para soportar los nuevos ENUMs y mayor precisión decimal en montos.
+    - Corrección de scripts de Seed (`PruebaIntegracion.java`) para limpieza robusta de claves foráneas.
 
-### 2. Funcionalidad: Gestión para Empresa (`LISTAR_TRABAJOS`, `ASIGNAR_OPERARIO`)
+**Estado Técnico:**
 
-- La empresa debe poder ver qué trabajos se han solicitado en su área/categoría (o asignación directa, según definamos).
-- Asignar un Operario libre al trabajo.
-
-### 3. Dashboard
-
-- Añadir pestaña "Solicitar Servicio" para probar la creación de trabajos.
-- Añadir vista para que la Empresa vea las solicitudes.
+- Código Backend: **COMPLETO**.
+- Código Frontend (Simulador): **COMPLETO**.
+- Base de Datos: **SCHEMA ACTUALIZADO** (Requiere ejecución de `ESQUEMA_BD.sql` por parte del usuario).
 
 ---
 
@@ -66,21 +69,17 @@ Con los actores ya creados en el sistema, el siguiente paso es implementar la l�
 - [x] **Fase 1: Infraestructura y BD** (Completado)
 - [x] **Fase 2: Lógica de Negocio (Servicios)** (Completado)
 - [x] **Fase 3: Capa de Red - Autenticación y Registro** (COMPLETADO ✅)
-  - [x] Protocolo Login.
-  - [x] Protocolo Registro (Empresa/Op/Cli).
-  - [x] Validación Transaccional.
-- [x] **Fase 4: Capa de Red - Gestión de Trabajos** (EN PROCESO)
+- [x] **Fase 4: Capa de Red - Gestión de Trabajos** (COMPLETO)
   - [x] Solicitar Trabajo (`CREAR_TRABAJO`).
-  - [x] Listar Trabajos (`LISTAR_TRABAJOS`) con vista por roles.
-  - [ ] Filtrado Negocio Empresa (Privacidad).
-  - [ ] Detalle de Trabajo (UI).
-  - [ ] Asignar Operario.
-  - [ ] Finalizar Trabajo.
-- [x] **Fase 5: Herramientas de Prueba (UI Dashboard)** (Adelantado y Funcional)
-  - [x] Pestaña Registro.
-  - [x] Pestaña Login.
-  - [x] Pestaña Solicitar Servicio.
-  - [x] Pestaña Mis Trabajos (Tabla dinámica).
+  - [x] Listar Trabajos (`LISTAR_TRABAJOS`).
+  - [x] Filtrado Negocio Empresa (Backend implementado).
+  - [x] Presupuestos (Crear, Listar, Aceptar/Rechazar).
+  - [x] Asignar Operario.
+  - [x] Finalizar Trabajo (Informe técnico -> Estado REALIZADO).
+  - [x] Facturación (Generar -> Estado FINALIZADO, Pagar).
+- [x] **Fase 5: Herramientas de Prueba (Simulador E2E)** (COMPLETO ✅)
+  - [x] Panel de Control Maestro para todos los roles.
+  - [x] Flujo de estados validado y persistido.
 
 ---
 
@@ -95,23 +94,41 @@ Con los actores ya creados en el sistema, el siguiente paso es implementar la l�
     - Implementación del protocolo `CREAR_TRABAJO` con título y descripción.
     - Implementación de `LISTAR_TRABAJOS`.
 3.  **Corrección de Bugs Críticos:**
-    - **Rol Gerente:** Se corrigió un error grave en `OperarioDAO` y `UsuarioDAO` donde el rol `GERENTE` se guardaba y leía hardcodeado como `OPERARIO`. Ahora el sistema distingue correctamente y permite al Gerente ver todos los trabajos.
+    - **Rol Gerente:** Corrección de `OperarioDAO` y `UsuarioDAO`.
+4.  **Lógica de Negocio y Privacidad (Backend):**
+    - Se comprobó que `ProcesadorTrabajos.java` ya implementa el filtrado correcto por empresas para el rol `GERENTE`.
 
 ### ⏳ Pendiente (Próxima Prioridad)
 
-**1. Lógica de Negocio y Privacidad (Empresas)**
-El Gerente actualmente ve _todos_ los trabajos. Se debe refinar esta lógica para garantizar la privacidad y flujo correcto entre competencias:
+**1. Nuevo Enfoque: Simulador de Flujo E2E (God Mode)**
 
-- **Regla de Visibilidad:**
-  - Un Gerente debe ver **Trabajos PENDIENTES** (Mercado libre, disponibles para coger).
-  - Un Gerente debe ver **Trabajos ASIGNADOS** a operarios de **SU** propia empresa.
-  - Un Gerente **NO** debe ver trabajos ya aceptados/asignados por **OTRAS** empresas.
-- **Implementación:** Requiere filtro en backend (Service/DAO) comparando `idEmpresa` del operario asignado.
+Debido a la complejidad de saltar entre roles (Cliente -> Gerente -> Operario) para validar el flujo completo, implementaremos un Panel de Control Maestro.
 
-**2. Mejoras UI (Tabla de Trabajos)**
+- **Objetivo:** Validar todo el ciclo de vida del trabajo sin necesidad de loguearse manualmente en cada paso.
+- **Componente:** `SimuladorController.java` (Nueva vista).
+- **Funcionalidad:**
+  - Ver todos los trabajos en tiempo real.
+  - Botones de acción contextuales según el estado del trabajo:
+    - `PENDIENTE` -> `[Empresa A/B: Enviar Presupuesto]`
+    - `CON_OFERTAS` -> `[Cliente: Aceptar Presupuesto]`
+    - `ADJUDICADO` -> `[Gerente: Asignar Operario]`
+    - `EN_PROCESO` -> `[Operario: Finalizar Trabajo]`
+    - `FINALIZADO` -> `[Cliente: Confirmar y Pagar]`
 
-- La tabla actual es básica. Se necesita ver todos los detalles del trabajo (descripción completa, dirección, datos extendidos del cliente/operario).
-- **Solución propuesta:** Implementar evento de selección o **Doble Clic** en la tabla para abrir una ventana emergente (Popup/Alert) con la ficha completa del trabajo.
+**2. Implementación de Lógica de Negocio Faltante (Backend)**
+
+Para soportar el simulador, necesitamos implementar la lógica real que nos hemos "saltado":
+
+- **Presupuestos:**
+  - Entidad `Presupuesto`.
+  - DAOs y Service: `crearPresupuesto`, `listarPresupuestos`, `aceptarPresupuesto`.
+- **Finalización:**
+  - Lógica para cerrar trabajos, añadir informe técnico y costes finales.
+
+**3. Refactorización UI**
+
+- Crear `SimuladorView.fxml`.
+- Conectar botones a `ServicioCliente` invocando los métodos reales del protocolo.
 
 ## 📄 Documentación Adicional
 

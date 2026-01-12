@@ -111,6 +111,20 @@ public class ServicioCliente {
         enviarJson("LISTAR_TRABAJOS", datos);
     }
 
+    public void enviarAsignarOperario(int idTrabajo, int idOperario, int idGerente) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("idTrabajo", idTrabajo);
+        datos.put("idOperario", idOperario);
+        datos.put("idGerente", idGerente);
+        enviarJson("ASIGNAR_OPERARIO", datos);
+    }
+
+    public void solicitarListaOperarios(int idEmpresa) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("idEmpresa", idEmpresa);
+        enviarJson("GET_OPERARIOS", datos);
+    }
+
     private void enviarJson(String accion, ObjectNode datos) throws IOException {
         socket.enviar(accion, datos);
     }

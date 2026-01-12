@@ -8,7 +8,9 @@ import com.fixfinder.modelos.Presupuesto;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.utilidades.DataAccessException;
 
+import com.fixfinder.modelos.enums.EstadoPresupuesto;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +21,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     @Override
     public void insertar(Presupuesto presupuesto) throws DataAccessException {
-        String sql = "INSERT INTO presupuesto (id_trabajo, id_empresa, monto, estado) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO presupuesto (id_trabajo, id_empresa, monto, estado, fecha_envio) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -27,10 +29,14 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             stmt.setInt(1, presupuesto.getTrabajo().getId());
             stmt.setInt(2, presupuesto.getEmpresa().getId());
             stmt.setDouble(3, presupuesto.getMonto());
-            // En modelo Presupuesto aún no tenemos el Enum o String de estado, cuidado.
-            // Asumimos que lo añadirás. De momento hardcodeamos o usamos getter si existe.
-            // stmt.setString(4, presupuesto.getEstado());
-            stmt.setString(4, "PENDIENTE"); // Provisional hasta que actualices el modelo Presupuesto
+
+            String estado = (presupuesto.getEstado() != null) ? presupuesto.getEstado().toString()
+                    : EstadoPresupuesto.PENDIENTE.toString();
+            stmt.setString(4, estado);
+
+            Timestamp fecha = (presupuesto.getFechaEnvio() != null) ? Timestamp.valueOf(presupuesto.getFechaEnvio())
+                    : Timestamp.valueOf(LocalDateTime.now());
+            stmt.setTimestamp(5, fecha);
 
             int filas = stmt.executeUpdate();
             if (filas == 0)
@@ -49,7 +55,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     @Override
     public void actualizar(Presupuesto presupuesto) throws DataAccessException {
-        String sql = "UPDATE presupuesto SET id_trabajo=?, id_empresa=?, monto=?, estado=? WHERE id=?";
+        String sql = "UPDATE presupuesto SET id_trabajo=?, id_empresa=?, monto=?, estado=?, fecha_envio=? WHERE id=?";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,8 +63,9 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             stmt.setInt(1, presupuesto.getTrabajo().getId());
             stmt.setInt(2, presupuesto.getEmpresa().getId());
             stmt.setDouble(3, presupuesto.getMonto());
-            stmt.setString(4, "PENDIENTE"); // Provisional
-            stmt.setInt(5, presupuesto.getId());
+            stmt.setString(4, presupuesto.getEstado().toString());
+            stmt.setTimestamp(5, Timestamp.valueOf(presupuesto.getFechaEnvio()));
+            stmt.setInt(6, presupuesto.getId());
 
             stmt.executeUpdate();
 
@@ -139,6 +146,9 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar presupuestos por trabajo", e);
         }
+        for (Presupuesto p : lista) {
+            cargarRelaciones(p);
+        }
         return lista;
     }
 
@@ -146,7 +156,22 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         Presupuesto p = new Presupuesto();
         p.setId(rs.getInt("id"));
         p.setMonto(rs.getDouble("monto"));
-        p.setFechaEnvio(rs.getTimestamp("fecha_envio"));
+
+        Timestamp ts = rs.getTimestamp("fecha_envio");
+        if (ts != null) {
+            p.setFechaEnvio(ts.toLocalDateTime());
+        }
+
+        String estadoStr = rs.getString("estado");
+        if (estadoStr != null) {
+            try {
+                p.setEstado(EstadoPresupuesto.valueOf(estadoStr));
+            } catch (IllegalArgumentException e) {
+                p.setEstado(EstadoPresupuesto.PENDIENTE);
+            }
+        } else {
+            p.setEstado(EstadoPresupuesto.PENDIENTE);
+        }
 
         // Mapeo lazy de IDs para cargar relaciones después
         int idTrabajo = rs.getInt("id_trabajo");

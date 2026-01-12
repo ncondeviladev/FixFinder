@@ -87,14 +87,14 @@ public class BaseDatosTest {
 
             // 5. Asignar Operario
             trabajo.setOperarioAsignado(op);
-            trabajo.setEstado(EstadoTrabajo.EN_PROCESO);
+            trabajo.setEstado(EstadoTrabajo.ASIGNADO);
             trabajoDAO.actualizar(trabajo);
 
             // Verificar actualización leyendo de BD
             Trabajo trabajoLeido = trabajoDAO.obtenerPorId(trabajo.getId());
             assertNotNull(trabajoLeido.getOperarioAsignado(), "El operario debería estar asignado en la BD");
             assertEquals(op.getId(), trabajoLeido.getOperarioAsignado().getId());
-            assertEquals(EstadoTrabajo.EN_PROCESO, trabajoLeido.getEstado());
+            assertEquals(EstadoTrabajo.ASIGNADO, trabajoLeido.getEstado());
 
             // 6. Finalizar Trabajo
             trabajo.setEstado(EstadoTrabajo.FINALIZADO);
