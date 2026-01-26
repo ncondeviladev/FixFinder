@@ -11,6 +11,7 @@ import com.fixfinder.modelos.enums.Rol;
 import com.fixfinder.service.interfaz.EmpresaService;
 import com.fixfinder.service.interfaz.UsuarioService;
 import com.fixfinder.utilidades.ServiceException;
+import com.fixfinder.red.SessionManager;
 import java.util.ArrayList;
 
 public class ProcesadorAutenticacion {
@@ -32,8 +33,12 @@ public class ProcesadorAutenticacion {
                 Usuario usuario = usuarioService.login(email, password);
 
                 System.out.println("[LOGIN-DEBUG] PENDIENTE DE ENVIO: " + email + " (" + usuario.getRol() + ")");
+                // GENERAR TOKEN DE SESIÓN
+                String token = SessionManager.crearSesion(usuario.getId());
+
                 respuesta.put("status", 200);
                 respuesta.put("mensaje", "Login correcto");
+                respuesta.put("token", token); // El cliente debe guardar esto
 
                 ObjectNode datosUsuario = respuesta.putObject("datos");
                 datosUsuario.put("id", usuario.getId());

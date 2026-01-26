@@ -147,11 +147,11 @@ public class DashboardController {
     // Cache de operarios para asignación (solo Gerentes)
     private List<OperarioModelo> listaOperarios = new ArrayList<>();
 
-    private ServicioCliente servicio;
+    private ServicioCliente servicioCliente;
     private final ToggleGroup tipoUsuarioGroup = new ToggleGroup();
 
     public void initialize() {
-        servicio = new ServicioCliente();
+        servicioCliente = new ServicioCliente();
 
         // Configurar RadioButtons
         if (rbCliente != null && rbOperario != null) {
@@ -199,7 +199,7 @@ public class DashboardController {
         toggleBotones(true);
         btnConectar.setDisable(false);
 
-        servicio.setOnMensajeRecibido(json -> {
+        servicioCliente.setOnMensajeRecibido(json -> {
             Platform.runLater(() -> {
                 procesarRespuesta(json);
             });
@@ -210,16 +210,16 @@ public class DashboardController {
     @FXML
     private void onConectarClick() {
         try {
-            if (!servicio.isConectado()) {
+            if (!servicioCliente.isConectado()) {
                 log("Conectando...");
-                servicio.conectar("localhost", 5000);
+                servicioCliente.conectar("localhost", 5000);
                 txtStatus.setText("CONECTADO");
                 txtStatus.setStyle("-fx-text-fill: green;");
                 btnConectar.setText("Desconectar");
                 toggleBotones(false); // Habilitar
                 log("Conexión establecida.");
             } else {
-                servicio.desconectar();
+                servicioCliente.desconectar();
                 txtStatus.setText("DESCONECTADO");
                 txtStatus.setStyle("-fx-text-fill: red;");
                 btnConectar.setText("Conectar");
@@ -240,7 +240,7 @@ public class DashboardController {
     @FXML
     private void onPingClick() {
         try {
-            servicio.enviarPing();
+            servicioCliente.enviarPing();
             log("Enviado PING");
         } catch (IOException e) {
             log("Error enviando PING: " + e.getMessage());
@@ -274,7 +274,7 @@ public class DashboardController {
         lblStatusLogin.setStyle("-fx-text-fill: gray;");
 
         try {
-            servicio.enviarLogin(txtLoginEmail.getText(), txtLoginPassword.getText());
+            servicioCliente.enviarLogin(txtLoginEmail.getText(), txtLoginPassword.getText());
             log("Enviado LOGIN");
         } catch (IOException e) {
             log("Error LOGIN: " + e.getMessage());
@@ -283,6 +283,7 @@ public class DashboardController {
 
     @FXML
     private void onLogoutClick() {
+        servicioCliente.logout(); // Limpiar token de red
         usuarioLogueadoId = null;
         usuarioLogueadoNombre = null;
         usuarioLogueadoNombre = null;
@@ -320,7 +321,7 @@ public class DashboardController {
             nivelUrgencia = 3;
 
         try {
-            servicio.enviarCrearTrabajo(
+            servicioCliente.enviarCrearTrabajo(
                     usuarioLogueadoId,
                     txtTituloTrabajo.getText(),
                     txtDescripcionTrabajo.getText(),
@@ -336,7 +337,7 @@ public class DashboardController {
     @FXML
     private void onRegistrarEmpresaClick() {
         try {
-            servicio.enviarRegistroEmpresa(
+            servicioCliente.enviarRegistroEmpresa(
                     txtNombreEmpresa.getText(),
                     txtCif.getText(),
                     txtEmailEmpresa.getText(),
@@ -355,7 +356,7 @@ public class DashboardController {
     private void onRegistrarUsuarioClick() {
         boolean esOperario = rbOperario.isSelected();
         try {
-            servicio.enviarRegistroUsuario(
+            servicioCliente.enviarRegistroUsuario(
                     esOperario,
                     txtNombreUsuario.getText(),
                     txtDniUsuario.getText(),
@@ -385,7 +386,7 @@ public class DashboardController {
         colOperarioTrabajo.setVisible(verOperario);
 
         try {
-            servicio.solicitarListaTrabajos(usuarioLogueadoId, usuarioLogueadoRol);
+            servicioCliente.solicitarListaTrabajos(usuarioLogueadoId, usuarioLogueadoRol);
             log("Enviada solicitud de LISTAR_TRABAJOS...");
         } catch (IOException e) {
             log("Error al solicitar lista: " + e.getMessage());
@@ -395,7 +396,7 @@ public class DashboardController {
     private void procesarRespuesta(String json) {
         try {
             // Usar el servicio para parsear la respuesta
-            RespuestaServidor respuesta = servicio.interpretarRespuesta(json);
+            RespuestaServidor respuesta = servicioCliente.interpretarRespuesta(json);
 
             int status = respuesta.getStatus();
             String mensaje = respuesta.getMensaje();
@@ -414,7 +415,7 @@ public class DashboardController {
                         // Si es gerente, pedir la lista de sus operarios de inmediato
                         if ("GERENTE".equalsIgnoreCase(usuarioLogueadoRol)) {
                             try {
-                                servicio.solicitarListaOperarios(usuarioLogueadoIdEmpresa);
+                                servicioCliente.solicitarListaOperarios(usuarioLogueadoIdEmpresa);
                             } catch (IOException e) {
                                 log("Error solicitando operarios: " + e.getMessage());
                             }
@@ -575,7 +576,7 @@ public class DashboardController {
                 OperarioModelo seleccionado = comboOps.getValue();
                 if (seleccionado != null) {
                     try {
-                        servicio.enviarAsignarOperario(t.getId(), seleccionado.getId(), usuarioLogueadoId);
+                        servicioCliente.enviarAsignarOperario(t.getId(), seleccionado.getId(), usuarioLogueadoId);
                         log("Enviando asignación...");
                         alert.close();
                     } catch (IOException ex) {
@@ -599,7 +600,7 @@ public class DashboardController {
                 btnDesasignar.setOnAction(e -> {
                     try {
                         // Enviamos -1 para desasignar
-                        servicio.enviarAsignarOperario(t.getId(), -1, usuarioLogueadoId);
+                        servicioCliente.enviarAsignarOperario(t.getId(), -1, usuarioLogueadoId);
                         log("Enviando desasignación...");
                         alert.close();
                     } catch (IOException ex) {

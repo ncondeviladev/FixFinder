@@ -4,7 +4,6 @@ A continuación se presentan los diagramas de clases del **Modelo de Dominio**, 
 
 ## 1. Diagrama Simplificado (Solo Clases y Relaciones)
 
-
 ```mermaid
 ---
 config:
@@ -43,7 +42,6 @@ classDiagram
 ## 2. Diagrama Detallado (Completo)
 
 Vista técnica alineada con el código Java, incluyendo atributos completos y todos los métodos (Constructores, Getters y Setters).
-
 
 ```mermaid
 ---
@@ -149,8 +147,11 @@ classDiagram
         -int id
         -Trabajo trabajo
         -String numeroFactura
+        -double baseImponible
+        -double iva
         -double total
         -LocalDateTime fechaEmision
+        -String rutaPdf
         -boolean pagada
 
         +getId() int
@@ -163,12 +164,23 @@ classDiagram
         -Trabajo trabajo
         -Empresa empresa
         -double monto
-        -Date fechaEnvio
+        -LocalDateTime fechaEnvio
+        -EstadoPresupuesto estado
+        -String notas
 
         +getId() int
         +setId(int id)
         +getMonto() double
         +setMonto(double monto)
+    }
+
+    class MensajeChat {
+        -int id
+        -Trabajo trabajo
+        -Usuario remitente
+        -String contenido
+        -LocalDateTime fechaEnvio
+        -boolean leido
     }
 
     class FotoTrabajo {
@@ -181,6 +193,7 @@ classDiagram
         -double latitud
         -double longitud
     }
+
     class Rol {
         <<enumeration>>
         ADMIN
@@ -206,6 +219,14 @@ classDiagram
         FINALIZADO
         CANCELADO
     }
+
+    class EstadoPresupuesto {
+        <<enumeration>>
+        PENDIENTE
+        ACEPTADO
+        RECHAZADO
+    }
+
     Usuario <|-- Cliente : Es un
     Usuario <|-- Operario : Es un
     Operario "*" --> "1" Empresa : Trabaja para
@@ -220,4 +241,7 @@ classDiagram
     Operario ..> CategoriaServicio : Especialidad
     Trabajo *-- Ubicacion : Lugar
     Trabajo *-- FotoTrabajo : Evidencia
+    MensajeChat "*" --> "1" Trabajo : Pertenece a
+    MensajeChat "*" --> "1" Usuario : Escrito por
+    Presupuesto ..> EstadoPresupuesto : Tiene estado
 ```

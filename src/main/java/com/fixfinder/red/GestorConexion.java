@@ -103,58 +103,69 @@ public class GestorConexion implements Runnable {
                                 procesadorAutenticacion.procesarRegistro(datos, respuesta);
                                 break;
 
-                            case "CREAR_TRABAJO":
-                                procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
-                                break;
-
-                            case "LISTAR_TRABAJOS":
-                                procesadorTrabajos.procesarListarTrabajos(datos, respuesta);
-                                break;
-
-                            case "ASIGNAR_OPERARIO":
-                                procesadorTrabajos.procesarAsignarOperario(datos, respuesta);
-                                break;
-
-                            case "FINALIZAR_TRABAJO":
-                                procesadorTrabajos.procesarFinalizarTrabajo(datos, respuesta);
-                                break;
-
-                            case "GET_OPERARIOS":
-                                procesadorUsuarios.procesarListarOperarios(datos, respuesta);
-                                break;
-
-                            case "LISTAR_EMPRESAS":
-                                procesadorUsuarios.procesarListarEmpresas(datos, respuesta);
-                                break;
-
-                            case "CREAR_PRESUPUESTO":
-                                procesadorPresupuestos.procesarCrearPresupuesto(datos, respuesta);
-                                break;
-
-                            case "LISTAR_PRESUPUESTOS":
-                                procesadorPresupuestos.procesarListarPresupuestos(datos, respuesta);
-                                break;
-
-                            case "ACEPTAR_PRESUPUESTO":
-                                procesadorPresupuestos.procesarAceptarPresupuesto(datos, respuesta);
-                                break;
-
-                            case "GENERAR_FACTURA":
-                                procesadorFacturas.procesarGenerarFactura(datos, respuesta);
-                                break;
-
-                            case "PAGAR_FACTURA":
-                                procesadorFacturas.procesarPagarFactura(datos, respuesta);
-                                break;
-
                             case "PING":
                                 respuesta.put("status", 200);
                                 respuesta.put("mensaje", "PONG");
                                 break;
 
                             default:
-                                respuesta.put("status", 400);
-                                respuesta.put("mensaje", "Acción no reconocida: " + accion);
+                                // VALIDACIÓN DE TOKEN para el resto de acciones
+                                String tokenMsg = nodo.has("token") ? nodo.get("token").asText() : null;
+                                if (SessionManager.esTokenValido(tokenMsg)) {
+                                    switch (accion) {
+                                        case "CREAR_TRABAJO":
+                                            procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
+                                            break;
+
+                                        case "LISTAR_TRABAJOS":
+                                            procesadorTrabajos.procesarListarTrabajos(datos, respuesta);
+                                            break;
+
+                                        case "ASIGNAR_OPERARIO":
+                                            procesadorTrabajos.procesarAsignarOperario(datos, respuesta);
+                                            break;
+
+                                        case "FINALIZAR_TRABAJO":
+                                            procesadorTrabajos.procesarFinalizarTrabajo(datos, respuesta);
+                                            break;
+
+                                        case "GET_OPERARIOS":
+                                            procesadorUsuarios.procesarListarOperarios(datos, respuesta);
+                                            break;
+
+                                        case "LISTAR_EMPRESAS":
+                                            procesadorUsuarios.procesarListarEmpresas(datos, respuesta);
+                                            break;
+
+                                        case "CREAR_PRESUPUESTO":
+                                            procesadorPresupuestos.procesarCrearPresupuesto(datos, respuesta);
+                                            break;
+
+                                        case "LISTAR_PRESUPUESTOS":
+                                            procesadorPresupuestos.procesarListarPresupuestos(datos, respuesta);
+                                            break;
+
+                                        case "ACEPTAR_PRESUPUESTO":
+                                            procesadorPresupuestos.procesarAceptarPresupuesto(datos, respuesta);
+                                            break;
+
+                                        case "GENERAR_FACTURA":
+                                            procesadorFacturas.procesarGenerarFactura(datos, respuesta);
+                                            break;
+
+                                        case "PAGAR_FACTURA":
+                                            procesadorFacturas.procesarPagarFactura(datos, respuesta);
+                                            break;
+
+                                        default:
+                                            respuesta.put("status", 400);
+                                            respuesta.put("mensaje", "Acción no reconocida: " + accion);
+                                            break;
+                                    }
+                                } else {
+                                    respuesta.put("status", 401);
+                                    respuesta.put("mensaje", "Sesión no válida o expirada. Por favor, identifícate.");
+                                }
                                 break;
                         }
                     }

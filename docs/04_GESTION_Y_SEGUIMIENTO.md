@@ -80,8 +80,15 @@ Este documento recopila el progreso del proyecto, las decisiones técnicas y el 
 
 ### Sesión Actual: Refactorización Jerarquía Usuarios
 
-- **Cambio**: `Usuario` pasa a ser abstracto. Creación de sub-tablas `operario` y `cliente`.
 - **Solución**: Se implementó `SchemaUpdater` para aplicar los cambios de BD sin borrar datos.
+
+---
+
+### Sesión Actual: Seguridad en Red (Propuesta)
+
+- **Problema**: Las peticiones al servidor confían ciegamente en el `rol` enviado en el JSON del cliente, lo que podría permitir suplantación de identidad si se manipula el mensaje.
+- **Decisión**: Implementar **Seguridad de Sesión en el GestorConexion**. El servidor guardará el objeto `Usuario` en el hilo de la conexión tras un login exitoso. Todas las peticiones posteriores ignorarán el rol del JSON y usarán el rol validado en la sesión del socket.
+- **Estado**: Pendiente de implementación.
 
 ---
 
@@ -90,6 +97,7 @@ Este documento recopila el progreso del proyecto, las decisiones técnicas y el 
 1.  **Manejo de Conexiones**: Uso de semáforos (límite 10) para control de concurrencia (requisito PSP).
 2.  **Transacciones**: Patrón de sobrecarga de métodos en DAOs para pasar la `Connection` y evitar cierres prematuros de ResultSet.
 3.  **Protocolo**: Se elige el idioma Español para las claves JSON (`accion`, `datos`, `mensaje`) para coincidir con el código fuente del servidor.
+4.  **Seguridad de Sesión**: Se ha decidido que el `GestorConexion` mantenga el estado de autenticación (usuario logueado) para evitar que clientes malintencionados suplanten roles modificando el JSON de la petición.
 
 ---
 
@@ -130,13 +138,11 @@ Se ha completado la refactorización a nivel de código y diseño, pero falta ap
 Para retomar el trabajo, sigue estos pasos estrictos:
 
 1.  **Ejecutar SchemaUpdater con Gradle**:
-
     - No usar `java` a pelo. Usar Gradle es la forma correcta de tener las dependencias (Driver MySQL).
     - Opción A: Ejecutar desde el IDE (Run `SchemaUpdater.main`).
     - Opción B: Crear tarea en `build.gradle` o usar `gradlew run` si se configura.
 
 2.  **Verificar Base de Datos**:
-
     - Asegurarse de que las tablas `usuario`, `operario` y `cliente` tienen la estructura nueva (ver `ESQUEMA_BD.sql`).
 
 3.  **Re-ejecutar Tests**:

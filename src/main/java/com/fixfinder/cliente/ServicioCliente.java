@@ -12,6 +12,7 @@ public class ServicioCliente {
 
     private ClienteSocket socket;
     private ObjectMapper mapper;
+    private String tokenActual; // Guardar el token de sesión
 
     public ServicioCliente() {
         this.socket = new ClienteSocket();
@@ -26,6 +27,10 @@ public class ServicioCliente {
 
     public void desconectar() throws IOException {
         socket.desconectar();
+    }
+
+    public void logout() {
+        this.tokenActual = null;
     }
 
     public boolean isConectado() {
@@ -126,7 +131,7 @@ public class ServicioCliente {
     }
 
     private void enviarJson(String accion, ObjectNode datos) throws IOException {
-        socket.enviar(accion, datos);
+        socket.enviar(accion, datos, tokenActual);
     }
 
     // --- PROCESAMIENTO RESPUESTA ---
@@ -137,8 +142,14 @@ public class ServicioCliente {
             int status = root.has("status") ? root.get("status").asInt() : 0;
             String mensaje = root.has("mensaje") ? root.get("mensaje").asText() : "";
             JsonNode datos = root.has("datos") ? root.get("datos") : null;
+            String tokenRespuesta = root.has("token") ? root.get("token").asText() : null;
 
-            return new RespuestaServidor(status, mensaje, datos);
+            // Si el servidor envía un token (normalmente en el Login), lo guardamos
+            if (tokenRespuesta != null) {
+                this.tokenActual = tokenRespuesta;
+            }
+
+            return new RespuestaServidor(status, mensaje, datos, tokenRespuesta);
         } catch (Exception e) {
             throw new ClienteException("Error procesando JSON respuesta", e);
         }

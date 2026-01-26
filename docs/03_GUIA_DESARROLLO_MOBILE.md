@@ -17,13 +17,13 @@ La aplicación es un cliente único que adapta su funcionalidad según el rol ob
 
 **A. Perfil CLIENTE**
 
-- **Función**: Solicitar reparaciones y consultar su estado.
-- **Flujo**: Crear Trabajo (con fotos) -> Ver Presupuestos -> Aceptar/Rechazar -> Confirmar Pago.
+- **Función**: Solicitar reparaciones y gestionar presupuestos.
+- **Flujo**: Crear Trabajo (con fotos) -> Recibir Notificación de Presupuesto -> Aceptar/Rechazar Presupuesto -> Realizar Pago (Tras finalización).
 
 **B. Perfil OPERARIO**
 
-- **Función**: Ejecutar los trabajos asignados en campo.
-- **Flujo**: Ver Agenda -> Actualizar Estado -> Finalizar Trabajo (Informe técnico).
+- **Función**: Ejecutar los trabajos asignados en campo tras la aceptación del cliente.
+- **Flujo**: Recibir Tarea Asignada -> Ver Detalles y Dirección -> Actualizar Estado -> Finalizar Trabajo (Informe técnico).
 
 ---
 
@@ -33,11 +33,11 @@ La aplicación es un cliente único que adapta su funcionalidad según el rol ob
 
 - **Puerto:** 5000 (TCP).
 - **Formato de Datos:** JSON UTF-8.
-- **Estructura del Mensaje:** Siempre debe contener las claves: `accion`, `datos`, y opcionalmente `token`.
+- **Estructura del Mensaje:** Siempre debe contener las claves: `accion`, `datos`, y obligatoriamente `token` (excepto en LOGIN/REGISTRO).
 - **Manejo de Longitud (`readUTF` de Java):**
   - El servidor utiliza `DataInputStream.readUTF()`.
-  - **En Flutter:** No puedes enviar el JSON directamente. Debes anteponer 2 bytes con la longitud del string (Big-endian) o buscar un paquete que emule `DataOutputStream.writeUTF()`.
-  - **Lectura:** El servidor responderá con el mismo formato.
+  - **En Flutter:** No puedes enviar el JSON directamente como un String plano. Se debe usar un formato compatible con el estándar de Java que incluye 2 bytes de longitud al principio.
+  - **Seguridad:** Tras el LOGIN, el servidor devuelve un **token UUID**. Este token debe almacenarse en el móvil (Secure Storage) y enviarse en la raíz de cada JSON posterior.
 
 ### B. Gestión de Saturación (Semáforos)
 
@@ -101,21 +101,26 @@ La App envía un **único mensaje JSON** al servidor Java para que todo sea ató
 
 ## 🔄 4. Flujo de Trabajo (Business Logic)
 
-### Login y Persistencia
+### Login y Sesión
 
-- Al hacer Login, el servidor devuelve un objeto `usuario` con su `rol`.
-- **Persistencia:** Guardar el `rol`, `idUsuario` e `idEmpresa` (si es operario) en `SharedPreferences`.
+1.  **Login:** Enviar `email` y `password`.
+2.  **Validación:** El servidor devuelve `status: 200`, el objeto `usuario` y el `token` UUID.
+3.  **Persistencia Segura:** Guardar el `token` en **Flutter Secure Storage**. Guardar `idUsuario` y `rol` en `SharedPreferences`.
+4.  **Uso:** En cada petición (ej: `LISTAR_TRABAJOS`), inyectar el token en la raíz del JSON.
 
-### Cliente: Ciclo de Incidencia
+### Cliente: Ciclo de Incidencia y Presupuesto
 
-1.  **Formulario:** Captura de datos básicos + selección de fotos.
-2.  **Acción:** `CREAR_TRABAJO`.
-3.  **Seguimiento:** Pantalla que refresca mediante la acción `LISTAR_TRABAJOS` filtrando por `idUsuario`.
+1.  **Reporte:** Crear trabajo con fotos (vía Firebase).
+2.  **Negociación:**
+    - El Gerente sube un presupuesto desde el escritorio.
+    - El Cliente ve el presupuesto en su lista (Estado: `PRESUPUESTADO`).
+    - El Cliente usa la acción `ACEPTAR_PRESUPUESTO` o lo rechaza.
+3.  **Ejecución:** Una vez aceptado y asignado por el Gerente, el trabajo pasa a `ASIGNADO`.
 
-### Operario: Gestión Técnica
+### Operario: Ejecución de Tareas
 
-1.  **Agenda:** Acción `LISTAR_TRABAJOS` con rol `OPERARIO` para ver sus tareas.
-2.  **Cierre:** Acción `FINALIZAR_TRABAJO`. Requiere enviar un `informe` de texto.
+1.  **Recepción:** Solo ve los trabajos en estado `ASIGNADO` que tengan su `idOperario`.
+2.  **Cierre:** Acción `FINALIZAR_TRABAJO` al terminar la reparación.
 
 ---
 

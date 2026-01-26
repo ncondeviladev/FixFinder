@@ -30,12 +30,17 @@ public class ClienteSocket {
         new Thread(this::escucharServidor).start();
     }
 
-    public void enviar(String accion, ObjectNode datos) throws IOException {
+    public void enviar(String accion, ObjectNode datos, String token) throws IOException {
         if (!conectado)
             throw new IOException("No conectado al servidor");
 
         ObjectNode mensaje = mapper.createObjectNode();
         mensaje.put("accion", accion);
+
+        if (token != null) {
+            mensaje.put("token", token);
+        }
+
         if (datos != null) {
             mensaje.set("datos", datos);
         }

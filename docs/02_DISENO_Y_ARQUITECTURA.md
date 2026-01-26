@@ -41,7 +41,7 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ```json
 {
   "accion": "NOMBRE_ACCION",
-  "token": "JWT_O_SESSION_ID",
+  "token": "UUID-X-X-X", // Token recibido en el LOGIN
   "datos": {
     // Parámetros específicos de la acción
   }
@@ -83,13 +83,12 @@ Este documento define el estándar de comunicación entre el Servidor Java y los
 ```json
 {
   "status": 200,
+  "mensaje": "Login correcto",
+  "token": "550e8400-e29b-41d4-a716-446655440000",
   "datos": {
-    "token": "abc-123-xyz",
-    "usuario": {
-      "id": 1,
-      "nombre": "Juan Pérez",
-      "rol": "OPERARIO"
-    }
+    "id": 1,
+    "nombreCompleto": "Juan Pérez",
+    "rol": "OPERARIO"
   }
 }
 ```

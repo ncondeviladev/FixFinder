@@ -35,6 +35,7 @@ classDiagram
     class Trabajo
     class Factura
     class Presupuesto
+    class MensajeChat
 
     Usuario <|-- Operario
     Usuario <|-- Cliente
@@ -43,6 +44,7 @@ classDiagram
     Trabajo "*" --> "0..1" Operario
     Factura "1" -- "1" Trabajo
     Presupuesto "*" -- "1" Trabajo
+    MensajeChat "*" -- "1" Trabajo
 ```
 
 ---

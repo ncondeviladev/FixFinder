@@ -29,6 +29,6 @@ public class UsuarioServiceCliente {
         datos.put("email", email);
         datos.put("password", password);
 
-        socket.enviar("LOGIN", datos);
+        socket.enviar("LOGIN", datos, null);
     }
 }
