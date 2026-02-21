@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="FIXFINDER - Memoria Transversal" company="Academica" webLink="http://" view-date="2025-10-01" view-index="0" gantt-divider-location="436" resource-divider-location="300" version="3.3.3316" locale="es_ES">
+    <description><![CDATA[Planificación corregida con redacción de memoria transversal durante todo el proceso.]]></description>
+    <tasks empty-milestones="true">
+        <task id="1" name="1.1 Requisitos y Arquitectura" color="#8cb6ce" meeting="false" start="2025-10-01" duration="15" complete="100" expand="true"/>
+        <task id="2" name="1.2 Modelado de BD" color="#8cb6ce" meeting="false" start="2025-10-16" duration="15" complete="100" expand="true"/>
+        
+        <task id="3" name="2.1 Configuración Entorno" color="#8cb6ce" meeting="false" start="2025-11-01" duration="5" complete="100" expand="true"/>
+        <task id="4" name="2.2 Persistencia y DAOs (MySQL)" color="#8cb6ce" meeting="false" start="2025-11-06" duration="15" complete="100" expand="true"/>
+        <task id="5" name="2.3 Implementación Sockets Multihilo" color="#8cb6ce" meeting="false" start="2025-11-21" duration="15" complete="100" expand="true"/>
+        <task id="6" name="2.4 Seguridad y Roles" color="#8cb6ce" meeting="false" start="2025-12-06" duration="10" complete="100" expand="true"/>
+        
+        <task id="7" name="3.1 Dashboard de pruebas (JavaFX)" color="#009933" meeting="false" start="2025-12-16" duration="25" complete="80" expand="true"/>
+        <task id="8" name="3.2 Generación Facturas PDF" color="#009933" meeting="false" start="2026-01-10" duration="10" complete="0" expand="true"/>
+        
+        <task id="9" name="4.1 Diseño UI Flutter" color="#ff9900" meeting="false" start="2026-02-01" duration="10" complete="0" expand="true"/>
+        <task id="10" name="4.2 Sockets en Dart" color="#ff9900" meeting="false" start="2026-02-11" duration="10" complete="0" expand="true"/>
+        <task id="11" name="4.3 Flujo Cliente e Incidencias" color="#ff9900" meeting="false" start="2026-02-21" duration="10" complete="0" expand="true"/>
+        <task id="12" name="4.4 Flujo Operario" color="#ff9900" meeting="false" start="2026-03-03" duration="10" complete="0" expand="true"/>
+        
+        <task id="13" name="5.1 Integración y Testing" color="#666666" meeting="false" start="2026-03-15" duration="15" complete="0" expand="true"/>
+        <task id="14" name="5.2 Redacción de Memoria Técnica" color="#99ccff" meeting="false" start="2025-10-01" duration="205" complete="40" expand="true">
+            <notes><![CDATA[Documentación continua de todas las fases del proyecto.]]></notes>
+        </task>
+        <task id="15" name="5.3 Defensa del Proyecto" color="#000000" meeting="false" start="2026-04-25" duration="5" complete="0" expand="true"/>
+    </tasks>
+</project>

@@ -1,34 +1,24 @@
-# Gradle
-.gradle
-build/
+# Archivos de Planificación y Utilidades Personales
+PLAN_EVOLUCION_APP.md
+limpiar_proyectos.ps1
 
-# Java
-*.class
-*.log
-*.ctxt
-.mtj.tmp/
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# Eclipse
-.project
-.classpath
-.settings/
-bin/
-
-# IntelliJ
+# IDEs y Entorno
+.vscode/
 .idea/
 *.iml
-*.iws
-*.ipr
+*.swp
+*.bak
 
-# VS Code
-# .vscode/
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
 
-# Project specific
-/data/
+# Java/Gradle
+.gradle/
+build/
+bin/
+out/
+target/

@@ -1,0 +1,30 @@
+name: fixfinder_app
+description: Aplicación móvil para el ecosistema FixFinder.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  http: ^1.1.0
+  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.2.2
+  provider: ^6.1.1
+  firebase_core: ^4.4.0
+  firebase_storage: ^13.0.6
+  intl: ^0.19.0
+  logger: ^2.0.2
+  path_provider: ^2.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

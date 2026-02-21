@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'eclipse'
+}
+
+group = 'com.fixfinder'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Driver de MySQL
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    
+    // JavaFX (Dependencias explícitas para Windows)
+    implementation 'org.openjfx:javafx-controls:21:win'
+    implementation 'org.openjfx:javafx-fxml:21:win'
+    implementation 'org.openjfx:javafx-graphics:21:win'
+    implementation 'org.openjfx:javafx-base:21:win'
+    
+    // JUnit
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    // JSON (Jackson)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+application {
+    mainClass = 'com.fixfinder.Main'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat "full"
+    }
+    afterTest { desc, result -> 
+        logger.lifecycle "Ejecutando Test: ${desc.className}.${desc.name} -> ${result.resultType}"
+    }
+}
+
+task runServer(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Server'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.red.ServidorCentral'
+}
+
+task runClient(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Client'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.Launcher'
+}
+
+
+
+task runSchemaUpdater(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Schema Updater'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.utilidades.SchemaUpdater'
+}
+
+task runSeeder(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Data Seeder for Testing'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.pruebas.PruebaIntegracion'
+    standardInput = System.in
+}
