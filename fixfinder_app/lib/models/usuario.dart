@@ -1,3 +1,5 @@
+// Modelo de datos para Usuario.
+// Define los diferentes roles (Cliente, Operario, etc.) e información personal.
 enum Rol { ADMIN, GERENTE, OPERARIO, CLIENTE }
 
 class Usuario {

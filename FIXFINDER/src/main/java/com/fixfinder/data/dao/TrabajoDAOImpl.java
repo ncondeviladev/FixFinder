@@ -224,6 +224,35 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     }
 
     /**
+     * Obtiene todos los trabajos de un cliente concreto filtrando en SQL.
+     * Evita el problema de getCliente()==null por fallos de cargarRelaciones.
+     */
+    public List<Trabajo> obtenerPorCliente(int idCliente) throws DataAccessException {
+        String sql = "SELECT * FROM trabajo WHERE id_cliente = ?";
+        List<Trabajo> lista = new ArrayList<>();
+
+        try (Connection conn = ConexionDB.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idCliente);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al listar trabajos del cliente " + idCliente, e);
+        }
+
+        // Solo son los trabajos del cliente (no todos), carga secuencial segura.
+        for (Trabajo t : lista) {
+            cargarRelaciones(t);
+        }
+
+        return lista;
+    }
+
+    /**
      * Obtiene los trabajos pendientes de una categoría específica.
      * Útil para que los operarios vean qué hay disponible.
      */

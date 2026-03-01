@@ -1,3 +1,5 @@
+// Modelo de datos para Empresa colaboradora.
+// Información pública y de contacto sobre el negocio que presta el servicio.
 class Empresa {
   final int id;
   final String nombre;

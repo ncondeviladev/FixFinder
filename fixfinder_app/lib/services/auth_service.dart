@@ -1,6 +1,8 @@
+// Servicio de Autenticación.
+// Gestiona el login, logout y la persistencia de sesión mediante SharedPreferences.
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart';
+import 'dart:convert';
 import '../models/usuario.dart';
 import 'socket_service.dart';
 
@@ -30,10 +32,14 @@ class AuthService {
       final completer = Completer<Map<String, dynamic>>();
 
       suscripcion = _socket.respuestas.listen((respuesta) {
-        if (respuesta['status'] != null &&
-            (respuesta['mensaje']?.toString().contains('Login') == true ||
-                respuesta['token'] != null ||
-                respuesta['status'] == 401)) {
+        final msg = respuesta['mensaje']?.toString() ?? '';
+        final status = respuesta['status'];
+        // Solo completar si es una respuesta de LOGIN: tiene token o es un error de auth
+        if (status == 200 && respuesta['token'] != null) {
+          if (!completer.isCompleted) completer.complete(respuesta);
+        } else if (status == 401 && msg.contains('redencial')) {
+          if (!completer.isCompleted) completer.complete(respuesta);
+        } else if (status == 500 && msg.contains('nterno')) {
           if (!completer.isCompleted) completer.complete(respuesta);
         }
       });
@@ -55,21 +61,16 @@ class AuthService {
         // INTENTO DE PERSISTENCIA (Si falla por los plugins de Windows, lo ignoramos)
         try {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', token);
-          await prefs.setInt('userId', _usuarioActual!.id);
-          await prefs.setString('userRol', _usuarioActual!.rol.name);
-          await prefs.setString('userEmail', _usuarioActual!.email);
-          await prefs.setString('userNombre', _usuarioActual!.nombreCompleto);
+          await prefs.setString(
+              'userData', jsonEncode(_usuarioActual!.toJson()));
         } catch (e) {
-          Logger().w(
-              'No se pudo persistir la sesión (error de plugin), pero continuamos en memoria: $e');
+          // No se pudo persistir la sesión, continuamos en memoria
         }
 
         return true;
       }
       return false;
     } catch (e) {
-      Logger().e('Error durante el proceso de login: $e');
       return false;
     } finally {
       await suscripcion?.cancel();
@@ -82,7 +83,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
     } catch (e) {
-      Logger().w('Error al limpiar SharedPreferences: $e');
+      // Ignorar
     }
     _socket.disconnect();
   }
@@ -90,30 +91,16 @@ class AuthService {
   Future<bool> tryAutoLogin() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) return false;
+      final userDataStr = prefs.getString('userData');
+      if (userDataStr == null) return false;
 
-      final idUsuario = prefs.getInt('userId');
-      final rolUsuario = prefs.getString('userRol');
-      final email = prefs.getString('userEmail') ?? '';
-      final nombre = prefs.getString('userNombre') ?? '';
+      final userData = jsonDecode(userDataStr);
+      if (userData['token'] == null || userData['id'] == null) return false;
 
-      // Si faltan datos críticos, forzamos login para evitar perfil vacío
-      if (idUsuario == null || rolUsuario == null || email.isEmpty)
-        return false;
-
-      _usuarioActual = Usuario(
-        id: idUsuario,
-        email: email,
-        nombreCompleto: nombre,
-        rol: Rol.values
-            .firstWhere((e) => e.name == rolUsuario, orElse: () => Rol.CLIENTE),
-        token: token,
-      );
+      _usuarioActual = Usuario.fromJson(userData);
       return true;
     } catch (e) {
-      // Ignorar errores de plugin en el arranque
-      Logger().w('Error en auto-login (plugin no listo): $e');
+      // Ignorar errores de plugin
     }
     return false;
   }

@@ -1,3 +1,5 @@
+// Proveedor de Estado (Provider) que gestiona el ciclo de vida de los Trabajos (Incidencias).
+// Contiene las peticiones para crear, actualizar, valorar y comunicarse con el servidor.
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/trabajo.dart';
@@ -19,8 +21,7 @@ class TrabajoProvider with ChangeNotifier {
   TrabajoProvider() {
     // Escuchar actualizaciones en tiempo real del socket (eventos push)
     _socket.respuestas.listen((respuesta) {
-      if (respuesta['event'] == 'NEW_JOB_ASSIGNED' ||
-          respuesta['accion'] == 'LISTAR_TRABAJOS') {
+      if (respuesta['event'] == 'NEW_JOB_ASSIGNED') {
         obtenerTrabajos();
       }
     });
@@ -118,9 +119,8 @@ class TrabajoProvider with ChangeNotifier {
     try {
       final completer = Completer<Map<String, dynamic>>();
       final suscripcion = _socket.respuestas.listen((respuesta) {
-        // Buscamos específicamente el status de la respuesta de esta acción
-        if (respuesta['accion'] == 'LISTAR_TRABAJOS' ||
-            respuesta['status'] != null) {
+        // Buscamos específicamente que la respuesta pertenezca a esta acción
+        if (respuesta['accion'] == 'LISTAR_TRABAJOS') {
           if (!completer.isCompleted) completer.complete(respuesta);
         }
       });
@@ -132,20 +132,25 @@ class TrabajoProvider with ChangeNotifier {
 
       if (respuesta['status'] == 200 && respuesta['datos'] is List) {
         final List<dynamic> listaJson = respuesta['datos'] ?? [];
-        _trabajos = listaJson.map((json) {
-          try {
-            return Trabajo.fromJson(json);
-          } catch (e) {
-            print('Error parseando trabajo ID ${json['id']}: $e');
-            rethrow;
-          }
-        }).toList();
+        final lista = listaJson
+            .map((json) {
+              try {
+                return Trabajo.fromJson(json);
+              } catch (e) {
+                rethrow;
+              }
+            })
+            .where((t) => t.estado != EstadoTrabajo.CANCELADO)
+            .toList();
+        // Ordenamos: en proceso > pendiente > realizado/finalizado_sin_valorar > pagado
+        lista
+            .sort((a, b) => _prioridadEstado(a).compareTo(_prioridadEstado(b)));
+        _trabajos = lista;
       } else {
         // print('Respuesta no válida o vacía: ${respuesta['status']}');
       }
     } catch (e) {
-      print('Error al obtener trabajos: $e');
-      // _logger.e('Error al obtener trabajos: $e');
+      // Manejo silencioso de errores
     } finally {
       _estaCargando = false;
       notifyListeners();
@@ -166,32 +171,18 @@ class TrabajoProvider with ChangeNotifier {
     };
 
     try {
-      final completer = Completer<Map<String, dynamic>>();
-      final suscripcion = _socket.respuestas.listen((respuesta) {
-        if (respuesta['status'] == 201 ||
-            (respuesta['mensaje']?.toString().contains('creado') == true)) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        }
-      });
-
       await _socket.send(peticion);
-      final respuesta =
-          await completer.future.timeout(const Duration(seconds: 5));
-      suscripcion.cancel();
-
-      if (respuesta['status'] == 201) {
-        obtenerTrabajos(); // Recargamos la lista
-        return true;
-      }
-      return false;
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
+      return true;
     } catch (e) {
-      print('Error al crear trabajo: $e');
       return false;
     }
   }
 
-  Future<bool> actualizarEstadoTrabajo(
-      int idTrabajo, EstadoTrabajo nuevoEstado) async {
+  /// Actualiza el estado de un trabajo.
+  Future<bool> actualizarEstadoTrabajo(int idTrabajo, EstadoTrabajo nuevoEstado,
+      {String? informe}) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
 
@@ -199,11 +190,16 @@ class TrabajoProvider with ChangeNotifier {
     final Map<String, dynamic> peticion = {
       'accion': 'FINALIZAR_TRABAJO',
       'token': usuario.token,
-      'datos': {'idTrabajo': idTrabajo, 'informe': 'Finalizado desde App Móvil'}
+      'datos': {
+        'idTrabajo': idTrabajo,
+        'informe': informe ?? 'Finalizado desde App Móvil'
+      }
     };
 
     try {
       await _socket.send(peticion);
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
       obtenerTrabajos();
       return true;
     } catch (e) {
@@ -241,7 +237,7 @@ class TrabajoProvider with ChangeNotifier {
         return listaJson.map((json) => Presupuesto.fromJson(json)).toList();
       }
     } catch (e) {
-      print('Error al obtener presupuestos: $e');
+      // Manejo silencioso
     }
     return [];
   }
@@ -258,6 +254,8 @@ class TrabajoProvider with ChangeNotifier {
 
     try {
       await _socket.send(peticion);
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
       obtenerTrabajos();
       return true;
     } catch (e) {
@@ -278,10 +276,89 @@ class TrabajoProvider with ChangeNotifier {
 
     try {
       await _socket.send(peticion);
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
       obtenerTrabajos();
       return true;
     } catch (e) {
       return false;
+    }
+  }
+
+  /// Modifica los datos de un trabajo existente.
+  Future<bool> modificarTrabajo(
+      int idTrabajo, Map<String, dynamic> datosTrabajo) async {
+    final usuario = _auth.usuarioActual;
+    if (usuario == null) return false;
+
+    datosTrabajo['idTrabajo'] = idTrabajo;
+
+    final Map<String, dynamic> peticion = {
+      'accion': 'MODIFICAR_TRABAJO',
+      'token': usuario.token,
+      'datos': datosTrabajo,
+    };
+
+    try {
+      await _socket.send(peticion);
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Registra la valoración y comentario de un cliente sobre un trabajo.
+  Future<bool> valorarTrabajo(
+      int idTrabajo, int valoracion, String comentarioCliente) async {
+    final usuario = _auth.usuarioActual;
+    if (usuario == null) return false;
+
+    final Map<String, dynamic> peticion = {
+      'accion': 'VALORAR_TRABAJO',
+      'token': usuario.token,
+      'datos': {
+        'idTrabajo': idTrabajo,
+        'valoracion': valoracion,
+        'comentarioCliente': comentarioCliente
+      }
+    };
+
+    try {
+      await _socket.send(peticion);
+      await Future.delayed(
+          const Duration(milliseconds: 800)); // dar tiempo a BD
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Prioridad de ordenación de la lista:
+  /// 0 = Requiere acción urgente (en proceso activo)
+  /// 1 = Pendiente de presupuesto
+  /// 2 = Realizado (pendiente valoración)
+  /// 3 = Finalizado / Pagado
+  int _prioridadEstado(Trabajo trabajo) {
+    if (trabajo.estado == EstadoTrabajo.FINALIZADO && trabajo.valoracion == 0) {
+      return 0; // Alta prioridad si está finalizado pero pendiente de valorar
+    }
+
+    switch (trabajo.estado) {
+      case EstadoTrabajo.PRESUPUESTADO:
+      case EstadoTrabajo.ACEPTADO:
+      case EstadoTrabajo.ASIGNADO:
+        return 0;
+      case EstadoTrabajo.PENDIENTE:
+        return 1;
+      case EstadoTrabajo.REALIZADO:
+        return 2;
+      case EstadoTrabajo.FINALIZADO:
+      case EstadoTrabajo.PAGADO:
+        return 3;
+      case EstadoTrabajo.CANCELADO:
+        return 4;
     }
   }
 }

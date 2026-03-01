@@ -1,3 +1,5 @@
+// Modelo de datos para Trabajo (Incidencia).
+// Representa la estructura principal de la aplicación con sus estados y categorías.
 import 'usuario.dart';
 import 'presupuesto.dart';
 
@@ -7,7 +9,9 @@ enum EstadoTrabajo {
   ACEPTADO,
   ASIGNADO,
   REALIZADO,
-  FINALIZADO
+  FINALIZADO,
+  PAGADO,
+  CANCELADO
 }
 
 enum CategoriaServicio {
@@ -79,7 +83,9 @@ class Trabajo {
   factory Trabajo.fromJson(Map<String, dynamic> json) {
     return Trabajo(
       id: json['id'],
-      idCliente: json['id_cliente'] != null ? json['id_cliente'] as int : (json['idCliente'] != null ? json['idCliente'] as int : 0),
+      idCliente: json['id_cliente'] != null
+          ? json['id_cliente'] as int
+          : (json['idCliente'] != null ? json['idCliente'] as int : 0),
       idOperario: json['id_operario'] ?? json['idOperario'],
       titulo: json['titulo'] ?? 'Sin título',
       categoria: _parseCategoria(json['categoria']),
@@ -93,10 +99,13 @@ class Trabajo {
       ubicacion: json['ubicacion'] != null && json['ubicacion']['lat'] != null
           ? Ubicacion.fromJson(json['ubicacion'])
           : null,
-      valoracion: json['valoracion'] is int ? json['valoracion'] : (int.tryParse(json['valoracion']?.toString() ?? '0') ?? 0),
+      valoracion: json['valoracion'] is int
+          ? json['valoracion']
+          : (int.tryParse(json['valoracion']?.toString() ?? '0') ?? 0),
       comentarioCliente: json['comentarioCliente']?.toString(),
       fechaFinalizacion: json['fechaFinalizacion']?.toString(),
-      cliente: json['cliente'] != null ? Usuario.fromJson(json['cliente']) : null,
+      cliente:
+          json['cliente'] != null ? Usuario.fromJson(json['cliente']) : null,
       operarioAsignado: json['operarioAsignado'] != null
           ? Usuario.fromJson(json['operarioAsignado'])
           : null,

@@ -1,3 +1,5 @@
+// Pantalla de Perfil de Usuario.
+// Muestra los datos personales y de cuenta del cliente u operario que tiene sesión activa.
 import 'package:flutter/material.dart';
 import '../models/usuario.dart';
 import '../services/auth_service.dart';

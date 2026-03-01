@@ -507,8 +507,18 @@ public class SimuladorController {
                 DataInputStream entrada = new DataInputStream(socket.getInputStream());
                 DataOutputStream salida = new DataOutputStream(socket.getOutputStream())) {
 
-            salida.writeUTF(mapper.writeValueAsString(requestJson));
-            String respuestaJson = entrada.readUTF();
+            byte[] requestBytes = mapper.writeValueAsString(requestJson)
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            salida.writeInt(requestBytes.length);
+            salida.write(requestBytes);
+
+            int resLength = entrada.readInt();
+            if (resLength <= 0 || resLength > 10485760)
+                return null;
+            byte[] responseBytes = new byte[resLength];
+            entrada.readFully(responseBytes);
+            String respuestaJson = new String(responseBytes, java.nio.charset.StandardCharsets.UTF_8);
+
             return mapper.readTree(respuestaJson);
 
         } catch (IOException e) {

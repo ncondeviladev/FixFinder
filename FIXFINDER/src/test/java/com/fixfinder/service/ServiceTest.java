@@ -400,4 +400,109 @@ public class ServiceTest {
             throw e;
         }
     }
+
+    // --- TESTS NUEVAS FUNCIONALIDADES TRABAJO ---
+
+    @Test
+    @Order(6)
+    @DisplayName("Trabajo: Modificar, Cancelar, Valorar y Detalles de Finalizar")
+    void testNuevasFuncionalidadesTrabajo() throws ServiceException {
+        // Aseguramos usuarios
+        int idEmp = ensureEmpresaExists();
+        if (idUsuarioRegistrado == null) {
+            Cliente u = new Cliente();
+            u.setEmail(generateUniqueEmail());
+            u.setNombreCompleto("User para nuevas funciones");
+            u.setRol(Rol.CLIENTE);
+            usuarioService.registrarUsuario(u);
+            idUsuarioRegistrado = u.getId();
+        }
+
+        // Crear trabajo
+        Trabajo tTest = trabajoService.solicitarReparacion(
+                idUsuarioRegistrado,
+                "Título Original",
+                CategoriaServicio.PINTURA,
+                "Descripción original",
+                "Dirección 1",
+                1);
+
+        assertNotNull(tTest);
+        int idTrabajoTGT = tTest.getId();
+
+        // 1. Probar Modificar (Estando PENDIENTE)
+        trabajoService.modificarTrabajo(
+                idTrabajoTGT,
+                "Título Modificado",
+                "Descripción nueva",
+                "Dirección nueva",
+                CategoriaServicio.ALBANILERIA,
+                2);
+
+        // Comprobar la BBDD a través de un simple read
+        Trabajo tMod = trabajoService.historialCliente(idUsuarioRegistrado).stream()
+                .filter(x -> x.getId() == idTrabajoTGT)
+                .findFirst().orElseThrow();
+
+        assertEquals("Título Modificado", tMod.getTitulo());
+        assertEquals("Descripción nueva", tMod.getDescripcion());
+        assertEquals(CategoriaServicio.ALBANILERIA, tMod.getCategoria());
+        assertEquals("Dirección nueva", tMod.getDireccion());
+
+        // 2. Probar Cancelar
+        trabajoService.cancelarTrabajo(idTrabajoTGT, "No tengo dinero");
+        Trabajo tCanc = trabajoService.historialCliente(idUsuarioRegistrado).stream()
+                .filter(x -> x.getId() == idTrabajoTGT)
+                .findFirst().orElseThrow();
+
+        assertEquals(EstadoTrabajo.CANCELADO, tCanc.getEstado());
+        assertTrue(tCanc.getDescripcion().contains("[CANCELADO: No tengo dinero]"));
+
+        // 3. Probar Finalizar con Informe y Valorar
+        // Para esto necesitamos un trabajo nuevo, ya que este está cancelado
+        Trabajo t2 = trabajoService.solicitarReparacion(
+                idUsuarioRegistrado,
+                "Trabajo para finalizar",
+                CategoriaServicio.FONTANERIA,
+                "Desc t2",
+                "Dir t2",
+                1);
+
+        // Forzar asignación saltando lógica profunda
+        if (idOperarioRegistrado == null) {
+            Operario op = new Operario();
+            op.setNombreCompleto("Operario Test");
+            op.setEmail(generateUniqueEmail());
+            op.setPasswordHash("pass");
+            op.setDni(generateUniqueDni());
+            op.setIdEmpresa(idEmp);
+            op.setEspecialidad(CategoriaServicio.FONTANERIA);
+            op.setRol(Rol.OPERARIO);
+            op.setEstaActivo(true);
+            operarioService.altaOperario(op);
+            idOperarioRegistrado = op.getId();
+        }
+
+        trabajoService.asignarOperario(t2.getId(), idOperarioRegistrado); // Pasa a ASIGNADO
+
+        // Finalizar con informe técnico
+        trabajoService.finalizarTrabajo(t2.getId(), "Horas: 2 | Material: Tubo");
+
+        Trabajo tFin = trabajoService.historialCliente(idUsuarioRegistrado).stream()
+                .filter(x -> x.getId() == t2.getId())
+                .findFirst().orElseThrow();
+
+        assertEquals(EstadoTrabajo.REALIZADO, tFin.getEstado());
+        assertTrue(tFin.getDescripcion().contains("Horas: 2 | Material: Tubo"));
+
+        // Valorar el trabajo finalizado
+        trabajoService.valorarTrabajo(t2.getId(), 5, "Muy buen trabajo");
+
+        Trabajo tVal = trabajoService.historialCliente(idUsuarioRegistrado).stream()
+                .filter(x -> x.getId() == t2.getId())
+                .findFirst().orElseThrow();
+
+        assertEquals(5, tVal.getValoracion());
+        assertEquals("Muy buen trabajo", tVal.getComentarioCliente());
+    }
 }

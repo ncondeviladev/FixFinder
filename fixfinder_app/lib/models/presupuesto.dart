@@ -1,3 +1,5 @@
+// Modelo de datos para Presupuesto.
+// Contiene la estimación de costes o facturación asociada a un trabajo.
 class Presupuesto {
   final int id;
   final double monto;
@@ -22,13 +24,13 @@ class Presupuesto {
   factory Presupuesto.fromJson(Map<String, dynamic> json) {
     return Presupuesto(
       id: json['id'],
-      monto: (json['monto'] ?? json['precioTotal'] ?? 0).toDouble(), // Soporta 'monto' y 'precioTotal'
+      monto: (json['monto'] ?? json['precioTotal'] ?? 0)
+          .toDouble(), // Soporta 'monto' y 'precioTotal'
       estado: json['estado'] ?? 'PENDIENTE',
       fechaEnvio: json['fechaEnvio'] ?? json['fechaValidez'], // Soporta ambos
       notas: json['notas'] ?? json['detalles'], // Soporta 'notas' y 'detalles'
-      nombreEmpresa: json['empresa'] != null
-          ? json['empresa']['nombre']
-          : 'Empresa',
+      nombreEmpresa:
+          json['empresa'] != null ? json['empresa']['nombre'] : 'Empresa',
       emailEmpresa: json['empresa'] != null ? json['empresa']['email'] : null,
       telefonoEmpresa:
           json['empresa'] != null ? json['empresa']['telefono'] : null,

@@ -45,14 +45,21 @@ public class ClienteSocket {
             mensaje.set("datos", datos);
         }
 
-        salida.writeUTF(mapper.writeValueAsString(mensaje));
+        byte[] bytes = mapper.writeValueAsString(mensaje).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        salida.writeInt(bytes.length);
+        salida.write(bytes);
         salida.flush();
     }
 
     private void escucharServidor() {
         try {
             while (conectado) {
-                String json = entrada.readUTF();
+                int length = entrada.readInt();
+                if (length <= 0 || length > 10485760)
+                    throw new IOException("Mensaje demasiado grande");
+                byte[] bytes = new byte[length];
+                entrada.readFully(bytes);
+                String json = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
                 if (onMensajeRecibido != null) {
                     // Ejecutar en el hilo de JavaFX si es necesario, pero aquí solo pasamos el
                     // string

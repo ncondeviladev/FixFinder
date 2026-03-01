@@ -78,7 +78,12 @@ public class GestorConexion implements Runnable {
 
             while (!socket.isClosed()) {
 
-                String mensajeCliente = entrada.readUTF();
+                int length = entrada.readInt();
+                if (length <= 0 || length > 10485760)
+                    throw new IOException("Tamaño mensaje inválido");
+                byte[] bytes = new byte[length];
+                entrada.readFully(bytes);
+                String mensajeCliente = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
                 System.out.println("📩 Recibido: " + mensajeCliente);
 
                 ObjectNode respuesta = mapper.createObjectNode();
@@ -91,6 +96,7 @@ public class GestorConexion implements Runnable {
                         respuesta.put("mensaje", "Falta campo 'accion'");
                     } else {
                         String accion = nodo.get("accion").asText();
+                        respuesta.put("accion", accion);
                         JsonNode datos = nodo.get("datos");
 
                         // Enrutamiento de comandos
@@ -127,6 +133,18 @@ public class GestorConexion implements Runnable {
 
                                         case "FINALIZAR_TRABAJO":
                                             procesadorTrabajos.procesarFinalizarTrabajo(datos, respuesta);
+                                            break;
+
+                                        case "CANCELAR_TRABAJO":
+                                            procesadorTrabajos.procesarCancelarTrabajo(datos, respuesta);
+                                            break;
+
+                                        case "MODIFICAR_TRABAJO":
+                                            procesadorTrabajos.procesarModificarTrabajo(datos, respuesta);
+                                            break;
+
+                                        case "VALORAR_TRABAJO":
+                                            procesadorTrabajos.procesarValorarTrabajo(datos, respuesta);
                                             break;
 
                                         case "GET_OPERARIOS":
@@ -176,7 +194,13 @@ public class GestorConexion implements Runnable {
                 }
 
                 String jsonSalida = mapper.writeValueAsString(respuesta);
-                salida.writeUTF(jsonSalida);
+                byte[] bytesSalida = jsonSalida.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                int limit = Math.min(jsonSalida.length(), 250);
+                String act = respuesta.has("accion") ? respuesta.get("accion").asText() : "N/A";
+                System.out.println("📤 Enviando respuesta a " + act + ": " + jsonSalida.substring(0, limit)
+                        + (jsonSalida.length() > limit ? "..." : ""));
+                salida.writeInt(bytesSalida.length);
+                salida.write(bytesSalida);
                 salida.flush();
             }
 

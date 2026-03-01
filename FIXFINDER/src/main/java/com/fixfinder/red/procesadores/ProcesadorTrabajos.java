@@ -130,6 +130,8 @@ public class ProcesadorTrabajos {
 
                 if ("CLIENTE".equalsIgnoreCase(rol)) {
                     lista = trabajoService.historialCliente(idUsuario);
+                    System.out.println("[DEBUG-CLIENTE] trabajos encontrados para ID " + idUsuario + ": "
+                            + (lista != null ? lista.size() : "null"));
                 } else if ("OPERARIO".equalsIgnoreCase(rol)) {
                     lista = trabajoService.historialOperario(idUsuario);
                 } else if ("GERENTE".equalsIgnoreCase(rol)) {
@@ -195,6 +197,7 @@ public class ProcesadorTrabajos {
                     map.put("titulo", t.getTitulo() != null ? t.getTitulo() : "Sin título");
                     map.put("descripcion", t.getDescripcion());
                     map.put("categoria", t.getCategoria().toString());
+                    map.put("direccion", t.getDireccion() != null ? t.getDireccion() : "");
                     map.put("estado", t.getEstado().toString());
                     map.put("fecha", t.getFechaCreacion() != null ? t.getFechaCreacion().toString() : "");
 
@@ -458,6 +461,93 @@ public class ProcesadorTrabajos {
             respuesta.put("status", 500);
             respuesta.put("mensaje", "Error interno al finalizar trabajo");
             e.printStackTrace();
+        }
+    }
+
+    public void procesarCancelarTrabajo(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("idTrabajo")) {
+            try {
+                int idTrabajo = datos.get("idTrabajo").asInt();
+                String motivo = datos.has("motivo") ? datos.get("motivo").asText() : "Cancelado por el usuario";
+
+                trabajoService.cancelarTrabajo(idTrabajo, motivo);
+
+                respuesta.put("status", 200);
+                respuesta.put("mensaje", "Trabajo cancelado correctamente");
+            } catch (ServiceException e) {
+                respuesta.put("status", 400);
+                respuesta.put("mensaje", "Error al cancelar: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Faltan datos (idTrabajo) para cancelar");
+        }
+    }
+
+    public void procesarModificarTrabajo(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("idTrabajo")) {
+            try {
+                int idTrabajo = datos.get("idTrabajo").asInt();
+                String titulo = datos.has("titulo") ? datos.get("titulo").asText() : null;
+                String descripcion = datos.has("descripcion") ? datos.get("descripcion").asText() : null;
+                String direccion = datos.has("direccion") ? datos.get("direccion").asText() : null;
+
+                CategoriaServicio categoria = null;
+                if (datos.has("categoria") && !datos.get("categoria").isNull()) {
+                    try {
+                        categoria = CategoriaServicio.valueOf(datos.get("categoria").asText().toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        categoria = null;
+                    }
+                }
+
+                int urgencia = datos.has("urgencia") ? datos.get("urgencia").asInt() : 1;
+
+                trabajoService.modificarTrabajo(idTrabajo, titulo, descripcion, direccion, categoria, urgencia);
+
+                respuesta.put("status", 200);
+                respuesta.put("mensaje", "Trabajo modificado correctamente");
+            } catch (ServiceException e) {
+                respuesta.put("status", 400);
+                respuesta.put("mensaje", "Error al modificar: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Faltan datos (idTrabajo) para modificar");
+        }
+    }
+
+    public void procesarValorarTrabajo(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("idTrabajo") && datos.has("valoracion")) {
+            try {
+                int idTrabajo = datos.get("idTrabajo").asInt();
+                int valoracion = datos.get("valoracion").asInt();
+                String comentarioCliente = datos.has("comentarioCliente") ? datos.get("comentarioCliente").asText()
+                        : "";
+
+                trabajoService.valorarTrabajo(idTrabajo, valoracion, comentarioCliente);
+
+                respuesta.put("status", 200);
+                respuesta.put("mensaje", "Valoracion guardada correctamente");
+            } catch (ServiceException e) {
+                respuesta.put("status", 400);
+                respuesta.put("mensaje", "Error al valorar: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Faltan datos (idTrabajo, valoracion) para valorar");
         }
     }
 }

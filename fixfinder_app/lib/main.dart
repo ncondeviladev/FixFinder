@@ -1,3 +1,5 @@
+// Punto de entrada principal de la aplicación FixFinder.
+// Configura los proveedores de estado (providers) y el tema visual (oscuro por defecto).
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_pantalla.dart';

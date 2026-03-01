@@ -63,6 +63,17 @@ public interface TrabajoService {
     void cancelarTrabajo(Integer idTrabajo, String motivo) throws ServiceException;
 
     /**
+     * Modifica los detalles de un trabajo antes de ser finalizado.
+     */
+    void modificarTrabajo(Integer idTrabajo, String titulo, String descripcion, String direccion,
+            CategoriaServicio categoria, int urgencia) throws ServiceException;
+
+    /**
+     * Añade la valoración y el comentario final del cliente a un trabajo terminado.
+     */
+    void valorarTrabajo(Integer idTrabajo, int valoracion, String comentarioCliente) throws ServiceException;
+
+    /**
      * Lista trabajos pendientes de asignar.
      *
      * @param idEmpresa ID de la empresa (opcional para filtrar).

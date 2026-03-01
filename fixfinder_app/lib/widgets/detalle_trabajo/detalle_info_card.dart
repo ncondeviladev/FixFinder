@@ -1,0 +1,65 @@
+// Tarjeta principal de la pantalla de detalles.
+// Muestra la información básica del trabajo, estado, categoría y contactos asignados.
+import 'package:flutter/material.dart';
+import '../../models/trabajo.dart';
+import '../../models/usuario.dart';
+import '../../services/auth_service.dart';
+import '../comunes/dato_fila.dart';
+import '../comunes/estado_badge.dart';
+import '../trabajos/tarjeta_contacto.dart';
+import '../trabajos/galeria_fotos.dart';
+
+class DetalleInfoCard extends StatelessWidget {
+  final Trabajo trabajo;
+
+  const DetalleInfoCard({super.key, required this.trabajo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(trabajo.titulo,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Divider(),
+            Row(
+              children: [
+                const Text('Estado: ',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                EstadoBadge(estado: trabajo.estado),
+              ],
+            ),
+            const SizedBox(height: 8),
+            DatoFila(etiqueta: 'Categoría', valor: trabajo.categoria.name),
+            DatoFila(etiqueta: 'Dirección', valor: trabajo.direccion),
+            const SizedBox(height: 12),
+            const Text('Descripción:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(trabajo.descripcion),
+            const SizedBox(height: 16),
+            if (trabajo.urlsFotos.isNotEmpty) ...[
+              GaleriaFotos(urls: trabajo.urlsFotos),
+            ],
+            const SizedBox(height: 16),
+            if (AuthService().usuarioActual?.rol == Rol.OPERARIO &&
+                trabajo.cliente != null)
+              TarjetaContacto(
+                  titulo: 'Datos del Cliente:', usuario: trabajo.cliente!),
+            if (AuthService().usuarioActual?.rol == Rol.CLIENTE &&
+                trabajo.operarioAsignado != null)
+              TarjetaContacto(
+                  titulo: 'Técnico Asignado:',
+                  usuario: trabajo.operarioAsignado!,
+                  esOperario: true),
+          ],
+        ),
+      ),
+    );
+  }
+}

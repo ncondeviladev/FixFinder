@@ -5,6 +5,7 @@ import com.fixfinder.data.DataRepositoryImpl;
 import com.fixfinder.data.interfaces.OperarioDAO;
 import com.fixfinder.data.interfaces.TrabajoDAO;
 import com.fixfinder.data.interfaces.UsuarioDAO;
+import com.fixfinder.data.dao.TrabajoDAOImpl;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
@@ -65,7 +66,13 @@ public class TrabajoServiceImpl implements TrabajoService {
             }
 
             trabajo.setDescripcion(descripcion);
-            trabajo.setDireccion(direccion != null && !direccion.isEmpty() ? direccion : "Sin dirección especificada");
+            // Si no viene dirección, usar la del cliente registrado
+            String dirFinal = (direccion != null && !direccion.trim().isEmpty())
+                    ? direccion
+                    : (cliente.getDireccion() != null && !cliente.getDireccion().trim().isEmpty()
+                            ? cliente.getDireccion()
+                            : "Sin dirección especificada");
+            trabajo.setDireccion(dirFinal);
             trabajo.setEstado(EstadoTrabajo.PENDIENTE);
             trabajo.setFechaCreacion(LocalDateTime.now());
             // La urgencia podría usarse para priorizar, por ahora no está en el modelo
@@ -146,9 +153,14 @@ public class TrabajoServiceImpl implements TrabajoService {
 
             trabajo.setEstado(EstadoTrabajo.REALIZADO);
             trabajo.setFechaFinalizacion(LocalDateTime.now());
-            // Si el modelo tuviera campo para 'informeTecnico', lo setearíamos aquí.
-            // Por ahora lo añadimos a la descripción o comentarios si es necesario.
-            // trabajo.setInforme(informeTecnico);
+
+            if (informeTecnico != null && !informeTecnico.trim().isEmpty()
+                    && !informeTecnico.equals("Trabajo finalizado correctamente (Simulador).")) {
+                String nuevaDesc = trabajo.getDescripcion()
+                        + "\n\n=============================\n🛠 INFORME DEL OPERARIO 🛠\n" + informeTecnico
+                        + "\n=============================";
+                trabajo.setDescripcion(nuevaDesc);
+            }
 
             trabajoDAO.actualizar(trabajo);
 
@@ -188,6 +200,59 @@ public class TrabajoServiceImpl implements TrabajoService {
     }
 
     @Override
+    public void modificarTrabajo(Integer idTrabajo, String titulo, String descripcion, String direccion,
+            CategoriaServicio categoria, int urgencia) throws ServiceException {
+        try {
+            Trabajo trabajo = trabajoDAO.obtenerPorId(idTrabajo);
+            if (trabajo == null)
+                throw new ServiceException("Trabajo no encontrado.");
+
+            if (trabajo.getEstado() != EstadoTrabajo.PENDIENTE) {
+                throw new ServiceException("Solo se pueden modificar trabajos que estén en estado PENDIENTE.");
+            }
+
+            if (titulo != null && !titulo.trim().isEmpty())
+                trabajo.setTitulo(titulo);
+            if (descripcion != null && !descripcion.trim().isEmpty())
+                trabajo.setDescripcion(descripcion);
+            if (direccion != null && !direccion.trim().isEmpty())
+                trabajo.setDireccion(direccion);
+            if (categoria != null)
+                trabajo.setCategoria(categoria);
+
+            trabajoDAO.actualizar(trabajo);
+
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al modificar el trabajo.", e);
+        }
+    }
+
+    @Override
+    public void valorarTrabajo(Integer idTrabajo, int valoracion, String comentarioCliente) throws ServiceException {
+        try {
+            Trabajo trabajo = trabajoDAO.obtenerPorId(idTrabajo);
+            if (trabajo == null)
+                throw new ServiceException("Trabajo no encontrado.");
+
+            if (trabajo.getEstado() != EstadoTrabajo.FINALIZADO && trabajo.getEstado() != EstadoTrabajo.REALIZADO
+                    && trabajo.getEstado() != EstadoTrabajo.PAGADO) {
+                throw new ServiceException("Solo se pueden valorar trabajos en estado FINALIZADO o superado.");
+            }
+            if (valoracion < 1 || valoracion > 5) {
+                throw new ServiceException("La valoración debe estar entre 1 y 5 estrellas.");
+            }
+
+            trabajo.setValoracion(valoracion);
+            trabajo.setComentarioCliente(comentarioCliente);
+
+            trabajoDAO.actualizar(trabajo);
+
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al valorar el trabajo.", e);
+        }
+    }
+
+    @Override
     public List<Trabajo> listarPendientes(Integer idEmpresa) throws ServiceException {
         try {
             List<Trabajo> todos = trabajoDAO.obtenerTodos();
@@ -207,10 +272,8 @@ public class TrabajoServiceImpl implements TrabajoService {
     @Override
     public List<Trabajo> historialCliente(Integer idCliente) throws ServiceException {
         try {
-            List<Trabajo> todos = trabajoDAO.obtenerTodos();
-            return todos.stream()
-                    .filter(t -> t.getCliente() != null && t.getCliente().getId() == idCliente.intValue())
-                    .collect(Collectors.toList());
+            // Usamos query filtrada en SQL para evitar fallos cuando getCliente() es null
+            return ((TrabajoDAOImpl) trabajoDAO).obtenerPorCliente(idCliente);
         } catch (DataAccessException e) {
             throw new ServiceException("Error al obtener historial del cliente.", e);
         }

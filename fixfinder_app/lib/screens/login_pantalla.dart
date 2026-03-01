@@ -1,3 +1,5 @@
+// Pantalla de inicio de sesión de la aplicación móvil.
+// Recibe las credenciales y las valida mediante el AuthService.
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
@@ -49,58 +51,64 @@ class _LoginPantallaState extends State<LoginPantalla> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(title: const Text('Iniciar Sesión')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.build_circle, size: 80, color: Colors.blue),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _emailController,
-              focusNode: _emailFocus,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              onSubmitted: (_) =>
-                  FocusScope.of(context).requestFocus(_passFocus),
-              decoration: const InputDecoration(
-                labelText: 'Correo Electrónico',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              const Icon(Icons.build_circle, size: 80, color: Colors.blue),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _emailController,
+                focusNode: _emailFocus,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_passFocus),
+                decoration: const InputDecoration(
+                  labelText: 'Correo Electrónico',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passController,
-              focusNode: _passFocus,
-              obscureText: true,
-              keyboardType: TextInputType.visiblePassword,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _cargando ? null : _login(),
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passController,
+                focusNode: _passFocus,
+                obscureText: true,
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _cargando ? null : _login(),
+                decoration: const InputDecoration(
+                  labelText: 'Contraseña',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
               ),
-            ),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child:
+                      Text(_error!, style: const TextStyle(color: Colors.red)),
+                ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _cargando ? null : _login,
+                  child: _cargando
+                      ? const CircularProgressIndicator()
+                      : const Text('ACCEDER'),
+                ),
               ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _cargando ? null : _login,
-                child: _cargando
-                    ? const CircularProgressIndicator()
-                    : const Text('ACCEDER'),
-              ),
-            ),
-          ],
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
