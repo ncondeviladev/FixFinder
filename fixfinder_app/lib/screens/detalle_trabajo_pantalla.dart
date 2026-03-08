@@ -156,9 +156,12 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
           appBar: AppBar(
             title: const Text(''),
             actions: [
-              if (esCliente &&
-                  (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
-                      trabajoActual.estado == EstadoTrabajo.PRESUPUESTADO))
+              if ((esCliente &&
+                      (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
+                          trabajoActual.estado ==
+                              EstadoTrabajo.PRESUPUESTADO)) ||
+                  (esOperario &&
+                      trabajoActual.estado == EstadoTrabajo.ASIGNADO))
                 PopupMenuButton<String>(
                   onSelected: (val) {
                     if (val == 'modificar') {
@@ -178,11 +181,12 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                       value: 'modificar',
                       child: Text('Modificar Incidencia'),
                     ),
-                    const PopupMenuItem(
-                      value: 'borrar',
-                      child: Text('Borrar Incidencia',
-                          style: TextStyle(color: Colors.red)),
-                    ),
+                    if (esCliente)
+                      const PopupMenuItem(
+                        value: 'borrar',
+                        child: Text('Borrar Incidencia',
+                            style: TextStyle(color: Colors.red)),
+                      ),
                   ],
                 )
             ],

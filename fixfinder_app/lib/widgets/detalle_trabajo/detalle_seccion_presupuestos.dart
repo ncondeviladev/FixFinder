@@ -31,6 +31,16 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
             Text('Nombre: ${p.nombreEmpresa ?? "Desconocido"}',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
+            if (p.cifEmpresa != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.assignment_ind, size: 16),
+                  const SizedBox(width: 8),
+                  Text('CIF: ${p.cifEmpresa!}'),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
             if (p.emailEmpresa != null) ...[
               Row(
                 children: [
@@ -47,6 +57,17 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   const Icon(Icons.phone, size: 16),
                   const SizedBox(width: 8),
                   Text(p.telefonoEmpresa!),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (p.direccionEmpresa != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(p.direccionEmpresa!)),
                 ],
               ),
               const SizedBox(height: 8),

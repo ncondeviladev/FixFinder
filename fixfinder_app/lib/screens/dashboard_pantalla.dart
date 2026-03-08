@@ -180,8 +180,9 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
         return true;
       return false;
     } else {
-      // El operario debe actuar si el cliente aceptó el presupuesto
-      return trabajo.estado == EstadoTrabajo.ACEPTADO;
+      // El operario debe actuar si tiene un trabajo asignado o si hay uno aceptado listo para empezar
+      return trabajo.estado == EstadoTrabajo.ACEPTADO ||
+          trabajo.estado == EstadoTrabajo.ASIGNADO;
     }
   }
 

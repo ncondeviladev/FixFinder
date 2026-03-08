@@ -65,13 +65,23 @@ public class TrabajoServiceImpl implements TrabajoService {
                 trabajo.setTitulo(titulo);
             }
 
-            trabajo.setDescripcion(descripcion);
+            // Estructura predefinida de la descripción
+            String descEstructurada = "==============================\n" +
+                    "📝 CLIENTE:\n" + descripcion.trim() + "\n" +
+                    "==============================\n" +
+                    "💰 GERENTE:\n(Sin presupuesto redactado)\n" +
+                    "==============================\n" +
+                    "🛠 OPERARIO:\n(Sin informe de trabajo)\n" +
+                    "==============================";
+
             // Si no viene dirección, usar la del cliente registrado
             String dirFinal = (direccion != null && !direccion.trim().isEmpty())
                     ? direccion
                     : (cliente.getDireccion() != null && !cliente.getDireccion().trim().isEmpty()
                             ? cliente.getDireccion()
                             : "Sin dirección especificada");
+
+            trabajo.setDescripcion(descEstructurada);
             trabajo.setDireccion(dirFinal);
             trabajo.setEstado(EstadoTrabajo.PENDIENTE);
             trabajo.setFechaCreacion(LocalDateTime.now());
@@ -100,7 +110,14 @@ public class TrabajoServiceImpl implements TrabajoService {
             // Lógica de DESASIGNACIÓN (Si idOperario es null o <= 0)
             if (idOperario == null || idOperario <= 0) {
                 trabajo.setOperarioAsignado(null);
-                trabajo.setEstado(EstadoTrabajo.PENDIENTE); // Vuelve al mercado
+                // Si estaba asignado, lo lógico es que vuelva a ACEPTADO (presupuesto aceptado)
+                // para que otro técnico pueda ser asignado. PENDIENTE es para trabajos sin
+                // presupuesto.
+                if (trabajo.getEstado() == EstadoTrabajo.ASIGNADO) {
+                    trabajo.setEstado(EstadoTrabajo.ACEPTADO);
+                } else {
+                    trabajo.setEstado(EstadoTrabajo.PENDIENTE);
+                }
             }
             // Lógica de ASIGNACIÓN
             else {
@@ -156,10 +173,26 @@ public class TrabajoServiceImpl implements TrabajoService {
 
             if (informeTecnico != null && !informeTecnico.trim().isEmpty()
                     && !informeTecnico.equals("Trabajo finalizado correctamente (Simulador).")) {
-                String nuevaDesc = trabajo.getDescripcion()
-                        + "\n\n=============================\n🛠 INFORME DEL OPERARIO 🛠\n" + informeTecnico
-                        + "\n=============================";
-                trabajo.setDescripcion(nuevaDesc);
+                // Insertar el informe en el bloque correspondiente de la descripción
+                String descActual = trabajo.getDescripcion();
+                if (descActual.contains("🛠 OPERARIO:")) {
+                    String[] partes = descActual.split("🛠 OPERARIO:");
+                    String parteSuperior = partes[0];
+                    String parteInferior = partes.length > 1 ? partes[1] : "";
+
+                    // Si hay un delimitador de cierre después de OPERARIO, lo respetamos
+                    if (parteInferior.contains("==============================")) {
+                        int posCierre = parteInferior.indexOf("==============================");
+                        String resto = parteInferior.substring(posCierre);
+                        trabajo.setDescripcion(
+                                parteSuperior + "🛠 OPERARIO:\n" + informeTecnico.trim() + "\n" + resto);
+                    } else {
+                        trabajo.setDescripcion(parteSuperior + "🛠 OPERARIO:\n" + informeTecnico.trim());
+                    }
+                } else {
+                    // Fallback si no tiene la estructura (no debería pasar)
+                    trabajo.setDescripcion(descActual + "\n\n🛠 INFORME TÉCNICO:\n" + informeTecnico);
+                }
             }
 
             trabajoDAO.actualizar(trabajo);
@@ -207,8 +240,8 @@ public class TrabajoServiceImpl implements TrabajoService {
             if (trabajo == null)
                 throw new ServiceException("Trabajo no encontrado.");
 
-            if (trabajo.getEstado() != EstadoTrabajo.PENDIENTE) {
-                throw new ServiceException("Solo se pueden modificar trabajos que estén en estado PENDIENTE.");
+            if (trabajo.getEstado() == EstadoTrabajo.FINALIZADO || trabajo.getEstado() == EstadoTrabajo.CANCELADO) {
+                throw new ServiceException("No se pueden modificar trabajos finalizados o cancelados.");
             }
 
             if (titulo != null && !titulo.trim().isEmpty())

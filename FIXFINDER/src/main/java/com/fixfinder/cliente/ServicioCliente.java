@@ -73,7 +73,7 @@ public class ServicioCliente {
 
     // Método versátil para Cliente u Operario
     public void enviarRegistroUsuario(boolean esOperario, String nombre, String dni, String email, String pass,
-            String telefono, String direccion, String idEmpresa) throws IOException {
+            String telefono, String direccion, String idEmpresa, String especialidad) throws IOException {
         ObjectNode datos = mapper.createObjectNode();
         datos.put("tipo", esOperario ? "OPERARIO" : "CLIENTE");
 
@@ -84,6 +84,9 @@ public class ServicioCliente {
             datos.put("passwordOperario", pass);
             datos.put("telefonoOperario", telefono);
             datos.put("idEmpresa", idEmpresa);
+            if (especialidad != null && !especialidad.isBlank()) {
+                datos.put("especialidad", especialidad);
+            }
         } else {
             datos.put("nombre", nombre);
             datos.put("dni", dni);
@@ -130,12 +133,33 @@ public class ServicioCliente {
         enviarJson("GET_OPERARIOS", datos);
     }
 
-    public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto) throws IOException {
+    public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto, String nuevaDescripcion)
+            throws IOException {
         ObjectNode datos = mapper.createObjectNode();
         datos.put("idTrabajo", idTrabajo);
         datos.put("idEmpresa", idEmpresa);
         datos.put("monto", monto);
+        datos.put("nuevaDescripcion", nuevaDescripcion);
         enviarJson("CREAR_PRESUPUESTO", datos);
+    }
+
+    public void enviarGetEmpresa(int idEmpresa) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("idEmpresa", idEmpresa);
+        enviarJson("GET_EMPRESA", datos);
+    }
+
+    public void enviarModificarOperario(int id, String nombre, String dni, String email, String tel, String esp,
+            boolean activo) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("id", id);
+        datos.put("nombre", nombre);
+        datos.put("dni", dni);
+        datos.put("email", email);
+        datos.put("telefono", tel);
+        datos.put("especialidad", esp);
+        datos.put("estaActivo", activo);
+        enviarJson("MODIFICAR_OPERARIO", datos);
     }
 
     private void enviarJson(String accion, ObjectNode datos) throws IOException {

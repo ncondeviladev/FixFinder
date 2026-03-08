@@ -74,7 +74,7 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
                   ? 'Incidencia modificada correctamente.'
                   : 'Incidencia enviada correctamente.')
               : (esEdicion
-                  ? 'Error al modificar. ¿Solo se puede editar en estado PENDIENTE?'
+                  ? 'Error al modificar. ¿Se puede editar solo en PENDIENTE o ASIGNADO?'
                   : 'Error al enviar la incidencia.')),
           backgroundColor: exito ? Colors.green : Colors.red,
         ),

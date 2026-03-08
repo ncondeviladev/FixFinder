@@ -63,6 +63,8 @@ public class OperarioServiceImpl implements OperarioService {
                 throw new ServiceException("El operario a modificar no existe.");
             }
 
+            // validarDatosOperario(operario); // COMENTADO TEMPORALMENTE PARA PRUEBAS
+            // RÁPIDAS
             operarioDAO.actualizar(operario);
         } catch (DataAccessException e) {
             throw new ServiceException("Error al modificar el operario.", e);

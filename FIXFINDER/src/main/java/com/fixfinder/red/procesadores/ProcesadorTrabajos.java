@@ -337,10 +337,20 @@ public class ProcesadorTrabajos {
                             presuNode.put("estado", p.getEstado().toString());
                             presuNode.put("precioTotal", p.getMonto());
 
+                            if (p.getEmpresa() != null) {
+                                ObjectNode empNode = presuNode.putObject("empresa");
+                                empNode.put("id", p.getEmpresa().getId());
+                                empNode.put("nombre", p.getEmpresa().getNombre());
+                                empNode.put("email", p.getEmpresa().getEmailContacto());
+                                empNode.put("telefono", p.getEmpresa().getTelefono());
+                                empNode.put("direccion", p.getEmpresa().getDireccion());
+                                empNode.put("cif", p.getEmpresa().getCif());
+                            }
+
                             // Fechas y detalles simulados para compatibilidad
                             presuNode.put("fechaValidez",
                                     p.getFechaEnvio() != null ? p.getFechaEnvio().plusDays(15).toString() : null);
-                            presuNode.put("detalles", p.getNotas());
+                            presuNode.put("detalles", Presupuesto.NOTAS_ESTANDAR);
 
                             map.put("presupuesto", presuNode);
                             map.put("tienePresupuestoAceptado", "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));

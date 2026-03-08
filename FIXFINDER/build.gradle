@@ -81,3 +81,14 @@ task runSeeder(type: JavaExec) {
     mainClass = 'com.fixfinder.pruebas.PruebaIntegracion'
     standardInput = System.in
 }
+
+task runDashboard(type: JavaExec) {
+    group = 'application'
+    description = 'Arranca el Panel de Gestión Principal (Gerente/Admin)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.ui.dashboard.AppDashboardPrincipal'
+    jvmArgs = [
+        '--module-path', configurations.runtimeClasspath.asPath,
+        '--add-modules', 'javafx.controls,javafx.fxml,javafx.graphics'
+    ]
+}

@@ -151,8 +151,16 @@ public class GestorConexion implements Runnable {
                                             procesadorUsuarios.procesarListarOperarios(datos, respuesta);
                                             break;
 
+                                        case "MODIFICAR_OPERARIO":
+                                            procesadorUsuarios.procesarModificarOperario(datos, respuesta);
+                                            break;
+
                                         case "LISTAR_EMPRESAS":
                                             procesadorUsuarios.procesarListarEmpresas(datos, respuesta);
+                                            break;
+
+                                        case "GET_EMPRESA":
+                                            procesadorUsuarios.procesarObtenerEmpresa(datos, respuesta);
                                             break;
 
                                         case "CREAR_PRESUPUESTO":

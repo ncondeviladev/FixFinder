@@ -20,6 +20,7 @@ public class Empresa {
     private String telefono;
     private String emailContacto;
     private String urlFoto;
+    private String fechaAlta;
 
     // Lista de servicios que ofrece la empresa (Multiservicio)
     private List<CategoriaServicio> especialidades = new ArrayList<>();
@@ -95,5 +96,13 @@ public class Empresa {
 
     public void setUrlFoto(String urlFoto) {
         this.urlFoto = urlFoto;
+    }
+
+    public String getFechaAlta() {
+        return fechaAlta;
+    }
+
+    public void setFechaAlta(String fechaAlta) {
+        this.fechaAlta = fechaAlta;
     }
 }

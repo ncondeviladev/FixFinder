@@ -65,14 +65,6 @@ public class Presupuesto {
         this.estado = estado;
     }
 
-    // Campo informativo (No persistido en BD actual, pero útil para el cliente)
-    private String notas = "El precio es orientativo y puede estar sujeto a modificaciones por material o reparación.";
-
-    public String getNotas() {
-        return notas;
-    }
-
-    public void setNotas(String notas) {
-        this.notas = notas;
-    }
+    // Campo informativo estático (No persistido)
+    public static final String NOTAS_ESTANDAR = "El precio es orientativo y puede estar sujeto a modificaciones por material o reparación.";
 }

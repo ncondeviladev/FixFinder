@@ -9,6 +9,8 @@ class Presupuesto {
   final String? nombreEmpresa;
   final String? emailEmpresa;
   final String? telefonoEmpresa;
+  final String? direccionEmpresa;
+  final String? cifEmpresa;
 
   Presupuesto({
     required this.id,
@@ -19,6 +21,8 @@ class Presupuesto {
     this.nombreEmpresa,
     this.emailEmpresa,
     this.telefonoEmpresa,
+    this.direccionEmpresa,
+    this.cifEmpresa,
   });
 
   factory Presupuesto.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,9 @@ class Presupuesto {
       emailEmpresa: json['empresa'] != null ? json['empresa']['email'] : null,
       telefonoEmpresa:
           json['empresa'] != null ? json['empresa']['telefono'] : null,
+      direccionEmpresa:
+          json['empresa'] != null ? json['empresa']['direccion'] : null,
+      cifEmpresa: json['empresa'] != null ? json['empresa']['cif'] : null,
     );
   }
   Map<String, dynamic> toJson() {

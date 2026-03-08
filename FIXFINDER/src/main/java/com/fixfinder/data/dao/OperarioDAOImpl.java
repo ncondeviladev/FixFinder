@@ -63,9 +63,9 @@ public class OperarioDAOImpl implements OperarioDAO {
             // PASO 2: Insertar en OPERARIO
             try (PreparedStatement stmtOp = conn.prepareStatement(sqlOperario)) {
                 stmtOp.setInt(1, operario.getId());
-                stmtOp.setInt(2, operario.getIdEmpresa()); // Ahora va aquí
+                stmtOp.setInt(2, operario.getIdEmpresa());
                 stmtOp.setString(3, operario.getEspecialidad().toString());
-                stmtOp.setString(4, operario.isEstaActivo() ? "DISPONIBLE" : "OCUPADO");
+                stmtOp.setString(4, operario.isEstaActivo() ? "DISPONIBLE" : "BAJA");
                 stmtOp.setDouble(5, operario.getLatitud());
                 stmtOp.setDouble(6, operario.getLongitud());
 
@@ -122,7 +122,7 @@ public class OperarioDAOImpl implements OperarioDAO {
             try (PreparedStatement stmtOp = conn.prepareStatement(sqlOperario)) {
                 stmtOp.setInt(1, operario.getIdEmpresa());
                 stmtOp.setString(2, operario.getEspecialidad().toString());
-                stmtOp.setString(3, operario.isEstaActivo() ? "DISPONIBLE" : "OCUPADO");
+                stmtOp.setString(3, operario.isEstaActivo() ? "DISPONIBLE" : "BAJA");
                 stmtOp.setDouble(4, operario.getLatitud());
                 stmtOp.setDouble(5, operario.getLongitud());
                 stmtOp.setInt(6, operario.getId());
@@ -261,7 +261,7 @@ public class OperarioDAOImpl implements OperarioDAO {
         }
 
         String estado = rs.getString("estado");
-        o.setEstaActivo("DISPONIBLE".equalsIgnoreCase(estado));
+        o.setEstaActivo(!"BAJA".equalsIgnoreCase(estado));
 
         o.setLatitud(rs.getDouble("latitud"));
         o.setLongitud(rs.getDouble("longitud"));

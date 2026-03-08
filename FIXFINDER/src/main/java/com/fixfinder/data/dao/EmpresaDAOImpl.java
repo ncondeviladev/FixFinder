@@ -199,6 +199,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
         e.setTelefono(rs.getString("telefono"));
         e.setEmailContacto(rs.getString("email_contacto"));
         e.setUrlFoto(rs.getString("url_foto"));
+        e.setFechaAlta(rs.getTimestamp("fecha_alta") != null ? rs.getTimestamp("fecha_alta").toString() : null);
 
         // Cargar Especialidades
         String sqlSpec = "SELECT categoria FROM empresa_especialidad WHERE id_empresa=?";

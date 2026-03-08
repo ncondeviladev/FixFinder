@@ -46,7 +46,22 @@ public class ProcesadorPresupuestos {
 
             p.setMonto(monto);
 
-            p.setMonto(monto);
+            // Actualizar la descripción del trabajo como "Hoja Informativa" compartida
+            if (datos.has("nuevaDescripcion")) {
+                String desc = datos.get("nuevaDescripcion").asText();
+                try {
+                    // Acceder al repositorio de trabajos directamente o vía servicio
+                    com.fixfinder.data.DataRepository repository = new com.fixfinder.data.DataRepositoryImpl();
+                    com.fixfinder.modelos.Trabajo trabajoOriginal = repository.getTrabajoDAO().obtenerPorId(idTrabajo);
+                    if (trabajoOriginal != null) {
+                        trabajoOriginal.setDescripcion(desc);
+                        repository.getTrabajoDAO().actualizar(trabajoOriginal);
+                        System.out.println("[DEBUG] Hoja informativa de trabajo #" + idTrabajo + " actualizada.");
+                    }
+                } catch (Exception e_repo) {
+                    System.err.println("Error actualizando descripción del trabajo: " + e_repo.getMessage());
+                }
+            }
 
             System.out.println("[DEBUG] Llamando a presupuestoService.crearPresupuesto...");
             presupuestoService.crearPresupuesto(p);
@@ -117,15 +132,16 @@ public class ProcesadorPresupuestos {
         n.put("monto", p.getMonto());
         n.put("estado", p.getEstado() != null ? p.getEstado().toString() : "PENDIENTE");
         n.put("fechaEnvio", p.getFechaEnvio() != null ? p.getFechaEnvio().toString() : null);
-        n.put("notas", p.getNotas());
+        // notas eliminadas del JSON de salida del presupuesto
 
         if (p.getEmpresa() != null) {
             ObjectNode emp = n.putObject("empresa");
             emp.put("id", p.getEmpresa().getId());
-            // Usamos nombre dos veces o nombreComercial si existiera en modelo, pero
-            // getNombre es seguro
             emp.put("nombre", p.getEmpresa().getNombre());
-            emp.put("nombreComercial", p.getEmpresa().getNombre());
+            emp.put("email", p.getEmpresa().getEmailContacto());
+            emp.put("telefono", p.getEmpresa().getTelefono());
+            emp.put("direccion", p.getEmpresa().getDireccion());
+            emp.put("cif", p.getEmpresa().getCif());
         }
         return n;
     }
