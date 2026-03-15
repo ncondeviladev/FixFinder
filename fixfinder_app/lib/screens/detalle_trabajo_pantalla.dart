@@ -1,7 +1,10 @@
 // Pantalla que muestra el detalle de la incidencia.
 // Permite aprobar presupuestos a clientes o finalizar tareas a operarios.
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/trabajo.dart';
 import '../models/usuario.dart';
 import '../models/presupuesto.dart';
@@ -63,7 +66,8 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
   Future<void> _handleFinalizar(int idTrabajo) async {
     final datos = await DialogosTrabajo.mostrarDialogoFinalizar(context);
     if (datos != null) {
-      _finalizarTrabajo(idTrabajo, datos['material']!, datos['horas']!);
+      _finalizarTrabajo(idTrabajo, datos['material']!, datos['horas']!,
+          datos['fotos'] as List<XFile>?);
     }
   }
 
@@ -110,8 +114,26 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
   }
 
   Future<void> _finalizarTrabajo(
-      int idTrabajo, String material, String horas) async {
+      int idTrabajo, String material, String horas, List<XFile>? fotos) async {
     setState(() => _procesando = true);
+
+    List<String> urlsFotos = [];
+
+    // 1. Subir fotos a Firebase si hay
+    if (fotos != null && fotos.isNotEmpty) {
+      try {
+        for (var foto in fotos) {
+          final fileName =
+              'trabajos/$idTrabajo/final_${DateTime.now().millisecondsSinceEpoch}_${foto.name}';
+          final storageRef = FirebaseStorage.instance.ref().child(fileName);
+          await storageRef.putFile(File(foto.path));
+          final url = await storageRef.getDownloadURL();
+          urlsFotos.add(url);
+        }
+      } catch (e) {
+        debugPrint('Error subiendo fotos finales: $e');
+      }
+    }
 
     String informeFinal = 'Finalizado desde App Móvil.';
     List<String> partesInforme = [];
@@ -129,7 +151,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
 
     final exito = await context.read<TrabajoProvider>().actualizarEstadoTrabajo(
         idTrabajo, EstadoTrabajo.FINALIZADO,
-        informe: informeFinal);
+        informe: informeFinal, fotos: urlsFotos);
     if (mounted) {
       setState(() => _procesando = false);
       if (exito) {

@@ -23,6 +23,8 @@ public class VistaOperarios extends VBox {
 
         void onEditarOperario(OperarioFX operario);
 
+        void onCambiarFotoOperario(OperarioFX operario);
+
         void onCambiarEstadoOperario(OperarioFX operario, boolean nuevoEstado);
     }
 
@@ -87,10 +89,9 @@ public class VistaOperarios extends VBox {
                 }
                 HBox box = new HBox(10);
                 box.setAlignment(Pos.CENTER_LEFT);
-                StackPane av = miniAvatar(v, 32);
-                Label lbl = new Label(v);
-
                 OperarioFX tmp = getTableView().getItems().get(getIndex());
+                StackPane av = miniAvatar(v, tmp.getUrlFoto(), 32);
+                Label lbl = new Label(v);
                 if (!tmp.isActivo()) {
                     lbl.setStyle(
                             "-fx-text-fill: #64748B; -fx-font-size: 13px; -fx-font-weight: bold; -fx-strikethrough: true;");
@@ -163,8 +164,8 @@ public class VistaOperarios extends VBox {
         colCarga.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().getCargaTrabajo()));
 
         TableColumn<OperarioFX, Void> colAcciones = new TableColumn<>("Acciones");
-        colAcciones.setMinWidth(110);
-        colAcciones.setMaxWidth(130);
+        colAcciones.setMinWidth(150);
+        colAcciones.setMaxWidth(160);
         colAcciones.setSortable(false);
         colAcciones.setCellFactory(c -> new TableCell<>() {
             @Override
@@ -182,9 +183,12 @@ public class VistaOperarios extends VBox {
                 Button btnEstado = actionBtn(t.isActivo() ? "⛔" : "✅", t.isActivo() ? "Dar de baja" : "Dar de alta");
                 btnEstado.setOnAction(e -> callback.onCambiarEstadoOperario(t, !t.isActivo()));
 
+                Button btnFoto = actionBtn("📸", "Cambiar foto");
+                btnFoto.setOnAction(e -> callback.onCambiarFotoOperario(t));
+
                 HBox box = new HBox(8);
                 box.setAlignment(Pos.CENTER);
-                box.getChildren().addAll(btnEditar, btnEstado);
+                box.getChildren().addAll(btnEditar, btnFoto, btnEstado);
                 setGraphic(box);
             }
         });
@@ -204,11 +208,26 @@ public class VistaOperarios extends VBox {
         return b;
     }
 
-    private StackPane miniAvatar(String nombre, int size) {
+    private StackPane miniAvatar(String nombre, String urlFoto, int size) {
         StackPane av = new StackPane();
         av.setMinSize(size, size);
         av.setMaxSize(size, size);
         av.setStyle("-fx-background-color: rgba(249,115,22,0.2); -fx-background-radius: " + (size / 2) + ";");
+
+        if (urlFoto != null && (urlFoto.startsWith("http://") || urlFoto.startsWith("https://"))) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                        new javafx.scene.image.Image(urlFoto, size, size, true, true, true));
+                iv.setFitWidth(size);
+                iv.setFitHeight(size);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(size / 2.0, size / 2.0, size / 2.0);
+                iv.setClip(clip);
+                av.getChildren().add(iv);
+                return av;
+            } catch (Exception ignored) {
+            }
+        }
+
         String[] p = nombre.trim().split("\\s+");
         String ini = p.length >= 2 ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()
                 : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();

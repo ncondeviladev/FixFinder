@@ -458,7 +458,18 @@ public class ProcesadorTrabajos {
             // 1. Finalizar Trabajo (Pasa a REALIZADO)
             trabajoService.finalizarTrabajo(idTrabajo, informe);
 
-            // 2. Generar Factura (Pasa a FINALIZADO automáticamente)
+            // 2. Guardar fotos finales si existen
+            if (datos.has("fotos") && datos.get("fotos").isArray()) {
+                FotoTrabajoDAO fotoDAO = new com.fixfinder.data.dao.FotoTrabajoDAOImpl();
+                for (JsonNode f : datos.get("fotos")) {
+                    String url = f.asText();
+                    if (!url.isBlank()) {
+                        fotoDAO.insertar(new FotoTrabajo(0, idTrabajo, url));
+                    }
+                }
+            }
+
+            // 3. Generar Factura (Pasa a FINALIZADO automáticamente)
             facturaService.generarFactura(idTrabajo);
 
             respuesta.put("status", 200);

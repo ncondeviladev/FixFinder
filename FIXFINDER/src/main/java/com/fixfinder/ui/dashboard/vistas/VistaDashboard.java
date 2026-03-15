@@ -39,19 +39,15 @@ public class VistaDashboard extends VBox {
         btnRefresh.getStyleClass().add("btn-secondary");
 
         btnRefresh.setOnAction(e -> {
-            // Animación de rotación y escala al pulsar
-            javafx.animation.RotateTransition rotate = new javafx.animation.RotateTransition(
-                    javafx.util.Duration.millis(300), btnRefresh);
-            rotate.setByAngle(360);
-
+            // Animación de pulso más elegante y discreta
             javafx.animation.ScaleTransition scale = new javafx.animation.ScaleTransition(
-                    javafx.util.Duration.millis(150), btnRefresh);
-            scale.setByX(0.9);
-            scale.setByY(0.9);
+                    javafx.util.Duration.millis(200), btnRefresh);
+            scale.setFromX(1.0);
+            scale.setFromY(1.0);
+            scale.setToX(1.05);
+            scale.setToY(1.05);
             scale.setCycleCount(2);
             scale.setAutoReverse(true);
-
-            rotate.play();
             scale.play();
 
             onRefresh.run();
@@ -73,6 +69,7 @@ public class VistaDashboard extends VBox {
         ScrollPane scroll = new ScrollPane(body);
         scroll.getStyleClass().add("transparent-scroll");
         scroll.setFitToWidth(true);
+        scroll.setFitToHeight(true); // Permitir que el contenido (tablas) se estire verticalmente
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
         getChildren().add(scroll);

@@ -149,10 +149,13 @@ public class AppDashboardPrincipal extends Application {
                             int idEmpresa = respuesta.getDatos().has("idEmpresa")
                                     ? respuesta.getDatos().get("idEmpresa").asInt()
                                     : 0;
+                            String urlFoto = respuesta.getDatos().has("url_foto")
+                                    ? respuesta.getDatos().get("url_foto").asText()
+                                    : null;
 
                             loginStage.close();
                             DashboardPrincipal dashboard = new DashboardPrincipal(
-                                    servicioCliente, id, nombre, rol, idEmpresa);
+                                    servicioCliente, id, nombre, rol, urlFoto, idEmpresa);
                             dashboard.mostrar();
 
                         } else {

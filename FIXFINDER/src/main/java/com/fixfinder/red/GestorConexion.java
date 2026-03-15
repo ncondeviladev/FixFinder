@@ -163,6 +163,10 @@ public class GestorConexion implements Runnable {
                                             procesadorUsuarios.procesarObtenerEmpresa(datos, respuesta);
                                             break;
 
+                                        case "ACTUALIZAR_FOTO_PERFIL":
+                                            procesadorUsuarios.procesarActualizarFotoPerfil(datos, respuesta);
+                                            break;
+
                                         case "CREAR_PRESUPUESTO":
                                             procesadorPresupuestos.procesarCrearPresupuesto(datos, respuesta);
                                             break;

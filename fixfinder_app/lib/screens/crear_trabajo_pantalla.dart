@@ -1,9 +1,13 @@
 // Pantalla que incluye el formulario para crear o modificar una nueva incidencia.
 // Permite al cliente llenar titulo, descripción, ubicación y agregar fotos (futuro).
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../providers/trabajo_provider.dart';
 import '../models/trabajo.dart';
+import '../widgets/trabajos/galeria_fotos.dart';
 
 class CrearTrabajoPantalla extends StatefulWidget {
   final Trabajo? trabajoAEditar;
@@ -22,6 +26,7 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
   CategoriaServicio _categoriaSeleccionada = CategoriaServicio.OTROS;
   int _urgenciaSeleccionada = 1; // 1=Normal, 2=Prioridad, 3=Urgente
   bool _enviando = false;
+  bool _subiendoFoto = false;
   List<String> _urlsFotos = [];
 
   @override
@@ -34,6 +39,43 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
       _categoriaSeleccionada = widget.trabajoAEditar!.categoria;
       _urgenciaSeleccionada = widget.trabajoAEditar!.urgencia;
       _urlsFotos = List.from(widget.trabajoAEditar!.urlsFotos);
+    }
+  }
+
+  Future<void> _seleccionarYSubirFoto() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70, // Reducir calidad para optimizar subida
+    );
+
+    if (image == null) return; // cancelado por usuario
+
+    setState(() => _subiendoFoto = true);
+
+    try {
+      final fileName =
+          'trabajos/${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      await storageRef.putFile(File(image.path));
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      if (mounted) {
+        setState(() {
+          _urlsFotos.add(downloadUrl);
+          _subiendoFoto = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _subiendoFoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error al subir foto: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -164,20 +206,25 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     const Text(
-                        'Próximamente: Sube fotos del problema para ayudar al operario.',
+                        'Añade fotos para que el operario vea el problema.',
                         style: TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 12),
+                    if (_urlsFotos.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: GaleriaFotos(urls: _urlsFotos),
+                      ),
                     OutlinedButton.icon(
-                      icon: const Icon(Icons.add_a_photo),
-                      label:
-                          const Text('Subir Foto (Firebase en construcción)'),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Firebase Storage no disponible aún.')),
-                        );
-                      },
+                      icon: _subiendoFoto
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.add_a_photo),
+                      label: Text(_subiendoFoto
+                          ? 'Subiendo imagen...'
+                          : 'Añadir nueva foto'),
+                      onPressed: _subiendoFoto ? null : _seleccionarYSubirFoto,
                     ),
                   ],
                 ),

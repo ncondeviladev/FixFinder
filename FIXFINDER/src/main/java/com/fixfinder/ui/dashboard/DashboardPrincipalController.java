@@ -29,8 +29,10 @@ public class DashboardPrincipalController {
     private final int usuarioId;
     private final String usuarioNombre;
     private final String usuarioRol;
+    private final String usuarioFoto;
     private final int idEmpresa;
     private final java.util.Map<String, Object> infoEmpresaActual = new java.util.HashMap<>();
+    private String nombreEmpresa = "";
 
     private final ObservableList<TrabajoFX> todosTrabajos = FXCollections.observableArrayList();
     private final FilteredList<TrabajoFX> trabajosFiltrados = new FilteredList<>(todosTrabajos, t -> true);
@@ -73,12 +75,13 @@ public class DashboardPrincipalController {
     };
 
     public DashboardPrincipalController(ServicioCliente servicioCliente, String cssUrl,
-            int usuarioId, String usuarioNombre, String usuarioRol, int idEmpresa) {
+            int usuarioId, String usuarioNombre, String usuarioRol, String usuarioFoto, int idEmpresa) {
         this.servicioCliente = servicioCliente;
         this.cssUrl = cssUrl;
         this.usuarioId = usuarioId;
         this.usuarioNombre = usuarioNombre;
         this.usuarioRol = usuarioRol;
+        this.usuarioFoto = usuarioFoto;
         this.idEmpresa = idEmpresa;
         servicioCliente.setOnMensajeRecibido(json -> Platform.runLater(() -> procesarRespuesta(json)));
     }
@@ -86,7 +89,7 @@ public class DashboardPrincipalController {
     public BorderPane construirVista(Runnable onLogout) {
         vistaDashboard = new VistaDashboard(trabajosFiltrados, listaOperarios, accionesCallback,
                 this::solicitarTrabajos, cssUrl);
-        Sidebar sidebar = new Sidebar(usuarioNombre, usuarioRol, this::navegarA, onLogout);
+        Sidebar sidebar = new Sidebar(usuarioNombre, usuarioRol, usuarioFoto, this::navegarA, onLogout);
 
         rootPane = new BorderPane();
         rootPane.setLeft(sidebar);
@@ -98,7 +101,8 @@ public class DashboardPrincipalController {
 
     private void navegarA(String vistaId) {
         javafx.scene.Node vista = switch (vistaId) {
-            case "incidencias" -> new VistaIncidencias(trabajosFiltrados, listaOperarios, accionesCallback, cssUrl);
+            case "incidencias" ->
+                new VistaIncidencias(trabajosFiltrados, listaOperarios, accionesCallback, cssUrl);
             case "operarios" -> new VistaOperarios(listaOperarios, new VistaOperarios.AccionesOperarioCallback() {
                 @Override
                 public void onCrearOperario() {
@@ -132,6 +136,37 @@ public class DashboardPrincipalController {
                 }
 
                 @Override
+                public void onCambiarFotoOperario(OperarioFX operario) {
+                    javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+                    fileChooser.setTitle("Seleccionar foto para " + operario.getNombre());
+                    fileChooser.getExtensionFilters().addAll(
+                            new javafx.stage.FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+                    java.io.File file = fileChooser.showOpenDialog(rootPane.getScene().getWindow());
+                    if (file != null) {
+                        new Thread(() -> {
+                            try {
+                                String url = com.fixfinder.ui.dashboard.utils.FirebaseStorageUploader.subirImagen(file,
+                                        "perfiles/" + operario.getId() + "_op_" + System.currentTimeMillis()
+                                                + file.getName());
+                                Platform.runLater(() -> {
+                                    try {
+                                        servicioCliente.enviarActualizarFotoPerfil(operario.getId(), url);
+                                        if (vistaDashboard != null)
+                                            vistaDashboard.getPanelLateral()
+                                                    .agregarActividad("📸 Actualizada foto de " + operario.getNombre());
+                                    } catch (Exception e) {
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Platform.runLater(() -> {
+                                    System.err.println("Error subiendo foto de operario: " + e.getMessage());
+                                });
+                            }
+                        }).start();
+                    }
+                }
+
+                @Override
                 public void onCambiarEstadoOperario(OperarioFX operario, boolean nuevoEstado) {
                     try {
                         servicioCliente.enviarModificarOperario(operario.getId(), operario.getNombre(),
@@ -152,7 +187,35 @@ public class DashboardPrincipalController {
                     } catch (IOException e) {
                     }
                 }
-                yield new VistaEmpresa(infoEmpresaActual, usuarioNombre, usuarioRol, listaOperarios);
+                yield new VistaEmpresa(infoEmpresaActual, usuarioNombre, usuarioRol, listaOperarios, () -> {
+                    javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+                    fileChooser.setTitle("Seleccionar foto de perfil Gerente");
+                    fileChooser.getExtensionFilters().addAll(
+                            new javafx.stage.FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+                    java.io.File file = fileChooser.showOpenDialog(rootPane.getScene().getWindow());
+                    if (file != null) {
+                        new Thread(() -> {
+                            try {
+                                String url = com.fixfinder.ui.dashboard.utils.FirebaseStorageUploader.subirImagen(file,
+                                        "perfiles/" + usuarioId + "_ger_" + System.currentTimeMillis()
+                                                + file.getName());
+                                Platform.runLater(() -> {
+                                    try {
+                                        servicioCliente.enviarActualizarFotoPerfil(usuarioId, url);
+                                        if (vistaDashboard != null)
+                                            vistaDashboard.getPanelLateral()
+                                                    .agregarActividad("📸 Foto de gerente actualizada");
+                                    } catch (Exception e) {
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Platform.runLater(() -> {
+                                    System.err.println("Error subiendo foto de gerente: " + e.getMessage());
+                                });
+                            }
+                        }).start();
+                    }
+                });
             }
             default -> vistaDashboard;
         };
@@ -197,7 +260,8 @@ public class DashboardPrincipalController {
                 procesarListaOperarios(datos);
             } else if (msg.contains("Operario asignado") || msg.contains("desasignado")
                     || msg.contains("Presupuesto") || msg.contains("presupuesto")
-                    || msg.contains("Operario registrado") || msg.contains("modificado")) {
+                    || msg.contains("Operario registrado") || msg.contains("modificado")
+                    || msg.contains("foto")) {
 
                 solicitarTrabajos();
                 if (idEmpresa > 0) {
@@ -216,6 +280,9 @@ public class DashboardPrincipalController {
                         infoEmpresaActual.put(entry.getKey(), entry.getValue().asText());
                     }
                 });
+                if (infoEmpresaActual.containsKey("nombre")) {
+                    this.nombreEmpresa = infoEmpresaActual.get("nombre").toString();
+                }
                 if (rootPane != null && rootPane.getCenter() instanceof VistaEmpresa) {
                     navegarA("empresa");
                 }
@@ -263,7 +330,7 @@ public class DashboardPrincipalController {
                 operario = n.get("nombreOperario").asText();
             }
 
-            todosTrabajos.add(new TrabajoFX(
+            TrabajoFX trabajoFX = new TrabajoFX(
                     n.get("id").asInt(),
                     n.has("titulo") ? n.get("titulo").asText() : "",
                     cliente,
@@ -274,7 +341,17 @@ public class DashboardPrincipalController {
                     n.has("direccion") ? n.get("direccion").asText() : "",
                     idOp, cliTelefono, cliEmail,
                     n.has("valoracion") ? n.get("valoracion").asInt() : 0,
-                    n.has("comentarioCliente") ? n.get("comentarioCliente").asText() : ""));
+                    n.has("comentarioCliente") ? n.get("comentarioCliente").asText() : "");
+
+            if (n.has("urls_fotos") && n.get("urls_fotos").isArray()) {
+                java.util.List<String> fotos = new java.util.ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode urlNode : n.get("urls_fotos")) {
+                    fotos.add(urlNode.asText());
+                }
+                trabajoFX.setUrlsFotos(fotos);
+            }
+
+            todosTrabajos.add(trabajoFX);
 
             if (!"FINALIZADO".equals(estado) && !"CANCELADO".equals(estado))
                 activos++;
@@ -323,11 +400,12 @@ public class DashboardPrincipalController {
             String email = n.has("email") ? n.get("email").asText() : "";
             String tel = n.has("telefono") ? n.get("telefono").asText() : "";
             String dni = n.has("dni") ? n.get("dni").asText() : "";
+            String urlFoto = n.has("url_foto") && !n.get("url_foto").isNull() ? n.get("url_foto").asText() : "";
 
             listaOperarios.add(new OperarioFX(
                     n.get("id").asInt(), nombre,
                     n.has("especialidad") ? n.get("especialidad").asText() : "",
-                    true, 0, activo, email, tel, dni));
+                    true, 0, activo, email, tel, dni, urlFoto));
         }
         // El panel lateral ya no muestra operarios, sino un resumen de actividad y KPIs
         // dashboardVista.getPanelLateral().actualizarOperarios(listaOperarios);

@@ -364,7 +364,8 @@ public class DashboardController {
                     txtPassUsuario.getText(),
                     txtTelefonoUsuario.getText(),
                     txtDireccionUsuario.getText(),
-                    txtIdEmpresaOperario.getText());
+                    txtIdEmpresaOperario.getText(),
+                    "");
             log("Enviado REGISTRO USUARIO (" + (esOperario ? "OP" : "CLI") + ")");
         } catch (IOException e) {
             log("Error REGISTRO: " + e.getMessage());
@@ -573,7 +574,7 @@ public class DashboardController {
                 btnPresu.setOnAction(e -> {
                     try {
                         double monto = Double.parseDouble(txtMonto.getText());
-                        servicioCliente.enviarCrearPresupuesto(t.getId(), usuarioLogueadoIdEmpresa, monto);
+                        servicioCliente.enviarCrearPresupuesto(t.getId(), usuarioLogueadoIdEmpresa, monto, "");
                         log("Presupuesto enviado: " + monto + "€");
                         alert.close();
                     } catch (Exception ex) {

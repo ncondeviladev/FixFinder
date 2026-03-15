@@ -1,6 +1,8 @@
 // Clase utilitaria que contiene componentes de diálogos superpuestos.
 // Reúne los popup para confirmar borrado, ingresar horas y gastos al finalizar, o valorar servicio.
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class DialogosTrabajo {
   static Future<bool> mostrarDialogoBorrar(BuildContext context) async {
@@ -26,58 +28,123 @@ class DialogosTrabajo {
     return confirmacion ?? false;
   }
 
-  static Future<Map<String, String>?> mostrarDialogoFinalizar(
+  static Future<Map<String, dynamic>?> mostrarDialogoFinalizar(
       BuildContext context) async {
     final materialController = TextEditingController();
     final horasController = TextEditingController();
+    final List<XFile> fotosSeleccionadas = [];
 
-    return showDialog<Map<String, String>>(
+    return showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Finalizar Trabajo'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-                '¿Has completado esta incidencia? Añade el material gastado y horas (opcional):'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: materialController,
-              decoration: const InputDecoration(
-                labelText: 'Material y recambios usados',
-                hintText: 'Ej: 2 tubos PVC, cableado...',
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Finalizar Trabajo'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                      '¿Has completado esta incidencia? Añade material, horas y fotos del resultado:'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: materialController,
+                    decoration: const InputDecoration(
+                      labelText: 'Material y recambios usados',
+                      hintText: 'Ej: 2 tubos PVC, cableado...',
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: horasController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Horas trabajadas',
+                      hintText: 'Ej: 2',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Fotos del trabajo finalizado:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ...fotosSeleccionadas.map((foto) => Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(File(foto.path),
+                                    width: 70, height: 70, fit: BoxFit.cover),
+                              ),
+                              Positioned(
+                                right: -10,
+                                top: -10,
+                                child: IconButton(
+                                  icon: const Icon(Icons.cancel,
+                                      color: Colors.red, size: 20),
+                                  onPressed: () {
+                                    setDialogState(() {
+                                      fotosSeleccionadas.remove(foto);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          )),
+                      GestureDetector(
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(
+                            source: ImageSource.gallery,
+                            imageQuality: 70,
+                          );
+                          if (image != null) {
+                            setDialogState(() {
+                              fotosSeleccionadas.add(image);
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[400]!),
+                          ),
+                          child:
+                              const Icon(Icons.add_a_photo, color: Colors.grey),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              maxLines: 2,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: horasController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Horas trabajadas',
-                hintText: 'Ej: 2',
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, null),
+                child: const Text('CANCELAR'),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, null),
-            child: const Text('CANCELAR'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx, {
-                'material': materialController.text,
-                'horas': horasController.text,
-              });
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child:
-                const Text('FINALIZAR', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx, {
+                    'material': materialController.text,
+                    'horas': horasController.text,
+                    'fotos': fotosSeleccionadas,
+                  });
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                child: const Text('FINALIZAR',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

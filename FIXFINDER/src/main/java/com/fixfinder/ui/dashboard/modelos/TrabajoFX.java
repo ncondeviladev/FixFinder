@@ -4,11 +4,14 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Modelo de datos reactivo (JavaFX Properties) para representar un Trabajo en
  * la UI del Dashboard.
  * Permite el binding directo con TableView y otros controles JavaFX.
+ * Mantiene la lista de URLs de las incidencias subidas desde Firebase.
  */
 public class TrabajoFX {
 
@@ -27,6 +30,8 @@ public class TrabajoFX {
     private final StringProperty clienteEmail = new SimpleStringProperty("");
     private final IntegerProperty valoracion = new SimpleIntegerProperty(0);
     private final StringProperty comentarioCliente = new SimpleStringProperty("");
+
+    private final ObservableList<String> urlsFotos = FXCollections.observableArrayList();
 
     public TrabajoFX(int id, String titulo, String cliente, String categoria,
             String estado, String operario, String fecha,
@@ -144,5 +149,13 @@ public class TrabajoFX {
 
     public StringProperty comentarioClienteProperty() {
         return comentarioCliente;
+    }
+
+    public ObservableList<String> getUrlsFotos() {
+        return urlsFotos;
+    }
+
+    public void setUrlsFotos(java.util.List<String> fotos) {
+        this.urlsFotos.setAll(fotos);
     }
 }

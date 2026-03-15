@@ -21,11 +21,11 @@ public class DashboardPrincipal {
 
     public DashboardPrincipal(ServicioCliente servicioCliente,
             int usuarioId, String usuarioNombre,
-            String usuarioRol, int idEmpresa) {
+            String usuarioRol, String usuarioFoto, int idEmpresa) {
         this.stage = new Stage();
         this.controller = new DashboardPrincipalController(
                 servicioCliente, CSS_URL,
-                usuarioId, usuarioNombre, usuarioRol, idEmpresa);
+                usuarioId, usuarioNombre, usuarioRol, usuarioFoto, idEmpresa);
     }
 
     public void mostrar() {

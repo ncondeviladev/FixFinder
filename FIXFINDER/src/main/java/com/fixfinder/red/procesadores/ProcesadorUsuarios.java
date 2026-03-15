@@ -3,7 +3,7 @@ package com.fixfinder.red.procesadores;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fixfinder.data.interfaces.EmpresaDAO;
+
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.service.interfaz.OperarioService;
@@ -46,6 +46,7 @@ public class ProcesadorUsuarios {
                     map.put("dni", op.getDni());
                     map.put("especialidad", op.getEspecialidad().toString());
                     map.put("estaActivo", op.isEstaActivo());
+                    map.put("url_foto", op.getUrlFoto());
                     listaSalida.add(map);
                 }
 
@@ -119,6 +120,20 @@ public class ProcesadorUsuarios {
                     m.put("email", e.getEmailContacto());
                     m.put("url_foto", e.getUrlFoto());
                     m.put("fechaAlta", e.getFechaAlta());
+
+                    try (java.sql.Connection conn = com.fixfinder.data.ConexionDB.getConnection();
+                            java.sql.PreparedStatement stmtG = conn.prepareStatement(
+                                    "SELECT u.url_foto FROM usuario u JOIN operario o ON u.id = o.id_usuario " +
+                                            "WHERE o.id_empresa = ? AND u.rol = 'GERENTE' LIMIT 1")) {
+                        stmtG.setInt(1, id);
+                        try (java.sql.ResultSet rsG = stmtG.executeQuery()) {
+                            if (rsG.next()) {
+                                m.put("gerenteUrlFoto", rsG.getString("url_foto"));
+                            }
+                        }
+                    } catch (Exception ex_g) {
+                        System.err.println("Error buscando foto de gerente: " + ex_g.getMessage());
+                    }
 
                     // --- NUEVO: Obtener valoraciones reales de trabajos FINALIZADOS ---
                     try {
@@ -203,6 +218,35 @@ public class ProcesadorUsuarios {
         } else {
             respuesta.put("status", 400);
             respuesta.put("mensaje", "Falta ID");
+        }
+    }
+
+    public void procesarActualizarFotoPerfil(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("idUsuario") && datos.has("url_foto")) {
+            try {
+                int idUsuario = datos.get("idUsuario").asInt();
+                String urlFoto = datos.get("url_foto").asText();
+
+                com.fixfinder.data.interfaces.UsuarioDAO usuarioDAO = new com.fixfinder.data.dao.UsuarioDAOImpl();
+                com.fixfinder.modelos.Usuario u = usuarioDAO.obtenerPorId(idUsuario);
+
+                if (u == null) {
+                    throw new Exception("Usuario no encontrado");
+                }
+
+                u.setUrlFoto(urlFoto);
+                usuarioDAO.actualizar(u);
+
+                respuesta.put("status", 200);
+                respuesta.put("mensaje", "Foto de perfil actualizada correctamente");
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error al actualizar foto: " + e.getMessage());
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Datos incompletos para actualizar foto");
         }
     }
 }

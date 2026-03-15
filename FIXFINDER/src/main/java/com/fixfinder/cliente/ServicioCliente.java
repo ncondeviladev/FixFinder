@@ -133,6 +133,13 @@ public class ServicioCliente {
         enviarJson("GET_OPERARIOS", datos);
     }
 
+    public void enviarActualizarFotoPerfil(int idUsuario, String urlFoto) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("idUsuario", idUsuario);
+        datos.put("url_foto", urlFoto);
+        enviarJson("ACTUALIZAR_FOTO_PERFIL", datos);
+    }
+
     public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto, String nuevaDescripcion)
             throws IOException {
         ObjectNode datos = mapper.createObjectNode();

@@ -27,7 +27,16 @@ public class Sidebar extends VBox {
         getChildren().addAll(
                 construirLogo(),
                 construirNav(onNavegar),
-                construirUsuario(usuarioNombre, usuarioRol, onLogout));
+                construirUsuario(usuarioNombre, usuarioRol, null, onLogout));
+    }
+
+    public Sidebar(String usuarioNombre, String usuarioRol, String urlFoto,
+            Consumer<String> onNavegar, Runnable onLogout) {
+        getStyleClass().add("sidebar");
+        getChildren().addAll(
+                construirLogo(),
+                construirNav(onNavegar),
+                construirUsuario(usuarioNombre, usuarioRol, urlFoto, onLogout));
     }
 
     public void marcarActivo(String vistaId) {
@@ -88,7 +97,7 @@ public class Sidebar extends VBox {
         return nav;
     }
 
-    private VBox construirUsuario(String nombre, String rol, Runnable onLogout) {
+    private VBox construirUsuario(String nombre, String rol, String urlFoto, Runnable onLogout) {
         VBox box = new VBox(6);
         box.getStyleClass().add("sidebar-user-box");
 
@@ -99,9 +108,24 @@ public class Sidebar extends VBox {
         avatar.getStyleClass().add("user-avatar");
         avatar.setMinSize(36, 36);
         avatar.setMaxSize(36, 36);
-        Label ini = new Label(iniciales(nombre));
-        ini.setStyle("-fx-text-fill: #F97316; -fx-font-weight: bold; -fx-font-size: 13px;");
-        avatar.getChildren().add(ini);
+
+        if (urlFoto != null && (urlFoto.startsWith("http") || urlFoto.startsWith("https"))) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                        new javafx.scene.image.Image(urlFoto, 36, 36, true, true, true));
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                iv.setClip(clip);
+                avatar.getChildren().add(iv);
+            } catch (Exception e) {
+                Label ini = new Label(iniciales(nombre));
+                ini.setStyle("-fx-text-fill: #F97316; -fx-font-weight: bold; -fx-font-size: 13px;");
+                avatar.getChildren().add(ini);
+            }
+        } else {
+            Label ini = new Label(iniciales(nombre));
+            ini.setStyle("-fx-text-fill: #F97316; -fx-font-weight: bold; -fx-font-size: 13px;");
+            avatar.getChildren().add(ini);
+        }
 
         VBox info = new VBox(3);
         HBox.setHgrow(info, Priority.ALWAYS);

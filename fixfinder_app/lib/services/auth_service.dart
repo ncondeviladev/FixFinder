@@ -104,4 +104,57 @@ class AuthService {
     }
     return false;
   }
+
+  Future<bool> actualizarFotoPerfil(String urlFoto) async {
+    if (_usuarioActual == null) return false;
+
+    final Map<String, dynamic> peticion = {
+      'accion': 'ACTUALIZAR_FOTO_PERFIL',
+      'token': _usuarioActual!.token,
+      'datos': {
+        'idUsuario': _usuarioActual!.id,
+        'url_foto': urlFoto,
+      }
+    };
+
+    StreamSubscription? suscripcion;
+    try {
+      await _socket.connect();
+      final completer = Completer<Map<String, dynamic>>();
+
+      suscripcion = _socket.respuestas.listen((respuesta) {
+        final msg = respuesta['mensaje']?.toString() ?? '';
+
+        if (msg.contains('Foto de perfil actualizada')) {
+          if (!completer.isCompleted) completer.complete(respuesta);
+        } else if (respuesta['status'] != 200 &&
+            msg.contains('Error al actualizar foto')) {
+          if (!completer.isCompleted)
+            completer.completeError('Error del servidor: $msg');
+        }
+      });
+
+      await _socket.send(peticion);
+
+      final respuesta =
+          await completer.future.timeout(const Duration(seconds: 10));
+
+      if (respuesta['status'] == 200) {
+        _usuarioActual!.urlFoto = urlFoto;
+
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+              'userData', jsonEncode(_usuarioActual!.toJson()));
+        } catch (e) {}
+
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    } finally {
+      await suscripcion?.cancel();
+    }
+  }
 }

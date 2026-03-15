@@ -5,7 +5,6 @@ import com.fixfinder.ui.dashboard.dialogos.DialogoAsignarOperario;
 import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -258,17 +257,15 @@ public class TablaIncidencias extends VBox {
 
     private TableColumn<TrabajoFX, Void> colAcciones() {
         TableColumn<TrabajoFX, Void> col = new TableColumn<>("Acciones");
-        col.setMaxWidth(110);
-        col.setMinWidth(100);
+        col.setMaxWidth(80);
+        col.setMinWidth(80);
         col.setSortable(false);
         col.setCellFactory(c -> new TableCell<>() {
-            private final Button btnVer = actionBtn("👁", "Ver detalle");
-            private final Button btnAsignar = actionBtn("👤", "Asignar operario al trabajo");
-            private final Button btnPresu = actionBtn("€", "Crear presupuesto");
+            private final Button btnVer = actionBtn("👁", "Ver detalle / Gestionar");
+            private final Button btnAsignar = actionBtn("👤", "Asignar operario");
             {
                 btnVer.setOnAction(e -> mostrarDetalle(getTableView().getItems().get(getIndex())));
                 btnAsignar.setOnAction(e -> abrirAsignar(getTableView().getItems().get(getIndex())));
-                btnPresu.setOnAction(e -> abrirPresupuesto(getTableView().getItems().get(getIndex())));
             }
 
             @Override
@@ -281,10 +278,10 @@ public class TablaIncidencias extends VBox {
                 TrabajoFX t = getTableView().getItems().get(getIndex());
                 String estado = t.getEstado();
                 btnAsignar.setDisable(!"ACEPTADO".equals(estado) && !"ASIGNADO".equals(estado));
-                btnPresu.setDisable(!"PENDIENTE".equals(estado));
-                HBox box = new HBox(2);
+
+                HBox box = new HBox(5);
                 box.setAlignment(Pos.CENTER);
-                box.getChildren().addAll(btnVer, btnAsignar, btnPresu);
+                box.getChildren().addAll(btnVer, btnAsignar);
                 setGraphic(box);
             }
         });
@@ -308,44 +305,13 @@ public class TablaIncidencias extends VBox {
     }
 
     private void mostrarDetalle(TrabajoFX t) {
-        Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Detalle #" + t.getId());
-        dialog.setHeaderText(t.getTitulo());
-        dialog.getDialogPane().getStylesheets().add(cssUrl);
-        dialog.getDialogPane().getStyleClass().add("dialog-pane");
+        boolean esPendiente = "PENDIENTE".equals(t.getEstado());
+        Optional<com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia.Resultado> res = new com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia(
+                t, cssUrl, esPendiente).mostrar();
 
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(12, 0, 8, 0));
-        content.getChildren().addAll(
-                fila("Cliente", t.getCliente()),
-                fila("Categoría", t.getCategoria()),
-                fila("Estado", t.getEstado()),
-                fila("Dirección", t.getDireccion().isBlank() ? "No especificada" : t.getDireccion()),
-                fila("Operario", t.getOperario()));
-
-        if (t.getValoracion() > 0) {
-            String estrellas = "⭐".repeat(t.getValoracion());
-            content.getChildren().add(fila("Valoración", estrellas));
-            if (!t.getComentarioCliente().isBlank()) {
-                content.getChildren().add(fila("Comentario", t.getComentarioCliente()));
-            }
+        if (esPendiente) {
+            res.ifPresent(datos -> callback.onPresupuestar(t, datos.monto(), datos.notas()));
         }
-
-        if (!t.getDescripcion().isBlank()) {
-            Label lbl = new Label("Descripción:");
-            lbl.getStyleClass().add("modal-label");
-            TextArea area = new TextArea(t.getDescripcion());
-            area.setEditable(false);
-            area.setWrapText(true);
-            area.setPrefHeight(140);
-            area.getStyleClass().add("modal-input");
-            content.getChildren().addAll(lbl, area);
-        }
-
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        ((Button) dialog.getDialogPane().lookupButton(ButtonType.CLOSE)).getStyleClass().add("btn-secondary");
-        dialog.showAndWait();
     }
 
     private void abrirAsignar(TrabajoFX t) {
@@ -357,24 +323,7 @@ public class TablaIncidencias extends VBox {
         res.ifPresent(idOp -> callback.onAsignar(t, idOp));
     }
 
-    private void abrirPresupuesto(TrabajoFX t) {
-        Optional<com.fixfinder.ui.dashboard.dialogos.DialogoCrearPresupuesto.DatosPresupuesto> res = new com.fixfinder.ui.dashboard.dialogos.DialogoCrearPresupuesto(
-                t, "", cssUrl).mostrar();
-        res.ifPresent(datos -> callback.onPresupuestar(t, datos.monto(), datos.nuevaDescripcion()));
-    }
-
     // ─── Utils ────────────────────────────────────────────────────────────────
-
-    private HBox fila(String etiqueta, String valor) {
-        HBox f = new HBox(8);
-        Label lbl = new Label(etiqueta + ":");
-        lbl.getStyleClass().add("modal-label");
-        lbl.setMinWidth(90);
-        Label val = new Label(valor);
-        val.getStyleClass().add("modal-value");
-        f.getChildren().addAll(lbl, val);
-        return f;
-    }
 
     private StackPane miniAvatar(String nombre) {
         StackPane av = new StackPane();

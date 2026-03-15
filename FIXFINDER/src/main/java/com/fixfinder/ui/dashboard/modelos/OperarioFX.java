@@ -16,9 +16,11 @@ public class OperarioFX {
     private final String email;
     private final String telefono;
     private final String dni;
+    private final String urlFoto;
 
     public OperarioFX(int id, String nombre, String especialidad,
-            boolean disponible, int cargaTrabajo, boolean activo, String email, String telefono, String dni) {
+            boolean disponible, int cargaTrabajo, boolean activo, String email, String telefono, String dni,
+            String urlFoto) {
         this.id = id;
         this.nombre = nombre;
         this.especialidad = especialidad != null ? especialidad : "";
@@ -28,6 +30,7 @@ public class OperarioFX {
         this.email = email;
         this.telefono = telefono;
         this.dni = dni;
+        this.urlFoto = urlFoto;
     }
 
     public int getId() {
@@ -64,6 +67,10 @@ public class OperarioFX {
 
     public String getDni() {
         return dni;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
     }
 
     public String getIniciales() {

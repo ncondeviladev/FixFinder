@@ -18,7 +18,7 @@ public class VistaEmpresa extends VBox {
 
     public VistaEmpresa(java.util.Map<String, Object> infoEmpresa,
             String gerenteNombre, String gerenteRol,
-            ObservableList<OperarioFX> operarios) {
+            ObservableList<OperarioFX> operarios, Runnable onCambiarFotoGerente) {
         getStyleClass().add("content-area");
         VBox.setVgrow(this, Priority.ALWAYS);
 
@@ -64,7 +64,37 @@ public class VistaEmpresa extends VBox {
 
         Label lIniciales = new Label(iniciales(gerenteNombre));
         lIniciales.setStyle("-fx-text-fill: #F97316; -fx-font-size: 28px; -fx-font-weight: bold;");
-        imagenPlaceholder.getChildren().add(lIniciales);
+
+        String urlFotoGerente = (String) infoEmpresa.get("gerenteUrlFoto");
+        boolean tieneFoto = false;
+        if (urlFotoGerente != null && (urlFotoGerente.startsWith("http://") || urlFotoGerente.startsWith("https://"))) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
+                        new javafx.scene.image.Image(urlFotoGerente, 80, 80, true, true, true));
+                iv.setFitWidth(80);
+                iv.setFitHeight(80);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(40, 40, 40);
+                iv.setClip(clip);
+                imagenPlaceholder.getChildren().add(iv);
+                tieneFoto = true;
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!tieneFoto) {
+            imagenPlaceholder.getChildren().add(lIniciales);
+        }
+
+        javafx.scene.control.Button btnCambiarFoto = new javafx.scene.control.Button("📸");
+        btnCambiarFoto.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 14px;");
+        btnCambiarFoto.setOnAction(e -> {
+            if (onCambiarFotoGerente != null)
+                onCambiarFotoGerente.run();
+        });
+        StackPane.setAlignment(btnCambiarFoto, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(btnCambiarFoto, new Insets(0, -10, -10, 0));
+
+        imagenPlaceholder.getChildren().add(btnCambiarFoto);
 
         perfilRow.getChildren().addAll(imagenPlaceholder, imgInfo);
 

@@ -257,7 +257,16 @@ public class PruebaIntegracion {
                 Trabajo t = new Trabajo();
                 t.setCliente(cliente);
                 t.setTitulo(titulo);
-                t.setDescripcion(descripcion);
+
+                String descEstructurada = "==============================\n" +
+                                "📝 CLIENTE:\n" + descripcion.trim() + "\n" +
+                                "==============================\n" +
+                                "💰 GERENTE:\n(Sin presupuesto redactado)\n" +
+                                "==============================\n" +
+                                "🛠 OPERARIO:\n(Sin informe de trabajo)\n" +
+                                "==============================";
+
+                t.setDescripcion(descEstructurada);
                 t.setCategoria(cat);
                 t.setDireccion(direccion);
                 t.setEstado(EstadoTrabajo.PENDIENTE);

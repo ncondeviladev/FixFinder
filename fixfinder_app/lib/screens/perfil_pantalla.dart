@@ -1,11 +1,19 @@
-// Pantalla de Perfil de Usuario.
-// Muestra los datos personales y de cuenta del cliente u operario que tiene sesión activa.
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/usuario.dart';
 import '../services/auth_service.dart';
 
-class PerfilPantalla extends StatelessWidget {
+class PerfilPantalla extends StatefulWidget {
   const PerfilPantalla({super.key});
+
+  @override
+  State<PerfilPantalla> createState() => _PerfilPantallaState();
+}
+
+class _PerfilPantallaState extends State<PerfilPantalla> {
+  bool _subiendoFoto = false;
 
   Color _colorRol(Rol rol) {
     switch (rol) {
@@ -17,6 +25,59 @@ class PerfilPantalla extends StatelessWidget {
         return Colors.orange;
       case Rol.ADMIN:
         return Colors.purple;
+    }
+  }
+
+  Future<void> _cambiarFotoPerfil() async {
+    final usuario = AuthService().usuarioActual;
+    if (usuario == null) return;
+    if (usuario.rol != Rol.CLIENTE) return;
+
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image == null) return;
+
+    setState(() => _subiendoFoto = true);
+
+    try {
+      final fileName =
+          'perfiles/${usuario.id}_${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+      final storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      await storageRef.putFile(File(image.path));
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      final exito = await AuthService().actualizarFotoPerfil(downloadUrl);
+
+      if (mounted) {
+        setState(() => _subiendoFoto = false);
+        if (exito) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Foto de perfil actualizada'),
+                backgroundColor: Colors.green),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Error al actualizar en el servidor'),
+                backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _subiendoFoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error al subir foto: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -38,23 +99,46 @@ class PerfilPantalla extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar
             Center(
-              child: CircleAvatar(
-                radius: 55,
-                backgroundColor: _colorRol(usuario.rol).withValues(alpha: 0.15),
-                backgroundImage: usuario.urlFoto != null
-                    ? NetworkImage(usuario.urlFoto!)
-                    : null,
-                child: usuario.urlFoto == null
-                    ? Icon(Icons.person,
-                        size: 55, color: _colorRol(usuario.rol))
-                    : null,
+              child: Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 55,
+                    backgroundColor:
+                        _colorRol(usuario.rol).withValues(alpha: 0.15),
+                    backgroundImage: usuario.urlFoto != null
+                        ? NetworkImage(usuario.urlFoto!)
+                        : null,
+                    child: _subiendoFoto
+                        ? const CircularProgressIndicator()
+                        : (usuario.urlFoto == null
+                            ? Icon(Icons.person,
+                                size: 55, color: _colorRol(usuario.rol))
+                            : null),
+                  ),
+                  if (usuario.rol == Rol.CLIENTE)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _subiendoFoto ? null : _cambiarFotoPerfil,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // Nombre
             Text(
               usuario.nombreCompleto.isNotEmpty
                   ? usuario.nombreCompleto

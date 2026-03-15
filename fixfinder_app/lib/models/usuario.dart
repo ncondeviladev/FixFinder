@@ -11,7 +11,7 @@ class Usuario {
   final String? telefono;
   final String? direccion;
   final String? dni;
-  final String? urlFoto;
+  String? urlFoto;
   final String? fechaRegistro;
 
   Usuario({
@@ -40,9 +40,15 @@ class Usuario {
       telefono: json['telefono'],
       direccion: json['direccion'],
       dni: json['dni'],
-      urlFoto: json['url_foto'] ?? json['urlFoto'],
+      urlFoto: _sanitizarUrl(json['url_foto'] ?? json['urlFoto']),
       fechaRegistro: json['fecha_registro'] ?? json['fechaRegistro'],
     );
+  }
+
+  static String? _sanitizarUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return null;
   }
 
   static Rol _parseRol(String? rol) {
@@ -62,6 +68,9 @@ class Usuario {
       'token': token,
       'telefono': telefono,
       'direccion': direccion,
+      'dni': dni,
+      'urlFoto': urlFoto,
+      'fechaRegistro': fechaRegistro,
     };
   }
 }

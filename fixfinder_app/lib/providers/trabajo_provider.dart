@@ -182,7 +182,7 @@ class TrabajoProvider with ChangeNotifier {
 
   /// Actualiza el estado de un trabajo.
   Future<bool> actualizarEstadoTrabajo(int idTrabajo, EstadoTrabajo nuevoEstado,
-      {String? informe}) async {
+      {String? informe, List<String>? fotos}) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
 
@@ -192,7 +192,8 @@ class TrabajoProvider with ChangeNotifier {
       'token': usuario.token,
       'datos': {
         'idTrabajo': idTrabajo,
-        'informe': informe ?? 'Finalizado desde App Móvil'
+        'informe': informe ?? 'Finalizado desde App Móvil',
+        'fotos': fotos,
       }
     };
 
