@@ -42,6 +42,12 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? null
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipOval(child: Image.asset('assets/images/logo.png')),
+              ),
         title: const Text('FIXFINDER'),
         actions: [
           IconButton(

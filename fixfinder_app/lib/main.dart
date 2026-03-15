@@ -1,18 +1,25 @@
-// Punto de entrada principal de la aplicación FixFinder.
-// Configura los proveedores de estado (providers) y el tema visual (oscuro por defecto).
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_pantalla.dart';
 import 'screens/dashboard_pantalla.dart';
 import 'screens/perfil_pantalla.dart';
+import 'screens/splash_pantalla.dart';
 import 'providers/trabajo_provider.dart';
-import 'services/auth_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cargar variables de entorno securizadas
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("Advertencia: No se pudo cargar el archivo .env: $e");
+  }
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -132,46 +139,12 @@ class FixFinderApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      initialRoute: '/',
+      initialRoute: '/splash',
       routes: {
-        '/': (context) => const _IniciadorRuta(),
+        '/splash': (context) => const SplashPantalla(),
         '/login': (context) => const LoginPantalla(),
         '/dashboard': (context) => const DashboardPantalla(),
         '/perfil': (context) => const PerfilPantalla(),
-      },
-    );
-  }
-}
-
-class _IniciadorRuta extends StatefulWidget {
-  const _IniciadorRuta();
-
-  @override
-  State<_IniciadorRuta> createState() => _IniciadorRutaState();
-}
-
-class _IniciadorRutaState extends State<_IniciadorRuta> {
-  late Future<bool> _autoLoginFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _autoLoginFuture = AuthService().tryAutoLogin();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: _autoLoginFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
-        }
-        if (snapshot.data == true) {
-          return const DashboardPantalla();
-        }
-        return const LoginPantalla();
       },
     );
   }

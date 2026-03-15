@@ -2,6 +2,7 @@ package com.fixfinder.ui.dashboard;
 
 import com.fixfinder.cliente.ServicioCliente;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -35,6 +36,12 @@ public class DashboardPrincipal {
         scene.getStylesheets().add(CSS_URL);
 
         stage.setTitle("FixFinder — Panel de Control");
+        try {
+            stage.getIcons()
+                    .add(new Image(getClass().getResourceAsStream("/com/fixfinder/ui/dashboard/imagenes/logo.png")));
+        } catch (Exception ignored) {
+        }
+
         stage.setScene(scene);
         stage.setMinWidth(900);
         stage.setMinHeight(600);

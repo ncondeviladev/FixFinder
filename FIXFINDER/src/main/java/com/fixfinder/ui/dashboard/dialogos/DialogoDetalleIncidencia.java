@@ -2,6 +2,8 @@ package com.fixfinder.ui.dashboard.dialogos;
 
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -102,7 +104,7 @@ public class DialogoDetalleIncidencia {
                     iv.setFitWidth(100);
                     iv.setFitHeight(100);
                     iv.setPreserveRatio(true);
-                    iv.setCursor(javafx.scene.Cursor.HAND);
+                    iv.setCursor(Cursor.HAND);
                     iv.getStyleClass().add("photo-mini");
 
                     // Clip con esquinas redondeadas
@@ -153,10 +155,15 @@ public class DialogoDetalleIncidencia {
             Label lblVal = new Label("Valoración del Cliente:");
             lblVal.getStyleClass().add("modal-label");
 
-            HBox stars = new HBox(3);
+            HBox stars = new HBox(4);
+            stars.setAlignment(Pos.CENTER_LEFT);
             for (int i = 0; i < 5; i++) {
-                Label star = new Label(i < trabajo.getValoracion() ? "⭐" : "☆");
-                star.setStyle("-fx-font-size: 16px;");
+                Label star = new Label("★");
+                if (i < trabajo.getValoracion()) {
+                    star.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 20px;");
+                } else {
+                    star.setStyle("-fx-text-fill: #334155; -fx-font-size: 20px;");
+                }
                 stars.getChildren().add(star);
             }
 

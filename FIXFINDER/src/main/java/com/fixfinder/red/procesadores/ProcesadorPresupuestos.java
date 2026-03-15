@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fixfinder.data.DataRepository;
+import com.fixfinder.data.DataRepositoryImpl;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Presupuesto;
 import com.fixfinder.modelos.Trabajo;
@@ -51,8 +53,8 @@ public class ProcesadorPresupuestos {
                 String desc = datos.get("nuevaDescripcion").asText();
                 try {
                     // Acceder al repositorio de trabajos directamente o vía servicio
-                    com.fixfinder.data.DataRepository repository = new com.fixfinder.data.DataRepositoryImpl();
-                    com.fixfinder.modelos.Trabajo trabajoOriginal = repository.getTrabajoDAO().obtenerPorId(idTrabajo);
+                    DataRepository repository = new DataRepositoryImpl();
+                    Trabajo trabajoOriginal = repository.getTrabajoDAO().obtenerPorId(idTrabajo);
                     if (trabajoOriginal != null) {
                         trabajoOriginal.setDescripcion(desc);
                         repository.getTrabajoDAO().actualizar(trabajoOriginal);

@@ -9,7 +9,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -42,13 +45,34 @@ public class AppDashboardPrincipal extends Application {
         root.setPadding(new Insets(48));
         root.setStyle("-fx-background-color: #0F1117;");
 
-        StackPane logoBox = new StackPane();
-        logoBox.setMinSize(56, 56);
-        logoBox.setMaxSize(56, 56);
-        logoBox.setStyle("-fx-background-color: #F97316; -fx-background-radius: 14;");
-        Label letraLogo = new Label("F");
-        letraLogo.setStyle("-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;");
-        logoBox.getChildren().add(letraLogo);
+        ImageView logoImg = new ImageView();
+        try {
+            Image img = new Image(getClass().getResourceAsStream("/com/fixfinder/ui/dashboard/imagenes/logo.png"));
+            logoImg.setImage(img);
+            logoImg.setFitWidth(64);
+            logoImg.setFitHeight(64);
+            logoImg.setPreserveRatio(true);
+
+            // Hacer el logo redondo
+            Circle clip = new Circle(32, 32, 32);
+            logoImg.setClip(clip);
+
+            stage.getIcons().add(img);
+        } catch (Exception e) {
+            // Fallback
+            StackPane logoBox = new StackPane();
+            logoBox.setMinSize(56, 56);
+            logoBox.setMaxSize(56, 56);
+            logoBox.setStyle("-fx-background-color: #F97316; -fx-background-radius: 14;");
+            Label letraLogo = new Label("F");
+            letraLogo.setStyle("-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;");
+            logoBox.getChildren().add(letraLogo);
+            root.getChildren().add(logoBox);
+        }
+
+        if (logoImg.getImage() != null) {
+            root.getChildren().add(logoImg);
+        }
 
         Label lblTitulo = new Label("FixFinder");
         lblTitulo.setStyle("-fx-text-fill: #F8FAFC; -fx-font-size: 26px; -fx-font-weight: bold;");
@@ -95,7 +119,7 @@ public class AppDashboardPrincipal extends Application {
                 lblPass, txtPass,
                 lblError, btnEntrar, lblConexion);
 
-        root.getChildren().addAll(logoBox, lblTitulo, lblSub, formBox);
+        root.getChildren().addAll(lblTitulo, lblSub, formBox);
 
         btnEntrar.setOnAction(e -> {
             String email = txtEmail.getText().trim();

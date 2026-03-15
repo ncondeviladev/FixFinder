@@ -6,25 +6,31 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 /**
  * Vista de la sección "Operarios" del Dashboard.
- * Muestra la tabla del equipo técnico con acciones de crear, editar y cambiar
- * estado.
+ * Muestra la tabla del equipo técnico con acciones de crear, editar, cambiar foto y estado.
  */
 public class VistaOperarios extends VBox {
 
     public interface AccionesOperarioCallback {
         void onCrearOperario();
-
         void onEditarOperario(OperarioFX operario);
-
         void onCambiarFotoOperario(OperarioFX operario);
-
         void onCambiarEstadoOperario(OperarioFX operario, boolean nuevoEstado);
     }
 
@@ -43,6 +49,7 @@ public class VistaOperarios extends VBox {
         HBox cardHeader = new HBox(12);
         cardHeader.getStyleClass().add("card-header");
         cardHeader.setAlignment(Pos.CENTER_LEFT);
+
         Label titulo = new Label("Equipo Técnico");
         titulo.getStyleClass().add("card-title");
         HBox.setHgrow(titulo, Priority.ALWAYS);
@@ -51,10 +58,7 @@ public class VistaOperarios extends VBox {
         btnNuevo.getStyleClass().add("btn-primary");
         btnNuevo.setOnAction(e -> callback.onCrearOperario());
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        cardHeader.getChildren().addAll(titulo, spacer, btnNuevo);
+        cardHeader.getChildren().addAll(titulo, btnNuevo);
 
         VBox.setVgrow(tabla, Priority.ALWAYS);
         card.getChildren().addAll(cardHeader, tabla);
@@ -83,24 +87,19 @@ public class VistaOperarios extends VBox {
             @Override
             protected void updateItem(String v, boolean empty) {
                 super.updateItem(v, empty);
-                if (empty || v == null) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty || v == null) { setGraphic(null); return; }
                 HBox box = new HBox(10);
                 box.setAlignment(Pos.CENTER_LEFT);
-                OperarioFX tmp = getTableView().getItems().get(getIndex());
-                StackPane av = miniAvatar(v, tmp.getUrlFoto(), 32);
+                OperarioFX op = getTableView().getItems().get(getIndex());
+                StackPane av = miniAvatar(v, op.getUrlFoto(), 32);
                 Label lbl = new Label(v);
-                if (!tmp.isActivo()) {
-                    lbl.setStyle(
-                            "-fx-text-fill: #64748B; -fx-font-size: 13px; -fx-font-weight: bold; -fx-strikethrough: true;");
+                if (!op.isActivo()) {
+                    lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px; -fx-font-weight: bold; -fx-strikethrough: true;");
                     av.setOpacity(0.4);
                 } else {
                     lbl.setStyle("-fx-text-fill: #F8FAFC; -fx-font-size: 13px; -fx-font-weight: bold;");
                     av.setOpacity(1.0);
                 }
-
                 box.getChildren().addAll(av, lbl);
                 setGraphic(box);
                 setText(null);
@@ -113,10 +112,7 @@ public class VistaOperarios extends VBox {
             @Override
             protected void updateItem(String v, boolean empty) {
                 super.updateItem(v, empty);
-                if (empty || v == null) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty || v == null) { setGraphic(null); return; }
                 Label l = new Label(v.isBlank() ? "General" : v.charAt(0) + v.substring(1).toLowerCase());
                 l.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
                 setGraphic(l);
@@ -126,21 +122,16 @@ public class VistaOperarios extends VBox {
 
         TableColumn<OperarioFX, String> colEstado = new TableColumn<>("Estado");
         colEstado.setMaxWidth(130);
-        colEstado.setCellValueFactory(
-                c -> new SimpleStringProperty(c.getValue().isDisponible() ? "Disponible" : "Ocupado"));
+        colEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isDisponible() ? "Disponible" : "Ocupado"));
         colEstado.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String v, boolean empty) {
                 super.updateItem(v, empty);
-                if (empty || v == null) {
-                    setGraphic(null);
-                    return;
-                }
+                if (empty || v == null) { setGraphic(null); return; }
                 HBox box = new HBox(6);
                 box.setAlignment(Pos.CENTER_LEFT);
-                OperarioFX tmp = getTableView().getItems().get(getIndex());
-
-                if (!tmp.isActivo()) {
+                OperarioFX op = getTableView().getItems().get(getIndex());
+                if (!op.isActivo()) {
                     Circle dot = new Circle(5, Color.web("#64748B"));
                     Label lbl = new Label("De Baja");
                     lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
@@ -149,11 +140,9 @@ public class VistaOperarios extends VBox {
                     Circle dot = new Circle(5);
                     dot.setFill("Disponible".equals(v) ? Color.web("#22C55E") : Color.web("#F59E0B"));
                     Label lbl = new Label(v);
-                    lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: "
-                            + ("Disponible".equals(v) ? "#22C55E" : "#F59E0B") + ";");
+                    lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: " + ("Disponible".equals(v) ? "#22C55E" : "#F59E0B") + ";");
                     box.getChildren().addAll(dot, lbl);
                 }
-
                 setGraphic(box);
                 setText(null);
             }
@@ -171,20 +160,17 @@ public class VistaOperarios extends VBox {
             @Override
             protected void updateItem(Void v, boolean empty) {
                 super.updateItem(v, empty);
-                if (empty) {
-                    setGraphic(null);
-                    return;
-                }
-                OperarioFX t = getTableView().getItems().get(getIndex());
+                if (empty) { setGraphic(null); return; }
+                OperarioFX op = getTableView().getItems().get(getIndex());
 
                 Button btnEditar = actionBtn("✏️", "Editar operario");
-                btnEditar.setOnAction(e -> callback.onEditarOperario(t));
+                btnEditar.setOnAction(e -> callback.onEditarOperario(op));
 
-                Button btnEstado = actionBtn(t.isActivo() ? "⛔" : "✅", t.isActivo() ? "Dar de baja" : "Dar de alta");
-                btnEstado.setOnAction(e -> callback.onCambiarEstadoOperario(t, !t.isActivo()));
+                Button btnEstado = actionBtn(op.isActivo() ? "⛔" : "✅", op.isActivo() ? "Dar de baja" : "Dar de alta");
+                btnEstado.setOnAction(e -> callback.onCambiarEstadoOperario(op, !op.isActivo()));
 
                 Button btnFoto = actionBtn("📸", "Cambiar foto");
-                btnFoto.setOnAction(e -> callback.onCambiarFotoOperario(t));
+                btnFoto.setOnAction(e -> callback.onCambiarFotoOperario(op));
 
                 HBox box = new HBox(8);
                 box.setAlignment(Pos.CENTER);
@@ -197,13 +183,13 @@ public class VistaOperarios extends VBox {
         return t;
     }
 
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
     private Button actionBtn(String txt, String tooltip) {
         Button b = new Button(txt);
         b.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand; -fx-font-size: 14px;");
-        b.setOnMouseEntered(e -> b.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px;"));
-        b.setOnMouseExited(e -> b.setStyle(
-                "-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand; -fx-font-size: 14px;"));
+        b.setOnMouseEntered(e -> b.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px;"));
+        b.setOnMouseExited(e -> b.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand; -fx-font-size: 14px;"));
         Tooltip.install(b, new Tooltip(tooltip));
         return b;
     }
@@ -216,24 +202,38 @@ public class VistaOperarios extends VBox {
 
         if (urlFoto != null && (urlFoto.startsWith("http://") || urlFoto.startsWith("https://"))) {
             try {
-                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
-                        new javafx.scene.image.Image(urlFoto, size, size, true, true, true));
+                // backgroundLoading=true: descarga en hilo secundario, sin congelar la UI
+                // Se muestran las iniciales de placeholder hasta que la imagen esté lista
+                Image img = new Image(urlFoto, size, size, true, true, true);
+                ImageView iv = new ImageView(img);
                 iv.setFitWidth(size);
                 iv.setFitHeight(size);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(size / 2.0, size / 2.0, size / 2.0);
-                iv.setClip(clip);
+                iv.setClip(new Circle(size / 2.0, size / 2.0, size / 2.0));
+
+                // Si la carga falla, quitar el ImageView y mostrar iniciales
+                img.errorProperty().addListener((obs, wasErr, isErr) -> {
+                    if (isErr) {
+                        av.getChildren().remove(iv);
+                        mostrarIniciales(av, nombre, size);
+                    }
+                });
+
                 av.getChildren().add(iv);
                 return av;
             } catch (Exception ignored) {
             }
         }
 
+        mostrarIniciales(av, nombre, size);
+        return av;
+    }
+
+    private void mostrarIniciales(StackPane av, String nombre, int size) {
         String[] p = nombre.trim().split("\\s+");
         String ini = p.length >= 2 ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()
                 : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
         Label l = new Label(ini);
         l.setStyle("-fx-text-fill: #F97316; -fx-font-size: " + (size / 3) + "px; -fx-font-weight: bold;");
         av.getChildren().add(l);
-        return av;
     }
 }

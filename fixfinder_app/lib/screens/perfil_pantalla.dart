@@ -87,13 +87,29 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
 
     if (usuario == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Mi Perfil')),
+        appBar: AppBar(
+          leading: Navigator.canPop(context)
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipOval(child: Image.asset('assets/images/logo.png')),
+                ),
+          title: const Text('Mi Perfil'),
+        ),
         body: const Center(child: Text('No hay sesión activa')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi Perfil')),
+      appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? null
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipOval(child: Image.asset('assets/images/logo.png')),
+              ),
+        title: const Text('Mi Perfil'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(

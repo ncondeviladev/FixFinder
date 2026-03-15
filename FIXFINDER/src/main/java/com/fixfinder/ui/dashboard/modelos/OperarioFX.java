@@ -1,11 +1,37 @@
 package com.fixfinder.ui.dashboard.modelos;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * Modelo POJO para representar un Operario en la UI del Dashboard.
  * Contiene todos los campos necesarios para mostrar el estado del operario en
  * la tabla.
  */
 public class OperarioFX {
+
+    /**
+     * Crea una instancia de OperarioFX a partir de un nodo JSON del servidor.
+     * Centraliza la lógica de mapeo para evitar duplicidad en los controladores.
+     */
+    public static OperarioFX fromNode(JsonNode n) {
+        String nombre = n.has("nombre") ? n.get("nombre").asText()
+                : n.has("nombreCompleto") ? n.get("nombreCompleto").asText() : "";
+
+        // Limpiar paréntesis si vienen del servidor (ej. "(Gerente)")
+        if (nombre.contains(" ("))
+            nombre = nombre.split(" \\(")[0];
+
+        boolean activo = n.has("estaActivo") ? n.get("estaActivo").asBoolean() : true;
+        String email = n.has("email") ? n.get("email").asText() : "";
+        String tel = n.has("telefono") ? n.get("telefono").asText() : "";
+        String dni = n.has("dni") ? n.get("dni").asText() : "";
+        String urlFoto = n.has("url_foto") && !n.get("url_foto").isNull() ? n.get("url_foto").asText() : "";
+
+        return new OperarioFX(
+                n.get("id").asInt(), nombre,
+                n.has("especialidad") ? n.get("especialidad").asText() : "",
+                true, 0, activo, email, tel, dni, urlFoto);
+    }
 
     private final int id;
     private final String nombre;

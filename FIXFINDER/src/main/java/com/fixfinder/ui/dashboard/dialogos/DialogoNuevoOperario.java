@@ -1,5 +1,6 @@
 package com.fixfinder.ui.dashboard.dialogos;
 
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -100,7 +101,7 @@ public class DialogoNuevoOperario {
         Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         cancelBtn.getStyleClass().add("btn-secondary");
 
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+        okBtn.addEventFilter(ActionEvent.ACTION, event -> {
             boolean errorValidacion = false;
             String msj = "";
 

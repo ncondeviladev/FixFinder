@@ -52,7 +52,15 @@ class _LoginPantallaState extends State<LoginPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: const Text('Iniciar Sesión')),
+      appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? null
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipOval(child: Image.asset('assets/images/logo.png')),
+              ),
+        title: const Text('Iniciar Sesión'),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -60,7 +68,10 @@ class _LoginPantallaState extends State<LoginPantalla> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              const Icon(Icons.build_circle, size: 80, color: Colors.blue),
+              ClipOval(
+                child: Image.asset('assets/images/logo.png',
+                    width: 100, height: 100),
+              ),
               const SizedBox(height: 32),
               TextField(
                 controller: _emailController,

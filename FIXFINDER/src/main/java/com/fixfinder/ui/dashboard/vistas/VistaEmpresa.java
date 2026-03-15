@@ -1,22 +1,31 @@
 package com.fixfinder.ui.dashboard.vistas;
 
 import com.fixfinder.ui.dashboard.modelos.OperarioFX;
+import com.fasterxml.jackson.databind.JsonNode;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+
+import java.util.Map;
 
 /**
  * Vista de la sección "Empresa" del Dashboard.
- * Muestra datos legales de la empresa, información del gerente y las últimas
- * valoraciones recibidas de clientes.
+ * Muestra datos legales de la empresa, información del gerente y las últimas valoraciones recibidas.
  */
 public class VistaEmpresa extends VBox {
 
-    public VistaEmpresa(java.util.Map<String, Object> infoEmpresa,
+    public VistaEmpresa(Map<String, Object> infoEmpresa,
             String gerenteNombre, String gerenteRol,
             ObservableList<OperarioFX> operarios, Runnable onCambiarFotoGerente) {
         getStyleClass().add("content-area");
@@ -28,7 +37,7 @@ public class VistaEmpresa extends VBox {
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
         VBox body = new VBox(20);
-        body.setPadding(new Insets(24, 24, 24, 24));
+        body.setPadding(new Insets(24));
 
         VBox card = new VBox(20);
         card.getStyleClass().add("table-card");
@@ -69,12 +78,10 @@ public class VistaEmpresa extends VBox {
         boolean tieneFoto = false;
         if (urlFotoGerente != null && (urlFotoGerente.startsWith("http://") || urlFotoGerente.startsWith("https://"))) {
             try {
-                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(
-                        new javafx.scene.image.Image(urlFotoGerente, 80, 80, true, true, true));
+                ImageView iv = new ImageView(new Image(urlFotoGerente, 80, 80, true, true, false));
                 iv.setFitWidth(80);
                 iv.setFitHeight(80);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(40, 40, 40);
-                iv.setClip(clip);
+                iv.setClip(new Circle(40, 40, 40));
                 imagenPlaceholder.getChildren().add(iv);
                 tieneFoto = true;
             } catch (Exception ignored) {
@@ -85,11 +92,10 @@ public class VistaEmpresa extends VBox {
             imagenPlaceholder.getChildren().add(lIniciales);
         }
 
-        javafx.scene.control.Button btnCambiarFoto = new javafx.scene.control.Button("📸");
+        Button btnCambiarFoto = new Button("📸");
         btnCambiarFoto.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 14px;");
         btnCambiarFoto.setOnAction(e -> {
-            if (onCambiarFotoGerente != null)
-                onCambiarFotoGerente.run();
+            if (onCambiarFotoGerente != null) onCambiarFotoGerente.run();
         });
         StackPane.setAlignment(btnCambiarFoto, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(btnCambiarFoto, new Insets(0, -10, -10, 0));
@@ -123,12 +129,11 @@ public class VistaEmpresa extends VBox {
 
             VBox boxValoraciones = new VBox(12);
             Object vNode = infoEmpresa.get("valoraciones");
-            if (vNode instanceof com.fasterxml.jackson.databind.JsonNode array && array.isArray()) {
-                for (com.fasterxml.jackson.databind.JsonNode v : array) {
+            if (vNode instanceof JsonNode array && array.isArray()) {
+                for (JsonNode v : array) {
                     HBox fVal = new HBox(10);
                     fVal.setAlignment(Pos.CENTER_LEFT);
-                    fVal.setStyle(
-                            "-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 10; -fx-background-radius: 8;");
+                    fVal.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 10; -fx-background-radius: 8;");
 
                     int estrellas = v.get("puntos").asInt();
                     Label lEstrellas = new Label("⭐".repeat(estrellas));
@@ -157,6 +162,8 @@ public class VistaEmpresa extends VBox {
         getChildren().add(scroll);
     }
 
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
     private HBox fila(String etiqueta, String valor) {
         HBox f = new HBox(8);
         Label lbl = new Label(etiqueta + ":");
@@ -175,8 +182,7 @@ public class VistaEmpresa extends VBox {
     }
 
     private String iniciales(String nombre) {
-        if (nombre == null || nombre.isBlank())
-            return "?";
+        if (nombre == null || nombre.isBlank()) return "?";
         String[] p = nombre.trim().split("\\s+");
         return p.length >= 2
                 ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()

@@ -6,6 +6,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Modelo de datos reactivo (JavaFX Properties) para representar un Trabajo en
@@ -14,6 +17,67 @@ import javafx.collections.ObservableList;
  * Mantiene la lista de URLs de las incidencias subidas desde Firebase.
  */
 public class TrabajoFX {
+
+    /**
+     * Crea una instancia de TrabajoFX a partir de un nodo JSON del servidor.
+     * Centraliza la lógica de mapeo para evitar duplicidad en los controladores.
+     */
+    public static TrabajoFX fromNode(JsonNode n) {
+        String estado = n.has("estado") ? n.get("estado").asText() : "";
+
+        String cliente = "";
+        String cliTelefono = "";
+        String cliEmail = "";
+
+        if (n.has("cliente") && !n.get("cliente").isNull()) {
+            JsonNode c = n.get("cliente");
+            cliente = c.has("nombre") ? c.get("nombre").asText()
+                    : c.has("nombreCompleto") ? c.get("nombreCompleto").asText() : "";
+            cliTelefono = c.has("telefono") ? c.get("telefono").asText() : "";
+            cliEmail = c.has("email") ? c.get("email").asText() : "";
+        }
+
+        if (cliente.isBlank() && n.has("nombreCliente") && !n.get("nombreCliente").isNull()) {
+            cliente = n.get("nombreCliente").asText();
+            cliTelefono = n.has("telefonoCliente") ? n.get("telefonoCliente").asText() : "";
+        }
+
+        String operario = "";
+        int idOp = -1;
+        if (n.has("operarioAsignado") && !n.get("operarioAsignado").isNull()) {
+            JsonNode op = n.get("operarioAsignado");
+            operario = op.has("nombre") ? op.get("nombre").asText()
+                    : op.has("nombreCompleto") ? op.get("nombreCompleto").asText() : "";
+            idOp = op.has("id") ? op.get("id").asInt() : -1;
+        }
+
+        if (operario.isBlank() && n.has("nombreOperario") && !n.get("nombreOperario").isNull()) {
+            operario = n.get("nombreOperario").asText();
+        }
+
+        TrabajoFX t = new TrabajoFX(
+                n.get("id").asInt(),
+                n.has("titulo") ? n.get("titulo").asText() : "",
+                cliente,
+                n.has("categoria") ? n.get("categoria").asText() : "OTROS",
+                estado, operario,
+                n.has("fecha") ? n.get("fecha").asText() : "",
+                n.has("descripcion") ? n.get("descripcion").asText() : "",
+                n.has("direccion") ? n.get("direccion").asText() : "",
+                idOp, cliTelefono, cliEmail,
+                n.has("valoracion") ? n.get("valoracion").asInt() : 0,
+                n.has("comentarioCliente") ? n.get("comentarioCliente").asText() : "");
+
+        if (n.has("urls_fotos") && n.get("urls_fotos").isArray()) {
+            List<String> fotos = new ArrayList<>();
+            for (JsonNode urlNode : n.get("urls_fotos")) {
+                fotos.add(urlNode.asText());
+            }
+            t.setUrlsFotos(fotos);
+        }
+
+        return t;
+    }
 
     private final IntegerProperty id = new SimpleIntegerProperty();
     private final StringProperty titulo = new SimpleStringProperty();

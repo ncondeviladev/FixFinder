@@ -2,12 +2,27 @@ package com.fixfinder.ui.dashboard.componentes;
 
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
 import com.fixfinder.ui.dashboard.dialogos.DialogoAsignarOperario;
+import com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia;
+import com.fixfinder.ui.dashboard.dialogos.DialogoFichaCliente;
 import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.util.List;
 import java.util.Optional;
@@ -157,11 +172,11 @@ public class TablaIncidencias extends VBox {
                     setGraphic(null);
                     return;
                 }
-                javafx.scene.control.Hyperlink link = new javafx.scene.control.Hyperlink(v);
+                Hyperlink link = new Hyperlink(v);
                 link.setStyle("-fx-text-fill: #38BDF8; -fx-underline: false; -fx-padding: 0;");
                 link.setOnAction(e -> {
                     TrabajoFX t = getTableView().getItems().get(getIndex());
-                    new com.fixfinder.ui.dashboard.dialogos.DialogoFichaCliente(cssUrl).mostrar(t);
+                    new DialogoFichaCliente(cssUrl).mostrar(t);
                 });
                 link.setOnMouseEntered(
                         e -> link.setStyle("-fx-text-fill: #7DD3FC; -fx-underline: true; -fx-padding: 0;"));
@@ -306,7 +321,7 @@ public class TablaIncidencias extends VBox {
 
     private void mostrarDetalle(TrabajoFX t) {
         boolean esPendiente = "PENDIENTE".equals(t.getEstado());
-        Optional<com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia.Resultado> res = new com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia(
+        Optional<DialogoDetalleIncidencia.Resultado> res = new DialogoDetalleIncidencia(
                 t, cssUrl, esPendiente).mostrar();
 
         if (esPendiente) {

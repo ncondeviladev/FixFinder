@@ -3,12 +3,25 @@ package com.fixfinder.red.procesadores;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.fixfinder.data.ConexionDB;
+import com.fixfinder.data.dao.EmpresaDAOImpl;
+import com.fixfinder.data.dao.OperarioDAOImpl;
+import com.fixfinder.data.dao.TrabajoDAOImpl;
+import com.fixfinder.data.dao.UsuarioDAOImpl;
+import com.fixfinder.data.interfaces.EmpresaDAO;
+import com.fixfinder.data.interfaces.OperarioDAO;
+import com.fixfinder.data.interfaces.TrabajoDAO;
+import com.fixfinder.data.interfaces.UsuarioDAO;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Operario;
+import com.fixfinder.modelos.Trabajo;
+import com.fixfinder.modelos.Usuario;
 import com.fixfinder.service.interfaz.OperarioService;
 import com.fixfinder.utilidades.ServiceException;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,14 +30,14 @@ import java.util.Map;
 public class ProcesadorUsuarios {
 
     private final OperarioService operarioService;
-    private final com.fixfinder.data.interfaces.EmpresaDAO empresaDAO;
-    private final com.fixfinder.data.interfaces.OperarioDAO operarioDAO;
+    private final EmpresaDAO empresaDAO;
+    private final OperarioDAO operarioDAO;
     private final ObjectMapper mapper;
 
     public ProcesadorUsuarios(OperarioService operarioService) {
         this.operarioService = operarioService;
-        this.empresaDAO = new com.fixfinder.data.dao.EmpresaDAOImpl(); // Fallback si no viene del service
-        this.operarioDAO = new com.fixfinder.data.dao.OperarioDAOImpl();
+        this.empresaDAO = new EmpresaDAOImpl();
+        this.operarioDAO = new OperarioDAOImpl();
         this.mapper = new ObjectMapper();
     }
 
@@ -90,7 +103,6 @@ public class ProcesadorUsuarios {
                     }
                 }
                 m.put("especialidades", especialidadesStr);
-
                 salida.add(m);
             }
 
@@ -121,12 +133,13 @@ public class ProcesadorUsuarios {
                     m.put("url_foto", e.getUrlFoto());
                     m.put("fechaAlta", e.getFechaAlta());
 
-                    try (java.sql.Connection conn = com.fixfinder.data.ConexionDB.getConnection();
-                            java.sql.PreparedStatement stmtG = conn.prepareStatement(
-                                    "SELECT u.url_foto FROM usuario u JOIN operario o ON u.id = o.id_usuario " +
-                                            "WHERE o.id_empresa = ? AND u.rol = 'GERENTE' LIMIT 1")) {
+                    // Obtener foto del gerente con una consulta SQL directa
+                    try (Connection conn = ConexionDB.getConnection();
+                            PreparedStatement stmtG = conn.prepareStatement(
+                                    "SELECT u.url_foto FROM usuario u JOIN operario o ON u.id = o.id_usuario "
+                                            + "WHERE o.id_empresa = ? AND u.rol = 'GERENTE' LIMIT 1")) {
                         stmtG.setInt(1, id);
-                        try (java.sql.ResultSet rsG = stmtG.executeQuery()) {
+                        try (ResultSet rsG = stmtG.executeQuery()) {
                             if (rsG.next()) {
                                 m.put("gerenteUrlFoto", rsG.getString("url_foto"));
                             }
@@ -135,12 +148,12 @@ public class ProcesadorUsuarios {
                         System.err.println("Error buscando foto de gerente: " + ex_g.getMessage());
                     }
 
-                    // --- NUEVO: Obtener valoraciones reales de trabajos FINALIZADOS ---
+                    // Obtener valoraciones reales de trabajos FINALIZADOS
                     try {
-                        com.fixfinder.data.interfaces.TrabajoDAO trabajoDAO = new com.fixfinder.data.dao.TrabajoDAOImpl();
+                        TrabajoDAO trabajoDAO = new TrabajoDAOImpl();
                         List<Map<String, Object>> valoraciones = new ArrayList<>();
-                        var todosTrabajos = trabajoDAO.obtenerTodos();
-                        for (var t : todosTrabajos) {
+                        List<Trabajo> todosTrabajos = trabajoDAO.obtenerTodos();
+                        for (Trabajo t : todosTrabajos) {
                             if (t.getOperarioAsignado() != null && t.getOperarioAsignado().getIdEmpresa() == id
                                     && t.getValoracion() > 0) {
                                 Map<String, Object> v = new HashMap<>();
@@ -177,18 +190,12 @@ public class ProcesadorUsuarios {
             try {
                 int id = datos.has("id") ? datos.get("id").asInt() : datos.get("idUsuario").asInt();
 
-                // Buscar operario existente para actualizar
                 Operario op = operarioDAO.obtenerPorId(id);
+                if (op == null) throw new ServiceException("Operario no existe");
 
-                if (op == null)
-                    throw new ServiceException("Operario no existe");
-
-                if (datos.has("nombre"))
-                    op.setNombreCompleto(datos.get("nombre").asText());
-                if (datos.has("dni"))
-                    op.setDni(datos.get("dni").asText());
-                if (datos.has("email"))
-                    op.setEmail(datos.get("email").asText());
+                if (datos.has("nombre"))    op.setNombreCompleto(datos.get("nombre").asText());
+                if (datos.has("dni"))       op.setDni(datos.get("dni").asText());
+                if (datos.has("email"))     op.setEmail(datos.get("email").asText());
                 if (datos.has("telefono")) {
                     String tel = datos.get("telefono").asText().replaceAll("[^0-9]", "");
                     op.setTelefono(tel);
@@ -197,11 +204,9 @@ public class ProcesadorUsuarios {
                     try {
                         op.setEspecialidad(com.fixfinder.modelos.enums.CategoriaServicio
                                 .valueOf(datos.get("especialidad").asText()));
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception ignored) { }
                 }
-                if (datos.has("estaActivo"))
-                    op.setEstaActivo(datos.get("estaActivo").asBoolean());
+                if (datos.has("estaActivo")) op.setEstaActivo(datos.get("estaActivo").asBoolean());
 
                 operarioService.modificarOperario(op);
 
@@ -227,12 +232,10 @@ public class ProcesadorUsuarios {
                 int idUsuario = datos.get("idUsuario").asInt();
                 String urlFoto = datos.get("url_foto").asText();
 
-                com.fixfinder.data.interfaces.UsuarioDAO usuarioDAO = new com.fixfinder.data.dao.UsuarioDAOImpl();
-                com.fixfinder.modelos.Usuario u = usuarioDAO.obtenerPorId(idUsuario);
+                UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
+                Usuario u = usuarioDAO.obtenerPorId(idUsuario);
 
-                if (u == null) {
-                    throw new Exception("Usuario no encontrado");
-                }
+                if (u == null) throw new Exception("Usuario no encontrado");
 
                 u.setUrlFoto(urlFoto);
                 usuarioDAO.actualizar(u);

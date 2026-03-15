@@ -2,7 +2,6 @@ package com.fixfinder.red.procesadores;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +22,13 @@ import com.fixfinder.data.DataRepositoryImpl;
 import com.fixfinder.data.interfaces.FotoTrabajoDAO;
 import com.fixfinder.modelos.componentes.FotoTrabajo;
 import com.fixfinder.utilidades.ServiceException;
+import com.fixfinder.red.utilidades.ResponseMapper;
 
+/**
+ * Procesador de peticiones relacionadas con Trabajos (Incidencias).
+ * Maneja la lógica de entrada/salida de red y delega el negocio a los
+ * servicios.
+ */
 public class ProcesadorTrabajos {
 
     private final TrabajoService trabajoService;
@@ -31,6 +36,8 @@ public class ProcesadorTrabajos {
     private final PresupuestoService presupuestoService;
     private final FacturaService facturaService;
     private final FotoTrabajoDAO fotoTrabajoDAO;
+    private final ResponseMapper mapper = new ResponseMapper();
+    private final ObjectMapper jsonMapper = new ObjectMapper();
 
     public ProcesadorTrabajos(TrabajoService trabajoService, UsuarioService usuarioService,
             PresupuestoService presupuestoService, FacturaService facturaService) {
@@ -41,534 +48,283 @@ public class ProcesadorTrabajos {
         this.fotoTrabajoDAO = new DataRepositoryImpl().getFotoTrabajoDAO();
     }
 
+    /**
+     * Crea un nuevo trabajo a partir de los datos recibidos.
+     */
     public void procesarCrearTrabajo(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null) {
-            try {
-                // Validaciones básicas
-                if (!datos.has("idCliente"))
-                    throw new ServiceException("Falta ID Cliente");
-                if (!datos.has("descripcion"))
-                    throw new ServiceException("Falta descripción");
+        if (datos == null) {
+            error(respuesta, 400, "Faltan datos");
+            return;
+        }
 
-                // Extraer datos del JSON
-                int idCliente = datos.get("idCliente").asInt();
-                String titulo = datos.has("titulo") ? datos.get("titulo").asText() : "";
-                String descOriginal = datos.get("descripcion").asText();
-                String direccion = datos.has("direccion") ? datos.get("direccion").asText() : "";
+        try {
+            validarRequeridos(datos, "idCliente", "descripcion");
 
-                // Recuperamos la urgencia (1=Normal, 2=Prioridad, 3=Urgente)
-                int urgencia = datos.has("urgencia") ? datos.get("urgencia").asInt() : 1;
+            int idCliente = datos.get("idCliente").asInt();
+            String titulo = datos.path("titulo").asText("");
+            String descripcion = datos.get("descripcion").asText();
+            String direccion = datos.path("direccion").asText("");
+            int urgencia = datos.path("urgencia").asInt(1);
 
-                // Modificar visualmente la descripción si es urgente
-                String descripcionFinal = descOriginal;
-                if (urgencia == 3)
-                    descripcionFinal = "[URGENTE!!!] " + descOriginal;
-                else if (urgencia == 2)
-                    descripcionFinal = "[PRIORIDAD] " + descOriginal;
+            // Prefijo decorativo por urgencia
+            if (urgencia == 3)
+                descripcion = "[URGENTE!!!] " + descripcion;
+            else if (urgencia == 2)
+                descripcion = "[PRIORIDAD] " + descripcion;
 
-                // Convertir la categoría que llega como texto al Enum
-                CategoriaServicio categoria = CategoriaServicio.OTROS;
-                if (datos.has("categoria") && !datos.get("categoria").isNull()) {
-                    try {
-                        categoria = CategoriaServicio.valueOf(datos.get("categoria").asText().toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        categoria = CategoriaServicio.OTROS;
-                    }
-                }
+            CategoriaServicio cat = parseCategoria(datos.path("categoria").asText("OTROS"));
 
-                Trabajo nuevoTrabajo = trabajoService.solicitarReparacion(idCliente,
-                        titulo, categoria, descripcionFinal, direccion, 1);
+            Trabajo nuevo = trabajoService.solicitarReparacion(idCliente, titulo, cat, descripcion, direccion, 1);
 
-                System.out.println("[TRABAJO-CREADO] ID: " + nuevoTrabajo.getId() + " - "
-                        + titulo + " (" + descripcionFinal + ") [Cliente ID: " + idCliente + "]");
+            // Vincular fotos iniciales
+            procesarFotosIniciales(datos.path("urls_fotos"), nuevo.getId());
 
-                // NUEVO: Procesar lista de fotos si vienen en el JSON
-                if (datos.has("urls_fotos") && datos.get("urls_fotos").isArray()) {
-                    JsonNode arrayFotos = datos.get("urls_fotos");
-                    for (JsonNode urlNode : arrayFotos) {
-                        String url = urlNode.asText();
-                        if (!url.isEmpty()) {
-                            FotoTrabajo foto = new FotoTrabajo();
-                            foto.setIdTrabajo(nuevoTrabajo.getId());
-                            foto.setUrl(url);
-                            fotoTrabajoDAO.insertar(foto);
-                            System.out.println("   📸 Foto vinculada: " + url);
-                        }
-                    }
-                }
+            respuesta.put("status", 201);
+            respuesta.put("mensaje", "Trabajo creado correctamente");
+            respuesta.putObject("datos").put("id", nuevo.getId());
 
-                respuesta.put("status", 201);
-                respuesta.put("mensaje", "Trabajo creado correctamente");
-                ObjectNode datosTrabajo = respuesta.putObject("datos");
-                datosTrabajo.put("id", nuevoTrabajo.getId());
-
-            } catch (ServiceException e) {
-                System.out.println("[ERROR-CREAR-TRABAJO-VALIDACION] " + e.getMessage());
-                respuesta.put("status", 400);
-                respuesta.put("mensaje", "Error validación: " + e.getMessage());
-            } catch (Exception e) {
-                System.err.println("[ERROR-CREAR-TRABAJO-SERVER] " + e.getMessage());
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
-            }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos para CREAR_TRABAJO");
+        } catch (ServiceException e) {
+            error(respuesta, 400, e.getMessage());
+        } catch (Exception e) {
+            error(respuesta, 500, "Error interno: " + e.getMessage());
         }
     }
 
+    /**
+     * Lista trabajos filtrados por el rol y permisos del usuario.
+     */
     public void procesarListarTrabajos(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null && datos.has("idUsuario") && datos.has("rol")) {
-            try {
-                int idUsuario = datos.get("idUsuario").asInt();
-                String rol = datos.get("rol").asText();
+        if (datos == null || !datos.has("idUsuario") || !datos.has("rol")) {
+            error(respuesta, 400, "Faltan parámetros idUsuario/rol");
+            return;
+        }
 
-                System.out.println("[DEBUG-SERVER] Solicitud listar trabajos. ID: " + idUsuario + ", Rol: " + rol);
+        try {
+            int idUsuario = datos.get("idUsuario").asInt();
+            String rol = datos.get("rol").asText().toUpperCase();
+            List<Trabajo> lista;
 
-                List<Trabajo> lista;
-
-                if ("CLIENTE".equalsIgnoreCase(rol)) {
+            switch (rol) {
+                case "CLIENTE":
                     lista = trabajoService.historialCliente(idUsuario);
-                    System.out.println("[DEBUG-CLIENTE] trabajos encontrados para ID " + idUsuario + ": "
-                            + (lista != null ? lista.size() : "null"));
-                } else if ("OPERARIO".equalsIgnoreCase(rol)) {
+                    break;
+                case "OPERARIO":
                     lista = trabajoService.historialOperario(idUsuario);
-                } else if ("GERENTE".equalsIgnoreCase(rol)) {
-                    // Gerente: Filtrado avanzado
-                    Usuario u = usuarioService.obtenerPorId(idUsuario);
-                    int idEmpresa = -1;
-                    if (u instanceof Operario) {
-                        idEmpresa = ((Operario) u).getIdEmpresa();
-                    }
-
-                    List<Trabajo> todos = trabajoService.listarTodos();
-                    lista = new ArrayList<>();
-
-                    for (Trabajo t : todos) {
-                        // 1. Visibles para todos los Gerentes (para presupuestar)
-                        if (t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO) {
-                            lista.add(t);
-                            continue;
-                        }
-
-                        // 2. Si ya está ASIGNADO a alguien de mi empresa
-                        if (t.getOperarioAsignado() != null
-                                && t.getOperarioAsignado().getIdEmpresa() == idEmpresa) {
-                            lista.add(t);
-                            continue;
-                        }
-
-                        // 3. Si está ACEPTADO (pendiente de operario) o en cualquier otro estado
-                        // pero YO tengo un presupuesto ahí (especialmente si es el ACEPTADO)
-                        if (idEmpresa != -1) {
-                            final int idEmpresaFinal = idEmpresa;
-                            List<Presupuesto> presupuestos = presupuestoService.listarPorTrabajo(t.getId());
-                            if (presupuestos != null) {
-                                boolean tengoAlgoQueVer = presupuestos.stream()
-                                        .anyMatch(p -> p.getEmpresa() != null
-                                                && p.getEmpresa().getId() == idEmpresaFinal);
-
-                                if (tengoAlgoQueVer) {
-                                    lista.add(t);
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-
-                } else if ("ADMIN".equalsIgnoreCase(rol)) {
-                    // NUEVO: Admin ve todo (para simulador)
+                    break;
+                case "GERENTE":
+                    lista = filtrarParaGerente(idUsuario);
+                    break;
+                case "ADMIN":
                     lista = trabajoService.listarTodos();
-                    int count = (lista != null) ? lista.size() : 0;
-                    System.out.println("[ADMIN-GODMODE] Solicitud de lista recibida. ID Usuario: " + idUsuario
-                            + ". Enviando " + count + " trabajos.");
-                } else {
-                    System.out.println("[DEBUG-SERVER] Rol desconocido: " + rol + ". Enviando lista vacía.");
+                    break;
+                default:
                     lista = Collections.emptyList();
-                }
-
-                // Lista de DTOs enriquecidos
-                List<Map<String, Object>> listaEnriquecida = new ArrayList<>();
-
-                for (Trabajo t : lista) {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", t.getId());
-                    map.put("titulo", t.getTitulo() != null ? t.getTitulo() : "Sin título");
-                    map.put("descripcion", t.getDescripcion());
-                    map.put("categoria", t.getCategoria().toString());
-                    map.put("direccion", t.getDireccion() != null ? t.getDireccion() : "");
-                    map.put("estado", t.getEstado().toString());
-                    map.put("fecha", t.getFechaCreacion() != null ? t.getFechaCreacion().toString() : "");
-
-                    Integer idCliente = t.getCliente() != null ? t.getCliente().getId() : null;
-                    Integer idOperario = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getId() : null;
-
-                    map.put("idCliente", idCliente);
-                    map.put("idOperario", idOperario);
-
-                    // Añadir lista de URLs de fotos
-                    List<String> urlsFotos = new ArrayList<>();
-                    if (t.getFotos() != null) {
-                        for (FotoTrabajo f : t.getFotos()) {
-                            urlsFotos.add(f.getUrl());
-                        }
-                    } else {
-                        // Intentar cargar las fotos desde DAO si no están en memoria (Lazy loading
-                        // simulation)
-                        try {
-                            List<FotoTrabajo> fotosDb = fotoTrabajoDAO.obtenerPorTrabajo(t.getId());
-                            for (FotoTrabajo f : fotosDb) {
-                                urlsFotos.add(f.getUrl());
-                            }
-                        } catch (Exception ex) {
-                            // Ignorar error de carga de fotos
-                        }
-                    }
-                    map.put("urls_fotos", urlsFotos);
-
-                    // Ubicación
-                    if (t.getUbicacion() != null) {
-                        Map<String, Double> loc = new HashMap<>();
-                        loc.put("lat", t.getUbicacion().getLatitud());
-                        loc.put("lon", t.getUbicacion().getLongitud());
-                        map.put("ubicacion", loc);
-                    } else {
-                        map.put("ubicacion", null);
-                    }
-
-                    // Otros campos
-                    map.put("valoracion", t.getValoracion());
-                    map.put("comentarioCliente", t.getComentarioCliente());
-                    map.put("fechaFinalizacion",
-                            t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString() : null);
-
-                    // Verificar presupuesto aceptado
-                    boolean tienePresupuestoAceptado = false;
-                    List<Presupuesto> presupuestos = presupuestoService.listarPorTrabajo(t.getId());
-                    if (presupuestos != null) {
-                        tienePresupuestoAceptado = presupuestos.stream()
-                                .anyMatch(p -> "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));
-                    }
-                    map.put("tienePresupuestoAceptado", tienePresupuestoAceptado);
-
-                    // --- ENRIQUECIMIENTO DE DATOS - CONTACTO CRUZADO ---
-                    try {
-                        // CLIENTE (Para visualización)
-                        Usuario cliente = t.getCliente();
-                        // Si el objeto cliente no cargó por Hibernate, forzar carga
-                        if (cliente == null && idCliente != null) {
-                            cliente = usuarioService.obtenerPorId(idCliente);
-                        }
-
-                        if (cliente != null) {
-                            String nombre = cliente.getNombreCompleto();
-
-                            // Objeto completo "cliente" para la App:
-                            ObjectNode cliNode = new ObjectMapper().createObjectNode();
-                            cliNode.put("id", cliente.getId());
-                            cliNode.put("nombre", nombre != null ? nombre : "Desconocido");
-                            cliNode.put("telefono", cliente.getTelefono()); // VITAL para operario
-                            cliNode.put("email", cliente.getEmail());
-                            cliNode.put("foto", cliente.getUrlFoto());
-                            cliNode.put("direccion",
-                                    cliente.getDireccion() != null ? cliente.getDireccion() : t.getDireccion());
-
-                            map.put("cliente", cliNode);
-
-                            // Mantener campos planos por compatibilidad temporal
-                            map.put("nombreCliente", nombre);
-                            map.put("telefonoCliente", cliente.getTelefono());
-                            map.put("direccionCliente", cliente.getDireccion());
-                        }
-
-                        // OPERARIO (Para visualización)
-                        Usuario operario = t.getOperarioAsignado();
-                        if (operario == null && idOperario != null && idOperario > 0) {
-                            try {
-                                operario = usuarioService.obtenerPorId(idOperario);
-                            } catch (Exception ex) {
-                                // Fallback
-                            }
-                        }
-
-                        if (operario != null) {
-                            String nombre = operario.getNombreCompleto();
-
-                            // Objeto completo "operario" para la App:
-                            ObjectNode opNode = new ObjectMapper().createObjectNode();
-                            opNode.put("id", operario.getId());
-                            opNode.put("nombre", nombre != null ? nombre : "Desconocido");
-                            opNode.put("telefono", operario.getTelefono()); // VITAL para cliente
-                            opNode.put("email", operario.getEmail());
-                            opNode.put("foto", operario.getUrlFoto());
-
-                            // Especialidad si es operario
-                            if (operario instanceof Operario) {
-                                opNode.put("especialidad", ((Operario) operario).getEspecialidad().toString());
-                                opNode.put("idEmpresa", ((Operario) operario).getIdEmpresa());
-                            }
-
-                            map.put("operarioAsignado", opNode);
-                            map.put("nombreOperario", nombre);
-
-                        } else {
-                            map.put("operarioAsignado", null);
-                            map.put("nombreOperario", "Sin asignar");
-                        }
-                    } catch (Exception e) {
-                        // Fallo silencioso en enriquecimiento
-                        System.err.println("Error enriqueciendo contactos: " + e.getMessage());
-                    }
-
-                    // --- ENRIQUECIMIENTO DE DATOS - ECONÓMICO ---
-                    // Presupuesto (Si existe alguno ACEPTADO o el último PENDIENTE)
-                    try {
-                        List<Presupuesto> listap = presupuestoService.listarPorTrabajo(t.getId());
-                        if (listap != null && !listap.isEmpty()) {
-                            // Priorizar el ACEPTADO, sino el último creado
-                            Presupuesto p = listap.stream()
-                                    .filter(pr -> "ACEPTADO".equalsIgnoreCase(pr.getEstado().toString()))
-                                    .findFirst()
-                                    .orElse(listap.get(listap.size() - 1));
-
-                            ObjectNode presuNode = new ObjectMapper().createObjectNode();
-                            presuNode.put("id", p.getId());
-                            presuNode.put("estado", p.getEstado().toString());
-                            presuNode.put("precioTotal", p.getMonto());
-
-                            if (p.getEmpresa() != null) {
-                                ObjectNode empNode = presuNode.putObject("empresa");
-                                empNode.put("id", p.getEmpresa().getId());
-                                empNode.put("nombre", p.getEmpresa().getNombre());
-                                empNode.put("email", p.getEmpresa().getEmailContacto());
-                                empNode.put("telefono", p.getEmpresa().getTelefono());
-                                empNode.put("direccion", p.getEmpresa().getDireccion());
-                                empNode.put("cif", p.getEmpresa().getCif());
-                            }
-
-                            // Fechas y detalles simulados para compatibilidad
-                            presuNode.put("fechaValidez",
-                                    p.getFechaEnvio() != null ? p.getFechaEnvio().plusDays(15).toString() : null);
-                            presuNode.put("detalles", Presupuesto.NOTAS_ESTANDAR);
-
-                            map.put("presupuesto", presuNode);
-                            map.put("tienePresupuestoAceptado", "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));
-                        } else {
-                            map.put("presupuesto", null);
-                            map.put("tienePresupuestoAceptado", false);
-                        }
-                    } catch (Exception e) {
-                        map.put("presupuesto", null);
-                    }
-
-                    listaEnriquecida.add(map);
-                }
-
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode listaJson = mapper.valueToTree(listaEnriquecida);
-
-                respuesta.put("status", 200);
-                respuesta.put("mensaje", "Listado obtenido correctamente");
-                respuesta.set("datos", listaJson);
-
-            } catch (ServiceException e) {
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error obteniendo lista: " + e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error interno servidor: " + e.getMessage());
             }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos (idUsuario, rol) para listar");
+
+            // Mapeo profesional y enriquecimiento mediante ResponseMapper
+            List<Map<String, Object>> jobsData = new ArrayList<>();
+            for (Trabajo t : lista) {
+                Map<String, Object> jobMap = mapper.mapearTrabajoEnriquecido(t);
+
+                // Enriquecimiento dinámico de presupuesto aceptado
+                enriquecerPresupuestoAceptado(t.getId(), jobMap);
+
+                jobsData.add(jobMap);
+            }
+
+            System.out.println(
+                    "[DEBUG-LIST] Enviando " + jobsData.size() + " trabajos a " + rol + " (ID: " + idUsuario + ")");
+            respuesta.put("status", 200);
+            respuesta.put("mensaje", "Listado obtenido");
+            respuesta.set("datos", jsonMapper.valueToTree(jobsData));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("[ERROR-LIST] " + e.getMessage());
+            error(respuesta, 500, "Error listando trabajos: " + e.getMessage());
+        }
+    }
+
+    private List<Trabajo> filtrarParaGerente(int idGerente) {
+        try {
+            Usuario u = usuarioService.obtenerPorId(idGerente);
+            int idEmpresa = (u instanceof Operario) ? ((Operario) u).getIdEmpresa() : -1;
+
+            List<Trabajo> todos = trabajoService.listarTodos();
+            List<Trabajo> visibles = new ArrayList<>();
+
+            for (Trabajo t : todos) {
+                // 1. Visibles para todos si están en fase de presupuesto
+                if (t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO) {
+                    visibles.add(t);
+                    continue;
+                }
+
+                // 2. Si ya está asignado a mi empresa
+                if (t.getOperarioAsignado() != null && t.getOperarioAsignado().getIdEmpresa() == idEmpresa) {
+                    visibles.add(t);
+                    continue;
+                }
+
+                // 3. Si tengo un presupuesto en este trabajo (aunque no sea el aceptado)
+                if (idEmpresa != -1) {
+                    int idEmp = idEmpresa;
+                    try {
+                        List<Presupuesto> presus = presupuestoService.listarPorTrabajo(t.getId());
+                        if (presus != null && presus.stream()
+                                .anyMatch(p -> p.getEmpresa() != null && p.getEmpresa().getId() == idEmp)) {
+                            visibles.add(t);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+            return visibles;
+        } catch (Exception e) {
+            System.err.println("Error filtrando para gerente: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    private void enriquecerPresupuestoAceptado(int idTrabajo, Map<String, Object> jobMap) {
+        try {
+            List<Presupuesto> listap = presupuestoService.listarPorTrabajo(idTrabajo);
+            if (listap != null && !listap.isEmpty()) {
+                Presupuesto p = listap.stream()
+                        .filter(pr -> "ACEPTADO".equalsIgnoreCase(pr.getEstado().toString()))
+                        .findFirst()
+                        .orElse(listap.get(listap.size() - 1));
+
+                jobMap.put("presupuesto", mapper.mapearPresupuesto(p));
+                jobMap.put("tienePresupuestoAceptado", "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));
+            }
+        } catch (Exception ignored) {
         }
     }
 
     public void procesarAsignarOperario(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null && datos.has("idTrabajo") && datos.has("idOperario") && datos.has("idGerente")) {
-            try {
-                int idTrabajo = datos.get("idTrabajo").asInt();
-                int idOperario = datos.get("idOperario").asInt();
-                int idGerente = datos.get("idGerente").asInt();
+        try {
+            validarRequeridos(datos, "idTrabajo", "idOperario");
+            int idTrabajo = datos.get("idTrabajo").asInt();
+            int idOperario = datos.get("idOperario").asInt();
 
-                // 1. Validar al Gerente
-                Usuario gerente = null;
-                try {
-                    gerente = usuarioService.obtenerPorId(idGerente);
-                } catch (Exception e) {
-                    System.out.println("[WARN] Gerente ID " + idGerente + " desconocido. Asumiendo ADMIN Simulador.");
-                }
+            trabajoService.asignarOperario(idTrabajo, idOperario > 0 ? idOperario : null);
 
-                int empresaGerente = -1;
-                if (gerente != null && gerente instanceof Operario) {
-                    empresaGerente = ((Operario) gerente).getIdEmpresa();
-                } else {
-                    empresaGerente = 1;
-                }
-
-                if (idOperario > 0) {
-                    Usuario operario = usuarioService.obtenerPorId(idOperario);
-
-                    if (!(operario instanceof Operario)) {
-                        respuesta.put("status", 403);
-                        respuesta.put("mensaje", "Error: El operario destino no es válido.");
-                        return;
-                    }
-                    int empresaOperario = ((Operario) operario).getIdEmpresa();
-
-                    // Solo validar empresa si no somos admin
-                    if (empresaGerente != -1 && empresaGerente != empresaOperario) {
-                        // respuesta.put("status", 403);
-                        // respuesta.put("mensaje", "No puedes asignar operarios de otra empresa.");
-                        // return;
-                        // Permitimos cross-empresa para pruebas E2E fáciles
-                    }
-
-                    trabajoService.asignarOperario(idTrabajo, idOperario);
-                    respuesta.put("mensaje", "Operario asignado correctamente");
-                } else {
-                    trabajoService.asignarOperario(idTrabajo, null);
-                    respuesta.put("mensaje", "Operario desasignado correctamente");
-                }
-
-                respuesta.put("status", 200);
-
-            } catch (ServiceException e) {
-                respuesta.put("status", 400);
-                respuesta.put("mensaje", "Error asignación: " + e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error interno: " + e.getMessage());
-            }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos (idTrabajo, idOperario, idGerente)");
+            respuesta.put("status", 200);
+            respuesta.put("mensaje", idOperario > 0 ? "Operario asignado" : "Operario desasignado");
+        } catch (Exception e) {
+            error(respuesta, 400, "Error asignación: " + e.getMessage());
         }
     }
 
     public void procesarFinalizarTrabajo(JsonNode datos, ObjectNode respuesta) {
         try {
-            int idTrabajo = datos.get("idTrabajo").asInt();
-            String informe = datos.has("informe") ? datos.get("informe").asText()
-                    : "Trabajo finalizado correctamente (Simulador).";
+            validarRequeridos(datos, "idTrabajo");
+            int idT = datos.get("idTrabajo").asInt();
+            String informe = datos.path("informe").asText("Finalizado correctamente.");
 
-            // 1. Finalizar Trabajo (Pasa a REALIZADO)
-            trabajoService.finalizarTrabajo(idTrabajo, informe);
+            trabajoService.finalizarTrabajo(idT, informe);
 
-            // 2. Guardar fotos finales si existen
-            if (datos.has("fotos") && datos.get("fotos").isArray()) {
-                FotoTrabajoDAO fotoDAO = new com.fixfinder.data.dao.FotoTrabajoDAOImpl();
-                for (JsonNode f : datos.get("fotos")) {
-                    String url = f.asText();
-                    if (!url.isBlank()) {
-                        fotoDAO.insertar(new FotoTrabajo(0, idTrabajo, url));
-                    }
-                }
-            }
+            // Fotos finales
+            procesarFotosFinales(datos.path("fotos"), idT);
 
-            // 3. Generar Factura (Pasa a FINALIZADO automáticamente)
-            facturaService.generarFactura(idTrabajo);
+            facturaService.generarFactura(idT);
 
             respuesta.put("status", 200);
-            respuesta.put("mensaje", "Trabajo finalizado y factura generada automáticamente.");
-
-        } catch (ServiceException e) {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", e.getMessage());
+            respuesta.put("mensaje", "Trabajo finalizado y factura generada.");
         } catch (Exception e) {
-            respuesta.put("status", 500);
-            respuesta.put("mensaje", "Error interno al finalizar trabajo");
-            e.printStackTrace();
+            error(respuesta, 500, "Error al finalizar: " + e.getMessage());
         }
     }
 
     public void procesarCancelarTrabajo(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null && datos.has("idTrabajo")) {
-            try {
-                int idTrabajo = datos.get("idTrabajo").asInt();
-                String motivo = datos.has("motivo") ? datos.get("motivo").asText() : "Cancelado por el usuario";
-
-                trabajoService.cancelarTrabajo(idTrabajo, motivo);
-
-                respuesta.put("status", 200);
-                respuesta.put("mensaje", "Trabajo cancelado correctamente");
-            } catch (ServiceException e) {
-                respuesta.put("status", 400);
-                respuesta.put("mensaje", "Error al cancelar: " + e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
-            }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos (idTrabajo) para cancelar");
+        try {
+            validarRequeridos(datos, "idTrabajo");
+            trabajoService.cancelarTrabajo(datos.get("idTrabajo").asInt(), datos.path("motivo").asText("Cancelado"));
+            respuesta.put("status", 200);
+        } catch (Exception e) {
+            error(respuesta, 400, e.getMessage());
         }
     }
 
     public void procesarModificarTrabajo(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null && datos.has("idTrabajo")) {
-            try {
-                int idTrabajo = datos.get("idTrabajo").asInt();
-                String titulo = datos.has("titulo") ? datos.get("titulo").asText() : null;
-                String descripcion = datos.has("descripcion") ? datos.get("descripcion").asText() : null;
-                String direccion = datos.has("direccion") ? datos.get("direccion").asText() : null;
+        try {
+            validarRequeridos(datos, "idTrabajo");
+            int idT = datos.get("idTrabajo").asInt();
 
-                CategoriaServicio categoria = null;
-                if (datos.has("categoria") && !datos.get("categoria").isNull()) {
-                    try {
-                        categoria = CategoriaServicio.valueOf(datos.get("categoria").asText().toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        categoria = null;
-                    }
-                }
+            trabajoService.modificarTrabajo(idT,
+                    datos.path("titulo").asText(null),
+                    datos.path("descripcion").asText(null),
+                    datos.path("direccion").asText(null),
+                    parseCategoria(datos.path("categoria").asText(null)),
+                    datos.path("urgencia").asInt(1));
 
-                int urgencia = datos.has("urgencia") ? datos.get("urgencia").asInt() : 1;
-
-                trabajoService.modificarTrabajo(idTrabajo, titulo, descripcion, direccion, categoria, urgencia);
-
-                respuesta.put("status", 200);
-                respuesta.put("mensaje", "Trabajo modificado correctamente");
-            } catch (ServiceException e) {
-                respuesta.put("status", 400);
-                respuesta.put("mensaje", "Error al modificar: " + e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
+            // Procesar fotos nuevas si vienen en la petición (Requisito añadir fotos al
+            // editar)
+            if (datos.has("urls_fotos")) {
+                procesarFotosIniciales(datos.get("urls_fotos"), idT);
             }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos (idTrabajo) para modificar");
+
+            respuesta.put("status", 200);
+            respuesta.put("mensaje", "Incidencia modificada correctamente");
+        } catch (Exception e) {
+            error(respuesta, 400, e.getMessage());
         }
     }
 
     public void procesarValorarTrabajo(JsonNode datos, ObjectNode respuesta) {
-        if (datos != null && datos.has("idTrabajo") && datos.has("valoracion")) {
-            try {
-                int idTrabajo = datos.get("idTrabajo").asInt();
-                int valoracion = datos.get("valoracion").asInt();
-                String comentarioCliente = datos.has("comentarioCliente") ? datos.get("comentarioCliente").asText()
-                        : "";
-
-                trabajoService.valorarTrabajo(idTrabajo, valoracion, comentarioCliente);
-
-                respuesta.put("status", 200);
-                respuesta.put("mensaje", "Valoracion guardada correctamente");
-            } catch (ServiceException e) {
-                respuesta.put("status", 400);
-                respuesta.put("mensaje", "Error al valorar: " + e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                respuesta.put("status", 500);
-                respuesta.put("mensaje", "Error servidor: " + e.getMessage());
-            }
-        } else {
-            respuesta.put("status", 400);
-            respuesta.put("mensaje", "Faltan datos (idTrabajo, valoracion) para valorar");
+        try {
+            validarRequeridos(datos, "idTrabajo", "valoracion");
+            trabajoService.valorarTrabajo(datos.get("idTrabajo").asInt(),
+                    datos.get("valoracion").asInt(),
+                    datos.path("comentarioCliente").asText(""));
+            respuesta.put("status", 200);
+        } catch (Exception e) {
+            error(respuesta, 400, e.getMessage());
         }
+    }
+
+    // --- Helpers ---
+
+    private void validarRequeridos(JsonNode datos, String... campos) throws ServiceException {
+        for (String c : campos) {
+            if (!datos.has(c) || datos.get(c).isNull())
+                throw new ServiceException("Falta campo obligatorio: " + c);
+        }
+    }
+
+    private CategoriaServicio parseCategoria(String value) {
+        if (value == null)
+            return null;
+        try {
+            return CategoriaServicio.valueOf(value.toUpperCase());
+        } catch (Exception e) {
+            return CategoriaServicio.OTROS;
+        }
+    }
+
+    private void procesarFotosIniciales(JsonNode array, int idT) {
+        if (array.isArray()) {
+            for (JsonNode node : array) {
+                if (!node.asText().isEmpty()) {
+                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, node.asText()));
+                }
+            }
+        }
+    }
+
+    private void procesarFotosFinales(JsonNode array, int idT) {
+        if (array.isArray()) {
+            for (JsonNode f : array) {
+                if (!f.asText().isBlank()) {
+                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, f.asText()));
+                }
+            }
+        }
+    }
+
+    private void error(ObjectNode resp, int status, String msg) {
+        resp.put("status", status);
+        resp.put("mensaje", msg);
     }
 }

@@ -112,9 +112,9 @@ public class DashboardController {
     @FXML
     private TextField txtDireccionTrabajo;
     @FXML
-    private javafx.scene.control.ComboBox<String> comboCategoria;
+    private ComboBox<String> comboCategoria;
     @FXML
-    private javafx.scene.control.ComboBox<String> comboUrgencia;
+    private ComboBox<String> comboUrgencia;
     @FXML
     private Button btnCrearTrabajo;
     @FXML

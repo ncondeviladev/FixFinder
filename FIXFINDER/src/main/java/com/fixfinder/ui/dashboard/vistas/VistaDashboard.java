@@ -5,17 +5,20 @@ import com.fixfinder.ui.dashboard.componentes.PanelLateral;
 import com.fixfinder.ui.dashboard.componentes.TablaIncidencias;
 import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
+import javafx.animation.ScaleTransition;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 /**
- * Vista principal del Dashboard: contiene la fila de KPIs, la tabla resumen de
- * incidencias
- * y el panel lateral de actividad reciente. Punto de entrada visual tras el
- * login.
+ * Vista principal del Dashboard.
+ * Contiene la fila de KPIs, la tabla de incidencias y el panel lateral de actividad.
  */
 public class VistaDashboard extends VBox {
 
@@ -35,13 +38,11 @@ public class VistaDashboard extends VBox {
 
         HBox header = new HBox();
         header.setPadding(new Insets(0, 0, 10, 0));
-        javafx.scene.control.Button btnRefresh = new javafx.scene.control.Button("🔄 Actualizar Datos");
-        btnRefresh.getStyleClass().add("btn-secondary");
 
+        Button btnRefresh = new Button("🔄 Actualizar Datos");
+        btnRefresh.getStyleClass().add("btn-secondary");
         btnRefresh.setOnAction(e -> {
-            // Animación de pulso más elegante y discreta
-            javafx.animation.ScaleTransition scale = new javafx.animation.ScaleTransition(
-                    javafx.util.Duration.millis(200), btnRefresh);
+            ScaleTransition scale = new ScaleTransition(Duration.millis(200), btnRefresh);
             scale.setFromX(1.0);
             scale.setFromY(1.0);
             scale.setToX(1.05);
@@ -49,7 +50,6 @@ public class VistaDashboard extends VBox {
             scale.setCycleCount(2);
             scale.setAutoReverse(true);
             scale.play();
-
             onRefresh.run();
         });
         header.getChildren().add(btnRefresh);
@@ -69,7 +69,7 @@ public class VistaDashboard extends VBox {
         ScrollPane scroll = new ScrollPane(body);
         scroll.getStyleClass().add("transparent-scroll");
         scroll.setFitToWidth(true);
-        scroll.setFitToHeight(true); // Permitir que el contenido (tablas) se estire verticalmente
+        scroll.setFitToHeight(true);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
         getChildren().add(scroll);
@@ -77,7 +77,6 @@ public class VistaDashboard extends VBox {
 
     public void actualizarKpis(int activos, int pendientes, int completados, int presupuestados) {
         filaIndicadores.actualizar(activos, pendientes, completados, presupuestados);
-        // Resumen lateral eliminado por petición del usuario
     }
 
     public PanelLateral getPanelLateral() {
