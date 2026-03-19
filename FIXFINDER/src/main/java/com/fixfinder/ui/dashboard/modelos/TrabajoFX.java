@@ -28,6 +28,7 @@ public class TrabajoFX {
         String cliente = "";
         String cliTelefono = "";
         String cliEmail = "";
+        String cliUrlFoto = "";
 
         if (n.has("cliente") && !n.get("cliente").isNull()) {
             JsonNode c = n.get("cliente");
@@ -35,6 +36,7 @@ public class TrabajoFX {
                     : c.has("nombreCompleto") ? c.get("nombreCompleto").asText() : "";
             cliTelefono = c.has("telefono") ? c.get("telefono").asText() : "";
             cliEmail = c.has("email") ? c.get("email").asText() : "";
+            cliUrlFoto = c.has("url_foto") && !c.get("url_foto").isNull() ? c.get("url_foto").asText() : "";
         }
 
         if (cliente.isBlank() && n.has("nombreCliente") && !n.get("nombreCliente").isNull()) {
@@ -76,6 +78,10 @@ public class TrabajoFX {
             t.setUrlsFotos(fotos);
         }
 
+        if (!cliUrlFoto.isBlank()) {
+            t.setClienteUrlFoto(cliUrlFoto);
+        }
+
         return t;
     }
 
@@ -94,6 +100,7 @@ public class TrabajoFX {
     private final StringProperty clienteEmail = new SimpleStringProperty("");
     private final IntegerProperty valoracion = new SimpleIntegerProperty(0);
     private final StringProperty comentarioCliente = new SimpleStringProperty("");
+    private final StringProperty clienteUrlFoto = new SimpleStringProperty("");
 
     private final ObservableList<String> urlsFotos = FXCollections.observableArrayList();
 
@@ -213,6 +220,14 @@ public class TrabajoFX {
 
     public StringProperty comentarioClienteProperty() {
         return comentarioCliente;
+    }
+
+    public String getClienteUrlFoto() {
+        return clienteUrlFoto.get();
+    }
+
+    public void setClienteUrlFoto(String url) {
+        this.clienteUrlFoto.set(url);
     }
 
     public ObservableList<String> getUrlsFotos() {

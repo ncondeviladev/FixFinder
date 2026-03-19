@@ -19,7 +19,7 @@ class SocketService {
   Socket? _socket;
 
   // Configuración de red
-  final String _servidor = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
+  final String _servidor = '192.168.0.13';
   final int _puerto = 5000;
 
   bool _estaConectando = false;

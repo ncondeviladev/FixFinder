@@ -20,6 +20,10 @@ public class SchemaUpdater {
         // En este caso, usaremos la ruta absoluta que conocemos del sistema.
         String projectDir = System.getProperty("user.dir");
         String archivoSql = projectDir + "/docs/diseno/ESQUEMA_BD.sql";
+        java.io.File sqlFile = new java.io.File(archivoSql);
+        if (!sqlFile.exists()) {
+            archivoSql = projectDir + "/FIXFINDER/docs/diseno/ESQUEMA_BD.sql";
+        }
 
         try (Connection conn = ConexionDB.getConnection();
                 Statement stmt = conn.createStatement();

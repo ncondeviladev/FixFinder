@@ -246,6 +246,8 @@ public class DialogoDetalleIncidencia {
         imgDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         imgDialog.getDialogPane().getStylesheets().add(cssPath);
         imgDialog.getDialogPane().getStyleClass().add("dialog-pane");
+        Button btnClose = (Button) imgDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (btnClose != null) btnClose.getStyleClass().add("btn-secondary");
         imgDialog.show();
     }
 }

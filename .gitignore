@@ -21,4 +21,5 @@ build/
 build/
 bin/
 out/
-target/
+# Secrets and Credentials
+FIXFINDER/src/main/resources/firebase-service-account.json

@@ -305,9 +305,15 @@ public class ProcesadorTrabajos {
 
     private void procesarFotosIniciales(JsonNode array, int idT) {
         if (array.isArray()) {
+            List<FotoTrabajo> actuales = fotoTrabajoDAO.obtenerPorTrabajo(idT);
+            List<String> urlsActuales = new ArrayList<>();
+            if (actuales != null) {
+                for (FotoTrabajo ft : actuales) urlsActuales.add(ft.getUrl());
+            }
             for (JsonNode node : array) {
-                if (!node.asText().isEmpty()) {
-                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, node.asText()));
+                String url = node.asText();
+                if (!url.isEmpty() && !urlsActuales.contains(url)) {
+                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, url));
                 }
             }
         }
@@ -315,9 +321,15 @@ public class ProcesadorTrabajos {
 
     private void procesarFotosFinales(JsonNode array, int idT) {
         if (array.isArray()) {
+            List<FotoTrabajo> actuales = fotoTrabajoDAO.obtenerPorTrabajo(idT);
+            List<String> urlsActuales = new ArrayList<>();
+            if (actuales != null) {
+                for (FotoTrabajo ft : actuales) urlsActuales.add(ft.getUrl());
+            }
             for (JsonNode f : array) {
-                if (!f.asText().isBlank()) {
-                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, f.asText()));
+                String url = f.asText();
+                if (!url.isBlank() && !urlsActuales.contains(url)) {
+                    fotoTrabajoDAO.insertar(new FotoTrabajo(0, idT, url));
                 }
             }
         }

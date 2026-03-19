@@ -51,9 +51,27 @@ public class DialogoFichaCliente {
                         "-fx-border-color: rgba(249,115,22,0.4);" +
                         "-fx-border-radius: 32;" +
                         "-fx-border-width: 2;");
-        Label lIni = new Label(iniciales(t.getCliente()));
-        lIni.setStyle("-fx-text-fill: #F97316; -fx-font-size: 24px; -fx-font-weight: bold;");
-        avatar.getChildren().add(lIni);
+
+        String fotoUrl = t.getClienteUrlFoto();
+        if (fotoUrl != null && !fotoUrl.isBlank() && !fotoUrl.equals("null")) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(new javafx.scene.image.Image(fotoUrl, 64, 64, true, true, true));
+                iv.setFitWidth(60);
+                iv.setFitHeight(60);
+                iv.setPreserveRatio(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(30, 30, 30);
+                iv.setClip(clip);
+                avatar.getChildren().add(iv);
+            } catch (Exception e) {
+                Label lIni = new Label(iniciales(t.getCliente()));
+                lIni.setStyle("-fx-text-fill: #F97316; -fx-font-size: 24px; -fx-font-weight: bold;");
+                avatar.getChildren().add(lIni);
+            }
+        } else {
+            Label lIni = new Label(iniciales(t.getCliente()));
+            lIni.setStyle("-fx-text-fill: #F97316; -fx-font-size: 24px; -fx-font-weight: bold;");
+            avatar.getChildren().add(lIni);
+        }
 
         VBox titulos = new VBox(2);
         Label lblNombre = new Label(t.getCliente());

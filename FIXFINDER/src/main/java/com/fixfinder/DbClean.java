@@ -1,4 +1,4 @@
-package com.fixfinder.pruebas;
+package com.fixfinder;
 
 import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.DataRepository;
@@ -16,22 +16,32 @@ import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
 import com.fixfinder.modelos.enums.Rol;
 import com.fixfinder.utilidades.GestorPassword;
+import com.fixfinder.utilidades.SchemaUpdater;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 
-public class PruebaIntegracion {
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.StorageClient;
+
+public class DbClean {
 
         public static void main(String[] args) {
                 System.out.println("🚀 INICIANDO CARGA DE DATOS LIMPIOS Y SEGUROS...");
 
                 try {
                         // 1. Recrear Esquema (Asegura ENUMs actualizados)
-                        com.fixfinder.utilidades.SchemaUpdater.actualizarEsquema();
+                        SchemaUpdater.actualizarEsquema();
 
-                        // 2. Limpiar datos viejos residuales
+                        // 2. Limpiar datos viejos residuales (Local + Nube)
                         limpiarBaseDeDatos();
+                        limpiarFirebaseStorage();
 
                         // 3. Inicializar DAOs
                         DataRepository repo = new DataRepositoryImpl();
@@ -249,6 +259,38 @@ public class PruebaIntegracion {
                         System.out.println("🧹 Base de datos limpiada.");
                 } catch (Exception e) {
                         System.err.println("Error limpiando BD: " + e.getMessage());
+                }
+        }
+
+        private static void limpiarFirebaseStorage() {
+                try {
+                        InputStream serviceAccount = DbClean.class.getResourceAsStream("/firebase-service-account.json");
+                        if (serviceAccount == null) {
+                                System.err.println("⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en /src/main/resources/. Omitiendo vaciado de nube...");
+                                return;
+                        }
+
+                        if (FirebaseApp.getApps().isEmpty()) {
+                                FirebaseOptions options = FirebaseOptions.builder()
+                                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                                        .setStorageBucket("fixfinder-dbb81.firebasestorage.app") // <-- REEMPLAZA AQUÍ POR EL NOMBRE DE TU BUCKET
+                                        .build();
+                                FirebaseApp.initializeApp(options);
+                        }
+
+                        Bucket bucket = StorageClient.getInstance().bucket();
+                        System.out.println("🔥 Conectado a Firebase Storage. Destruyendo fotos huérfanas...");
+
+                        int contador = 0;
+                        Iterable<Blob> todosLosBlobs = bucket.list().iterateAll();
+                        for (Blob blob : todosLosBlobs) {
+                                blob.delete();
+                                contador++;
+                        }
+                        System.out.println("🧹 Firebase Storage: Vaciado total completado (" + contador + " archivos eliminados).");
+
+                } catch (Exception e) {
+                        System.err.println("❌ ERROR limpiando Firebase: " + e.getMessage());
                 }
         }
 
