@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    actor C as 📱 App Cliente (Flutter)
+    actor G as 💻 App Empresa (JavaFX)
+    actor O as 🛠️ App Operario (Flutter)
+    participant S as 🖥️ Servidor Central (Java TCP)
+    participant DB as 💾 MySQL Database
+    participant FB as 🔥 Firebase Storage
+
+    rect rgb(240, 248, 255)
+        Note over C,S: FASE 1: CREACIÓN DE INCIDENCIA (Upload Bypass)
+        C->>FB: Sube fotos originales vía HTTPS
+        FB-->>C: Retorna URLs de las imágenes
+        C->>S: Envía {accion: 'CREAR_TRABAJO', fotos: [URLs]}
+        S->>DB: INSERT Trabajo (Estado: PENDIENTE) + Fotos
+        S-->>G: Evento Push: Notifica Nueva Incidencia a Empresa
+        G->>G: Refresca Dashboard en tiempo real
+    end
+
+    rect rgb(255, 245, 238)
+        Note over C,G: FASE 2: NEGOCIACIÓN Y ACEPTACIÓN
+        G->>S: Envía {accion: 'GENERAR_PRESUPUESTO', monto: X}
+        S->>DB: UPDATE Trabajo (Estado: PRESUPUESTADO)
+        S-->>C: Evento Push: Notifica Presupuesto Recibido
+        C->>S: Envía {accion: 'ACEPTAR_PRESUPUESTO'}
+        S->>DB: UPDATE Trabajo (Estado: ACEPTADO)
+        S-->>G: Evento Push: Notifica Aceptación de Cliente
+    end
+
+    rect rgb(240, 255, 240)
+        Note over G,O: FASE 3: ASIGNACIÓN Y EJECUCIÓN
+        G->>S: Envía {accion: 'ASIGNAR_OPERARIO', idOperario: Y}
+        S->>DB: UPDATE Trabajo (Estado: ASIGNADO)
+        S-->>O: Evento Push: Notifica Nueva Tarea Asignada
+        O->>S: Envía {accion: 'FINALIZAR_TRABAJO', informe: '...'}
+        S->>DB: UPDATE Trabajo (Estado: REALIZADO)
+        S-->>C: Evento Push: Notifica Trabajo Terminado
+    end
+
+    rect rgb(255, 250, 205)
+        Note over C,S: FASE 4: VALIDACIÓN Y CIERRE
+        C->>S: Envía {accion: 'VALORAR_TRABAJO', valoracion: 5}
+        S->>DB: UPDATE Trabajo (Estado: FINALIZADO)
+        S-->>G: Evento Push: Notifica Cierre (Dispara Facturación)
+    end

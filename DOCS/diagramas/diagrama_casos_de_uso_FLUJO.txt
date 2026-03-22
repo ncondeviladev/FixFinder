@@ -1,0 +1,46 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+ subgraph G_ACCESO["Gestión de Cuentas y Accesos"]
+    direction TB
+        UC_RegCli["Registrar Cliente<br>(Desde App)"]
+        UC_RegEmp["Registrar Empresa y Gerente<br>(Desde Login JavaFX)"]
+        UC_Login["Iniciar Sesión"]
+  end
+ subgraph G_CLIENTE["Panel Cliente (App)"]
+    direction TB
+        UC6["Reportar Incidencia"]
+        UC_Mod["Modificar Incidencia"]
+        UC_Del["Borrar / Cancelar Incidencia"]
+        UC8["Ver Historial"]
+        UC10["Aceptar Presupuesto"]
+        UC11["Valorar y Cerrar Trabajo"]
+  end
+ subgraph G_ADMIN["Panel Gerencia (JavaFX)"]
+    direction TB
+        UC14["Buscador Incidencias"]
+        UC_SEL["Seleccionar Incidencia"]
+        UC13["Presupuestar"]
+        UC_ASIG["Asignar Operario"]
+        UC15["Gestión Operarios"]
+        UC_NOP["Crear Operario<br>(Asignación automática a la Empresa)"]
+  end
+ subgraph G_TECNICO["Panel Operario (App)"]
+    direction TB
+        UC17["Ver Tareas Asignadas"]
+        UC18["Reportar Trabajo<br>(Imputar Horas y Material)"]
+  end
+    Client("👤 Cliente (App Móvil)") --> UC_RegCli & UC_Login & UC6 & UC_Mod & UC_Del & UC8 & UC10 & UC11
+    Admin("🏢 Gerente (App JavaFX)") --> UC_RegEmp & UC_Login & UC14 & UC15
+    Tech("🛠️ Operario (App Móvil)") --> UC_Login & UC17
+    UC15 --> UC_NOP
+    UC6 ==> UC14
+    UC14 ==> UC_SEL
+    UC_SEL ==> UC13
+    UC13 -.-> UC10
+    UC10 ==> UC_ASIG
+    UC_ASIG ==> UC18
+    UC17 -.-> UC18
+    UC18 ==> UC11

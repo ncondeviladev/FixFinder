@@ -1,0 +1,74 @@
+---
+config:
+  layout: elk
+---
+erDiagram
+	direction LR
+	USUARIO {
+		int id PK ""  
+		varchar email  ""  
+		varchar password_hash  ""  
+		enum rol  ""  
+		varchar dni  ""  
+		varchar telefono  ""  
+		varchar direccion  ""  
+		datetime fecha_registro  ""  
+	}
+
+	CLIENTE {
+		int id_usuario PK,FK ""  
+	}
+
+	OPERARIO {
+		int id_usuario PK,FK ""  
+		int id_empresa FK ""  
+		enum especialidad  ""  
+		boolean esta_activo  ""  
+	}
+
+	EMPRESA {
+		int id PK ""  
+		varchar cif  ""  
+		varchar nombre  ""  
+		varchar telefono  ""  
+		varchar email_contacto  ""  
+	}
+
+	TRABAJO {
+		int id PK ""  
+		int id_cliente FK ""  
+		int id_operario FK ""  
+		enum estado  ""  
+		varchar titulo  ""  
+		text descripcion  ""  
+		varchar direccion  ""  
+		double ubicacion_lat  ""  
+		double ubicacion_lon  ""  
+		datetime fecha_creacion  ""  
+		datetime fecha_finalizacion  ""  
+		int valoracion  ""  
+		text comentario_cliente  ""  
+	}
+
+	PRESUPUESTO {
+		int id PK ""  
+		int id_trabajo FK ""  
+		int id_empresa FK ""  
+		decimal monto  ""  
+		datetime fecha_envio  ""  
+	}
+
+	FOTO_TRABAJO {
+		int id PK ""  
+		int id_trabajo FK ""  
+		varchar url_archivo  ""  
+	}
+
+	USUARIO||--|{CLIENTE:"hereda_a"
+	USUARIO||--|{OPERARIO:"hereda_a"
+	EMPRESA||--o{OPERARIO:"emplea"
+	CLIENTE||--o{TRABAJO:"solicita"
+	OPERARIO|o--o{TRABAJO:"realiza"
+	TRABAJO||--o{FOTO_TRABAJO:"documentado_por"
+	TRABAJO||--o|PRESUPUESTO:"negociado_en"
+	EMPRESA||--o{PRESUPUESTO:"emite"

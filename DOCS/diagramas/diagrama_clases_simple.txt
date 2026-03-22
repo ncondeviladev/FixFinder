@@ -1,0 +1,29 @@
+---
+config:
+  layout: elk
+---
+classDiagram
+    class Usuario {
+        <<Abstract>>
+    }
+    class Cliente
+    class Operario
+    class Empresa
+    class Trabajo
+    class Presupuesto
+    class FotoTrabajo
+    class Rol { <<enumeration>> }
+    class EstadoTrabajo { <<enumeration>> }
+    class CategoriaServicio { <<enumeration>> }
+    Usuario <|-- Cliente : Es un
+    Usuario <|-- Operario : Es un
+    Operario "*" --> "1" Empresa : Trabaja para
+    Trabajo "*" --> "1" Cliente : Solicitado por
+    Trabajo "*" --> "0..1" Operario : Asignado a
+    Presupuesto "*" --> "1" Trabajo : Presupuesta
+    Presupuesto "*" --> "1" Empresa : Emitido por
+    Trabajo "1" *-- "*" FotoTrabajo : Contiene (Evidencias)
+    Usuario --> Rol : Tiene
+    Trabajo --> EstadoTrabajo : Tiene
+    Trabajo --> CategoriaServicio : Clasificado como
+    Operario --> CategoriaServicio : Especialidad

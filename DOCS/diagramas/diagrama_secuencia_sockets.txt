@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente (App Flutter)
+    participant FB as Firebase Storage
+    participant SC as ServidorCentral (Puerto 5000)
+    participant GC as GestorConexion (Hilo)
+    participant PT as ProcesadorTrabajos
+    participant TS as TrabajoServiceImpl
+    participant DAO as Trabajo/Foto DAOImpl
+    participant DB as MySQL Database
+    participant JFX as Dashboard (JavaFX)
+
+    Note over C,FB: 1. Descarga de Archivos Pesados (Flujo Híbrido)
+    C->>FB: Sube fotos seleccionadas (HTTPS)
+    FB-->>C: Retorna array de URLs (https://firebasestorage...)
+
+    Note over C,DB: 2. Comunicación TCP de Bajo Nivel (Servidor Java)
+    C->>SC: Abre conexión Socket TCP (IP:5000)
+    SC->>GC: Asigna Socket a un nuevo Hilo (Thread)
+    
+    C->>GC: Envía [4 Bytes Longitud] + [JSON: Accion="CREAR_TRABAJO", Token, URLs]
+    
+    Note over GC,TS: 3. Enrutamiento y Lógica de Negocio
+    GC->>PT: switch(accion) -> procesarCrearTrabajo(json)
+    PT->>TS: solicitarReparacion(cliente, titulo, desc, urls_fotos)
+    
+    Note over TS,DB: 4. Transacción ACID (Acceso a Datos)
+    TS->>DAO: insertarTrabajo()
+    DAO->>DB: getConnection() y BEGIN TRANSACTION
+    DAO->>DB: INSERT INTO trabajo (...)
+    DB-->>DAO: Retorna ID generado (ej: id_trabajo = 42)
+    
+    loop Por cada URL en array urls_fotos
+        DAO->>DB: INSERT INTO foto_trabajo (id_trabajo, url)
+    end
+    DAO->>DB: COMMIT TRANSACTION
+    
+    Note over GC,C: 5. Respuesta y Tiempo Real
+    DAO-->>TS: Objeto Trabajo instanciado
+    TS-->>PT: Éxito
+    PT-->>GC: RespuestaServidor (status: 200, mensaje: "OK")
+    GC->>C: Envía [4 Bytes] + [JSON de Respuesta]
+    
+    Note over SC,JFX: 6. Push Notification a Gerencia
+    SC-xJFX: Broadcast Socket: "NUEVO_TRABAJO" (Actualiza UI al instante)

@@ -1,0 +1,127 @@
+---
+config:
+  layout: elk
+---
+classDiagram
+direction TB
+    class Usuario {
+	    #int id
+	    #String nombreCompleto
+	    #String email
+	    #String passwordHash
+	    #Rol rol
+	    #String dni
+	    #String telefono
+	    #String direccion
+	    #LocalDateTime fechaRegistro
+	    #String urlFoto
+	    +getters()
+	    +setters()
+    }
+
+    class Cliente {
+	    +Cliente()
+    }
+
+    class Operario {
+	    -int idEmpresa
+	    -CategoriaServicio especialidad
+	    -boolean estaActivo
+	    -LocalDateTime ultimaActualizacion
+	    +getters()
+	    +setters()
+    }
+
+    class Empresa {
+	    -int id
+	    -String nombre
+	    -String cif
+	    -String direccion
+	    -String telefono
+	    -String emailContacto
+	    -String urlFoto
+	    -List~CategoriaServicio~ especialidades
+	    +getters()
+	    +setters()
+    }
+
+    class Trabajo {
+	    -int id
+	    -Usuario cliente
+	    -Operario operarioAsignado
+	    -CategoriaServicio categoria
+	    -String titulo
+	    -String descripcion
+	    -String direccion
+	    -double ubicacion_lat
+	    -double ubicacion_lon
+	    -EstadoTrabajo estado
+	    -LocalDateTime fechaCreacion
+	    -LocalDateTime fechaFinalizacion
+	    -int valoracion
+	    -String comentarioCliente
+	    -List~FotoTrabajo~ fotos
+	    +getters()
+	    +setters()
+    }
+
+    class Presupuesto {
+	    -int id
+	    -Trabajo trabajo
+	    -Empresa empresa
+	    -double monto
+	    -LocalDateTime fechaEnvio
+	    +getters()
+	    +setters()
+    }
+
+    class FotoTrabajo {
+	    -int id
+	    -int idTrabajo
+	    -String url
+	    +getters()
+	    +setters()
+    }
+
+    class Rol {
+	    ADMIN
+	    GERENTE
+	    OPERARIO
+	    CLIENTE
+    }
+
+    class EstadoTrabajo {
+	    PENDIENTE
+	    PRESUPUESTADO
+	    ACEPTADO
+	    ASIGNADO
+	    REALIZADO
+	    FINALIZADO
+	    CANCELADO
+    }
+
+    class CategoriaServicio {
+	    FONTANERIA
+	    ELECTRICIDAD
+	    ALBANILERIA
+	    PINTURA
+	    ETC
+    }
+
+	<<Abstract>> Usuario
+	<<enumeration>> Rol
+	<<enumeration>> EstadoTrabajo
+	<<enumeration>> CategoriaServicio
+
+    Usuario <|-- Cliente
+    Usuario <|-- Operario
+    Operario "*" --> "1" Empresa
+    Trabajo "*" --> "1" Cliente
+    Trabajo "*" --> "0..1" Operario
+    Presupuesto "*" --> "1" Trabajo
+    Presupuesto "*" --> "1" Empresa
+    Trabajo "1" *-- "*" FotoTrabajo
+    Usuario --> Rol
+    Trabajo --> EstadoTrabajo
+    Trabajo --> CategoriaServicio
+    Operario --> CategoriaServicio

@@ -1,0 +1,47 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    classDef ui fill:#E2E8F0,stroke:#64748B,stroke-width:2px,color:#0F172A
+    classDef estado fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
+    classDef core fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A
+    classDef persist fill:#F3F4F6,stroke:#374151,stroke-width:2px,color:#111827,stroke-dasharray: 5 5
+
+    subgraph UI ["📱 Capa de Vistas (Pantallas UI)"]
+        direction TB
+        L[Login Pantalla]:::ui
+        Dash[Dashboard Pantalla]:::ui
+        Detalle[Detalle Trabajo Pantalla]:::ui
+        Crear[Crear Trabajo Pantalla]:::ui
+    end
+
+    subgraph STATE ["🧠 Capa de Estado (Providers)"]
+        direction TB
+        Prov[TrabajoProvider]:::estado
+    end
+
+    subgraph SERVICES ["⚙️ Capa de Servicios"]
+        direction TB
+        S_Auth[AuthService]:::core
+        S_Img[ImagenService]:::core
+        S_Job[TrabajoApiService]:::core
+        S_Sock[SocketService TCP]:::core
+    end
+
+    subgraph EXTERNO ["🌐 Conexiones Externas"]
+        direction LR
+        Java[Servidor Java TCP]:::persist
+        FB[Firebase Storage]:::persist
+    end
+    L --> S_Auth
+    Dash --> Prov
+    Detalle --> Prov
+    Crear --> Prov
+    Dash -.->|Foto Perfil| S_Img
+    Crear -.->|Fotos Avería| S_Img
+    S_Img -->|Sube archivos| FB
+    Prov --> S_Job
+    S_Auth --> S_Sock
+    S_Job --> S_Sock
+    S_Sock <-->|JSON + 4 Bytes| Java

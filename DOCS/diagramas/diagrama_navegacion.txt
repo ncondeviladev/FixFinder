@@ -1,0 +1,82 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+ subgraph S_JFX["💻 Ecosistema Escritorio (JavaFX) - Empresa"]
+    direction TB
+        JFX_DASH["Dashboard Principal<br>(Resumen de métricas)"]
+        JFX_INC["Módulo de Incidencias<br>(Tabla y Buscador)"]
+        JFX_OPE["Módulo Operarios<br>(Gestión RRHH)"]
+        JFX_EMP["Panel Detalles Empresa"]
+        JFX_DET["Vista Detalle Incidencia"]
+        JFX_PRE["Acción: Mandar Presupuesto"]
+        JFX_ASI["Acción: Asignar Operario"]
+        JFX_NEWOP["Acción: Crear Operario"]
+        JFX_DELOP["Acción: Dar de Baja"]
+  end
+ subgraph S_CLI["📱 Ecosistema Móvil (Flutter) - Cliente"]
+    direction TB
+        APP_CLI["Home Cliente<br>(Mis Incidencias)"]
+        APP_PERFIL["Editar Info Personal"]
+        APP_CREAR["Formulario:<br>Crear Incidencia"]
+        APP_DET_CLI["Pantalla Detalle<br>Incidencia"]
+        APP_FOTO["Adjuntar Fotos y Urgencia"]
+        APP_MOD["Acción: Modificar / Cancelar"]
+        APP_ACEP["Acción: Aceptar Presupuesto"]
+        APP_VAL["Acción: Valorar y Cerrar<br>(1 a 5 ⭐)"]
+  end
+ subgraph S_OPE["🛠️ Ecosistema Móvil (Flutter) - Operario"]
+    direction TB
+        APP_OPE["Home Operario<br>(Mis Tareas Asignadas)"]
+        APP_DET_OPE["Pantalla Detalle<br>Trabajo y Dirección"]
+        APP_REP["Formulario:<br>Imputar Horas y Materiales"]
+        APP_FIN["Acción: Finalizar Tarea"]
+  end
+    INICIO(("📱 / 💻 Inicio App")) --> LOGIN{"Pantalla de Acceso<br>(Login / Registro)"}
+    LOGIN -- Rol: Gerente --> JFX_DASH
+    LOGIN -- Rol: Cliente --> APP_CLI
+    LOGIN -- Rol: Operario --> APP_OPE
+    JFX_DASH --> JFX_INC & JFX_OPE & JFX_EMP
+    JFX_INC --> JFX_DET
+    JFX_DET --> JFX_PRE & JFX_ASI
+    JFX_OPE --> JFX_NEWOP & JFX_DELOP
+    APP_CLI --> APP_PERFIL & APP_CREAR & APP_DET_CLI
+    APP_CREAR --> APP_FOTO
+    APP_DET_CLI --> APP_MOD & APP_ACEP & APP_VAL
+    APP_OPE --> APP_DET_OPE
+    APP_DET_OPE --> APP_REP
+    APP_REP --> APP_FIN
+    JFX_DASH -.-> LOGOUT(("Cerrar Sesión"))
+    APP_CLI -.-> LOGOUT
+    APP_OPE -.-> LOGOUT
+
+     JFX_DASH:::jfx
+     JFX_INC:::jfx
+     JFX_OPE:::jfx
+     JFX_EMP:::jfx
+     JFX_DET:::jfx
+     JFX_PRE:::jfx
+     JFX_ASI:::jfx
+     JFX_NEWOP:::jfx
+     JFX_DELOP:::jfx
+     APP_CLI:::app
+     APP_PERFIL:::app
+     APP_CREAR:::app
+     APP_DET_CLI:::app
+     APP_FOTO:::app
+     APP_MOD:::app
+     APP_ACEP:::app
+     APP_VAL:::app
+     APP_OPE:::app
+     APP_DET_OPE:::app
+     APP_REP:::app
+     APP_FIN:::app
+     INICIO:::inicio
+     LOGIN:::login
+     LOGOUT:::logout
+    classDef inicio fill:#1E293B,stroke:#0F172A,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef login fill:#3B82F6,stroke:#1E3A8A,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef app fill:#E2E8F0,stroke:#64748B,stroke-width:2px,color:#0F172A
+    classDef jfx fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
+    classDef logout fill:#FEE2E2,stroke:#EF4444,stroke-width:2px,color:#991B1B

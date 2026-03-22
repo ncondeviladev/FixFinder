@@ -1,0 +1,64 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+    Cliente["👤 Cliente"]
+    Gerente["🏢 Gerente (Empresa)"]
+    Operario["🛠️ Operario"]
+    subgraph Sistema ["FixFinder - Sistema Central"]
+
+        subgraph Acceso ["1. Gestión de Acceso y Cuenta"]
+            direction TB
+            UC_RegCli([Registrar Cliente])
+            UC_RegEmp([Registrar Empresa y Gerente])
+            UC_Login([Iniciar Sesión])
+            UC_Perfil([Editar Perfil y Cerrar Sesión])
+        end
+
+        subgraph ModuloCliente ["2. Módulo Cliente"]
+            direction TB
+            UC_Crear([Reportar Nueva Incidencia con Fotos])
+            UC_Modificar([Modificar Incidencia Pendiente])
+            UC_Cancelar([Cancelar / Borrar Incidencia])
+            UC_Historial([Consultar Historial])
+            UC_Aceptar([Aceptar Presupuesto])
+            UC_Valorar([Valorar y Cerrar Reparación])
+        end
+
+        subgraph ModuloAdmin ["3. Módulo Administración"]
+            direction TB
+            UC_Buscar([Buscador de Incidencias])
+            UC_Presupuestar([Gestionar Presupuestos])
+            UC_Asignar([Asignar Operario a Trabajo])
+            UC_CrearOp([Crear Nuevo Operario])
+        end
+
+        subgraph ModuloOperario ["4. Módulo Técnico"]
+            direction TB
+            UC_VerTareas([Ver Trabajos Asignados])
+            UC_Reportar([Reportar Trabajo Realizado])
+        end
+    end
+    Cliente --> UC_RegCli
+    Gerente --> UC_RegEmp
+    
+    Cliente --> UC_Login
+    Gerente --> UC_Login
+    Operario --> UC_Login
+    
+    Cliente --> UC_Perfil
+    Gerente --> UC_Perfil
+    Operario --> UC_Perfil
+    Cliente --> UC_Crear
+    Cliente --> UC_Modificar
+    Cliente --> UC_Cancelar
+    Cliente --> UC_Historial
+    Cliente --> UC_Aceptar
+    Cliente --> UC_Valorar
+    Gerente --> UC_Buscar
+    Gerente --> UC_Presupuestar
+    Gerente --> UC_Asignar
+    Gerente --> UC_CrearOp
+    Operario --> UC_VerTareas
+    Operario --> UC_Reportar
