@@ -4,19 +4,20 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
-/**
- * Servicio centralizado para la comunicación por Sockets con el servidor Java.
- * 
- * Implementa el protocolo de comunicación basado en cabeceras de 4 bytes 
- * (Big Endian) que indican la longitud del mensaje JSON siguiente.
- * Sigue el patrón Singleton para garantizar una única conexión activa.
- */
+/// Servicio centralizado para la comunicación por Sockets con el servidor Java.
+/// 
+/// Implementa el protocolo de comunicación basado en cabeceras de 4 bytes 
+/// (Big Endian) que indican la longitud del mensaje JSON siguiente.
+/// Sigue el patrón Singleton para garantizar una única conexión activa.
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
   SocketService._internal();
 
   Socket? _socket;
+
+  /// Indica si hay una conexión activa con el servidor.
+  bool get isConectado => _socket != null;
 
   // Configuración de red
   final String _servidor = '192.168.0.13';
@@ -26,14 +27,10 @@ class SocketService {
   final StreamController<Map<String, dynamic>> _controladorRespuestas =
       StreamController.broadcast();
 
-  /**
-   * Stream de respuestas entrantes desde el servidor.
-   */
+  /// Stream de respuestas entrantes desde el servidor.
   Stream<Map<String, dynamic>> get respuestas => _controladorRespuestas.stream;
 
-  /**
-   * Establece la conexión con el servidor si no existe ya una activa.
-   */
+  /// Establece la conexión con el servidor si no existe ya una activa.
   Future<bool> connect() async {
     if (_socket != null) return true;
     if (_estaConectando) return false;
@@ -62,17 +59,13 @@ class SocketService {
 
   final List<int> _bufferBytes = [];
 
-  /**
-   * Callback para la recepción de fragmentos de datos.
-   */
+  /// Callback para la recepción de fragmentos de datos.
   void _onData(Uint8List datos) {
     _bufferBytes.addAll(datos);
     _procesarBuffer();
   }
 
-  /**
-   * Procesa el buffer acumulativo para extraer mensajes completos según el protocolo.
-   */
+  /// Procesa el buffer acumulativo para extraer mensajes completos según el protocolo.
   void _procesarBuffer() {
     try {
       while (_bufferBytes.length >= 4) {
@@ -110,9 +103,7 @@ class SocketService {
     }
   }
 
-  /**
-   * Envía una petición JSON al servidor.
-   */
+  /// Envía una petición JSON al servidor.
   Future<void> send(Map<String, dynamic> peticion) async {
     if (_socket == null) {
       if (!await connect()) throw Exception('Servidor no disponible');
@@ -150,9 +141,7 @@ class SocketService {
     disconnect();
   }
 
-  /**
-   * Cierra la conexión y libera recursos.
-   */
+  /// Cierra la conexión y libera recursos.
   void disconnect() {
     _socket?.destroy();
     _socket = null;

@@ -179,11 +179,13 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
       // Presupuesto pendiente de aceptar
       if (trabajo.estado == EstadoTrabajo.PRESUPUESTADO) return true;
       // Trabajo realizado pendiente de valorar (y aún sin valorar)
-      if (trabajo.estado == EstadoTrabajo.REALIZADO && trabajo.valoracion == 0)
+      if (trabajo.estado == EstadoTrabajo.REALIZADO && trabajo.valoracion == 0) {
         return true;
+      }
       // Trabajo finalizado por operario y el cliente aún no ha valorado
-      if (trabajo.estado == EstadoTrabajo.FINALIZADO && trabajo.valoracion == 0)
+      if (trabajo.estado == EstadoTrabajo.FINALIZADO && trabajo.valoracion == 0) {
         return true;
+      }
       return false;
     } else {
       // El operario debe actuar si tiene un trabajo asignado o si hay uno aceptado listo para empezar

@@ -129,8 +129,9 @@ class AuthService {
           if (!completer.isCompleted) completer.complete(respuesta);
         } else if (respuesta['status'] != 200 &&
             msg.contains('Error al actualizar foto')) {
-          if (!completer.isCompleted)
+          if (!completer.isCompleted) {
             completer.completeError('Error del servidor: $msg');
+          }
         }
       });
 
@@ -151,8 +152,52 @@ class AuthService {
         return true;
       }
       return false;
+    } finally {
+      await suscripcion?.cancel();
+    }
+  }
+
+  Future<Map<String, dynamic>> registrar({
+    required String nombre,
+    required String dni,
+    required String email,
+    required String telefono,
+    required String direccion,
+    required String password,
+    String? urlFoto,
+  }) async {
+    final Map<String, dynamic> peticion = {
+      'accion': 'REGISTRO_USUARIO',
+      'datos': {
+        'esOperario': false,
+        'nombreCompleto': nombre,
+        'dni': dni,
+        'email': email,
+        'password': password,
+        'telefono': telefono,
+        'direccion': direccion,
+        'url_foto': urlFoto ?? '',
+      }
+    };
+
+    StreamSubscription? suscripcion;
+    try {
+      if (!_socket.isConectado) await _socket.connect();
+
+      final completer = Completer<Map<String, dynamic>>();
+      suscripcion = _socket.respuestas.listen((respuesta) {
+        final msg = respuesta['mensaje']?.toString() ?? '';
+        if (msg.contains('registrado') ||
+            msg.contains('Error') ||
+            respuesta['status'] != null) {
+          if (!completer.isCompleted) completer.complete(respuesta);
+        }
+      });
+
+      await _socket.send(peticion);
+      return await completer.future.timeout(const Duration(seconds: 15));
     } catch (e) {
-      return false;
+      return {'status': 500, 'mensaje': 'Error de conexión: $e'};
     } finally {
       await suscripcion?.cancel();
     }

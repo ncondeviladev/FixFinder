@@ -25,25 +25,33 @@
 
 ## 1.1. Presentación y motivación del proyecto
 
-> [Escribe aquí la presentación del proyecto. Explica qué es FixFinder, por qué surgió la idea, cuál es el problema que resuelve y cuál es el objetivo principal de la aplicación.]
+FixFinder surge de la necesidad de dar un paso adelante en la modernización y digitalización del servicio técnico y reparaciones. Muchas pequeñas y medianas empresas en el sector del mantenimiento utilizan sistemas antiguos y poco eficientes, como procesos manuales, publicidad en diferentes canales (radio, rrss, etc), llamadas telefónicas constantes y partes de trabajo en papel. Esto provoca ineficiencias y falta de transparencia y comodidad para el cliente final.  
+
+FixFinder es una plataforma completa que integra a clientes, operarios y gerentes de empresas en tiempo real. Permite dar soporte a todas las actividades involucradas en una reparación doméstica, desde que el cliente avisa una avería en su teléfono móvil, pasando por la presupuestación del gerente en su sistema de empresa, hasta la ejecución por parte del operario. El objetivo es dar con una herramienta profesional que ayude a mejorar la eficiencia interna y la satisfacción del cliente en cuanto a la búsqueda de servicios de reparaciones domésticas.
 
 ---
 
 ## 1.2. Factor diferenciador del proyecto
 
-> [Escribe aquí qué hace a FixFinder diferente de otras soluciones existentes. Por ejemplo: la arquitectura cliente-servidor con sockets TCP, la integración de escritorio JavaFX + app Flutter + servidor Java puro, el flujo completo E2E de incidencias, etc.]
+Lo que destaca de FixFinder no es su tecnología, ni frameworks ni librerias, es cómo le da la vuelta al modelo tradicional de buscqueda de servicios técnicos. Tradicionalmente es el cliente el que busca en internet empresas, contacta con ellas una a una y gestiona la comunicación de forma individual. En FixFinder el cliente sube a la plataforma el problema como si de una red social se tratara, y las empresas son las que valoran y presupuestan el servicio. Dando a los clientes una comodidad  estando a la espera en lugar de hacer una búsqueda activa, y a las empresas un abanico de potenciales clientes sin necesidad de invertir en publicidad. 
 
 ---
 
 ## 1.3. Análisis de la situación de partida
 
-> [Escribe aquí el contexto inicial del proyecto: estado del arte (apps de mantenimiento similares), carencias detectadas en el sector, punto de partida técnico y de conocimiento.]
+Todos conocemos a alguien, y si no, ese alguien seguramente seas tú, que cuando se rompe el grifo de la cocina y no conce a ningñun fontanero, se pone a preguntar a amgiso y familiares si conocen alguno fiable, o bien buscar en google sin ningún criterio ni seguridad de que sea un buen profesional. En lugar de buscar anuncios de empresas de servicios, ahora el anuncio lo pone el cliente y son las empresas las que te ofrecen el servicio con un presupuesto directo, mientras las empresas tienen una fuente mas para aumentar su cartera de clientes por otra via.
 
 ---
 
 ## 1.4. Objetivos a conseguir con el proyecto
 
-> [Lista los objetivos técnicos y funcionales del proyecto. Pueden ser puntos o párrafos. Ejemplos: sistema de gestión de incidencias en tiempo real, sistema de facturación automatizado, app móvil para clientes, panel de escritorio para gerentes, etc.]
+Con este proyecto he marcado unas metas muy claras:
+
+1. **Flujo de trabajo completo:** Que todo el flujo de trabajo, desde la creación de la incidencia por el cliente, pasando por la gestión del gerente y la ejecución por parte del operario, se realice de forma fluida y sin interrupciones.
+2. **Hacerlo fácil desde el móvil:** Que el cliente pueda pedir una reparación en segundos y quedarse a la espera a recibir presupuestos de empresas, y para el operario sea sencillo gestionar las incidencias que le llegan con toda su información.
+3. **Controlar el negocio de un vistazo:** Que el gerente tenga en su pantalla todas las herramientas para presupuestar y asignar tareas sin perderse en menús complicados.
+4. **Construir algo sólido:** Aprovechar la potencia y bajo costo de AWS y Firebase para que el sistema funcione de verdad y sea capaz de crecer si las empresas lo necesita.
+5. **Seguridad ante todo:** Garantizar que los presupuestos y datos de los clientes estén a buen recaudo y con un sistema de seguridad delegado a aws para los datos y cifrado con tokens para la autenticación de usuarios.
 
 ---
 
@@ -51,14 +59,14 @@
 
 | Módulo | Relación con el proyecto |
 |---|---|
-| **Acceso a Datos** | [Describe aquí cómo se aplican los patrones DAO, repositorios, JDBC, MySQL, etc.] |
-| **Desarrollo de Interfaces (DI)** | [Describe la UI con JavaFX, FXML, estilos CSS y el Dashboard de escritorio.] |
-| **Programación Multimedia y Dispositivos Móviles (PMDM)** | [Describe la app Flutter: pantallas, navegación, Firebase, imágenes, etc.] |
-| **Programación de Servicios y Procesos (PSP)** | [Describe la arquitectura de sockets TCP, hilos por cliente, comunicación JSON, etc.] |
-| **Sistemas de Gestión Empresarial (SGE)** | [Describe la facturación, presupuestos, gestión de empresas, clientes, operarios, etc.] |
-| **Optativa Nube** | [Describe el uso de Firebase Storage y la preparación del despliegue en AWS EC2 + RDS.] |
-| **Sostenibilidad** | [Escribe aquí cómo el proyecto contribuye a la digitalización del sector de mantenimiento, reducción de papel, eficiencia, etc.] |
-| **Digitalización** | [Describe cómo el proyecto digitaliza procesos manuales de gestión de incidencias y servicios de reparación.] |
+| **Acceso a Datos** | Aplicación de patrones DAO y Repository para la persistencia en MySQL. Uso de JDBC para la gestión de conexiones y consultas complejas, garantizando la integridad referencial y la eficiencia en la persistencia de datos. |
+| **Desarrollo de Interfaces (DI)** | Diseño y desarrollo del Dashboard administrativo utilizando JavaFX. Uso de estilos CSS para una interfaz profesional y componentes personalizados para visualización de datos. |
+| **Programación Multimedia y Dispositivos Móviles (PMDM)** | Desarrollo de la aplicación dual para el cliente y operario con Flutter. Integración de cámaras para fotos de incidencias, consumo de servicios de red y uso de Firebase para almacenamiento de contenido multimedia. |
+| **Programación de Servicios y Procesos (PSP)** | Arquitectura cliente-servidor mediante sockets TCP. Gestión de la concurrencia mediante hilos (Hilo por cliente), sincronización de recursos y diseño del protocolo de comunicación JSON. |
+| **Sistemas de Gestión Empresarial (SGE)** | Implementación de la lógica de negocio para la gestión de empresas colaboradoras, flujos de trabajo, presupuestos y gestión de roles de usuario (Gerente, Operario, Cliente). |
+| **Optativa Nube** | Despliegue de la infraestructura en la nube utilizando AWS (instancias EC2 para el servidor y RDS para la base de datos) y Firebase Storage para imágenes. |
+| **Sostenibilidad** | Contribución a la reducción del consumo de papel y transporte innecesario mediante la digitalización de partes de trabajo y la optimización de la comunicación remota entre actores. |
+| **Digitalización** | Transformación de procesos tradicionales de mantenimiento en flujos de trabajo 100% digitales, permitiendo el análisis de datos para la mejora de la eficiencia operativa. |
 
 ---
 
@@ -66,20 +74,24 @@
 
 ## 2.1. Justificación de la elección de las tecnologías
 
-> [Escribe aquí una justificación razonada de por qué se han elegido las tecnologías utilizadas en el proyecto. Estructura la justificación por capas o por módulo: Java + Sockets para el servidor, JavaFX para el escritorio, Flutter para móvil, MySQL para la base de datos, Firebase para la nube. Argumenta las ventajas frente a alternativas (ej. Spring Boot vs Java puro, React Native vs Flutter, etc.).]
+Siendo sincero, empecé este proyecto a principio de curso queriendo anticiparme a la falta de tiempo futura, por lo que desarrollé toda la base de la forma que sabiamos en ese momento, de forma manual, sin frameworks ni librerias externas. Cuando finalizando el año y conocimos frameworks como Spring Boot, me di cuenta de que podria haberlo hecho de forma mas sencilla, pero ya era tarde para cambiar, así que aproveché para aprender como funcionan las cosas por debajo aunque requiera de mas trabajo, pero a la vez mayor aprendizaje.
+
+Por ejemplo, en el servidor he pasado de los frameworks automáticos para gestionarlo directamente con **Sockets** de forma manual. Creando toda la lógica de comunicación y concurrencia desde cero. Para las interfaces, **JavaFX** me daba la seguridad por ser un entorno que ya conociamos, mientras que **Flutter** me permitia tener una app móvil moderna y rápida. Con **MySQL** aseguramos que nada se pierda y con **Firebase** nos quitamos el dolor de cabeza de gestionar la transmisión de imágenes pesadas.
 
 #### Stack tecnológico utilizado
 
 | Componente | Tecnología | Justificación |
 |---|---|---|
-| **Servidor** | Java 21 (Puro - Sockets TCP) | [Escribe aquí...] |
-| **Base de Datos** | MySQL 8 + JDBC | [Escribe aquí...] |
-| **Cliente Escritorio** | JavaFX 21 + FXML + CSS | [Escribe aquí...] |
-| **App Móvil** | Flutter / Dart | [Escribe aquí...] |
-| **Almacenamiento Nube** | Firebase Storage | [Escribe aquí...] |
-| **Control de Versiones** | Git + GitHub | [Escribe aquí...] |
-| **Autenticación Nube** | Firebase Authentication | [Escribe aquí...] |
-| **Despliegue (Futuro)** | AWS EC2 + RDS | [Escribe aquí...] |
+|**Dependencias**|Gradle  |Gestión de dependencias y construcción del proyecto. |
+| **Servidor** | Java (Sockets TCP) | Control absoluto sobre el protocolo de comunicación y gestión de concurrencia mediante hilos. |
+| **Protocolo** | JSON | Formato de datos ligero y fácil de leer y escribir por humanos y máquinas. |
+| **Base de Datos** | MySQL + JDBC | Estándar de base de datos relacional para persistencia de datos con integración nativa en Java. |
+|**Persistencia**|Patrón DAO y Repository|Patrones de diseño para la persistencia de datos sin ORM. |
+|**Seguridad**|bcrypt|Algoritmo de hashing para la encriptación de contraseñas. |
+| **Cliente Escritorio** | JavaFX + CSS | Interfaz nativa potente y personalizable para tareas administrativas del gerente. |
+| **App Móvil** | Flutter / Dart | Desarrollo multiplataforma con UI de alta calidad y rendimiento nativo. |
+| **Almacenamiento Nube** | Firebase Storage y AWS EC2 + RDS | Almacenamiento escalable de imágenes con acceso directo desde los clientes mediante URL, servidor en la nube y base de datos relacional para persistencia de datos. |
+| **Control de Versiones** | Git + GitHub | Gestión eficiente de cambios y versiones durante todo el desarrollo. |
 
 ---
 
@@ -89,28 +101,35 @@
 
 #### Requerimientos funcionales
 
-> [Escribe aquí o inserta una tabla de los requerimientos funcionales del sistema. Ejemplos: registro de usuarios, creación de incidencias, asignación de operarios, generación de presupuestos, facturación, notificaciones, etc.]
+FixFinder tiene que ser capaz de llevar una reparación de principio a fin cubriendo cada proceso. Por eso, se han definido unos requisitos que aseguran que tanto el cliente que tiene una gotera como el gerente que tiene que gestionar la reparación, tengan todo lo que necesitan.
 
 | ID | Requerimiento | Prioridad |
 |---|---|---|
-| RF-01 | [Descripción...] | Alta |
-| RF-02 | [Descripción...] | Alta |
-| RF-03 | [Descripción...] | Media |
-| ... | ... | ... |
+| RF-01 | Registro e inicio de sesión de usuarios (Clientes, Operarios, Gerentes). | Alta |
+| RF-02 | Creación de incidencias por parte del cliente con descripción y fotos. | Alta |
+| RF-03 | Visualización del listado de trabajos en tiempo real según el rol. | Alta |
+| RF-04 | Emisión de presupuestos por parte del gerente para incidencias pendientes. | Alta |
+| RF-05 | Aceptación o rechazo de presupuestos por parte del cliente. | Alta |
+| RF-06 | Asignación de operarios específicos a trabajos aceptados. | Alta |
+| RF-07 | Reporte de finalización de trabajo por parte del operario con informe. | Alta |
+| RF-08 | Valoración del servicio recibido por parte del cliente (estrellas y comentario). | Media |
+| RF-09 | Gestión de perfil de usuario (edición de datos de contacto y foto). | Baja |
 
 #### Requerimientos no funcionales
 
-> [Escribe aquí la tabla de requerimientos no funcionales. Ejemplos: rendimiento, seguridad (bcrypt), escalabilidad, usabilidad, compatibilidad, etc.]
+Los requerimientos no funcionales se centran en que el sistema sea seguro, eficiente y capaz de aguantar a muchos usuarios a la vez sin perder rendimiento.
 
 | ID | Requerimiento | Descripción |
 |---|---|---|
-| RNF-01 | [Nombre...] | [Descripción...] |
-| RNF-02 | [Nombre...] | [Descripción...] |
-| ... | ... | ... |
+| RNF-01 | Concurrencia | El servidor debe ser capaz de gestionar al menos 100 conexiones simultáneas sin pérdida de datos. |
+| RNF-02 | Seguridad | Las contraseñas deben almacenarse mediante hash (BCrypt) y la comunicación debe ser mediante protocolo JSON. |
+| RNF-03 | Disponibilidad | El sistema debe estar preparado para su despliegue en la nube con un tiempo de actividad del 99%. |
+| RNF-04 | Escalabilidad | La arquitectura debe permitir añadir nuevos tipos de procesadores de red sin afectar al núcleo del servidor. |
+| RNF-05 | Usabilidad | La App móvil debe funcionar con fluidez incluso en dispositivos de gama media-baja. |
 
 #### Análisis de costes y viabilidad del proyecto
 
-> [Escribe aquí el análisis de la viabilidad técnica y económica. Puedes incluir costes de infraestructura (Firebase gratuito, AWS Free Tier), costes de desarrollo estimados en horas, herramientas gratuitas utilizadas (IntelliJ Community, Android Studio, etc.).]
+FixFinder es un proyecto totalmente viable porque aprovecha lo mejor del software libre. Además, el sistema está diseñado para vivir en la capa gratuita de AWS y Firebase hasta cierto punto siendo escalable bajo demanda, lo que significa que una empresa podría empezar a usarlo mañana mismo con un coste de infraestructura de cero euros. El valor real está en las horas de desarrollo para que todas las piezas encajen.
 
 ---
 
@@ -118,17 +137,24 @@
 
 #### Hitos del proyecto
 
-> [Especifica aquí los hitos principales del desarrollo. Puedes usar una lista ordenada cronológicamente: diseño inicial, implementación del servidor, implementación de la app, pruebas, etc.]
+Durante todo el desarrollo me he enfrentado a auténticos retos tanto de diseño como de implementación.
 
-| Hito | Descripción | Fecha Aproximada |
-|---|---|---|
-| 1 | [Hito 1...] | [Fecha...] |
-| 2 | [Hito 2...] | [Fecha...] |
-| ... | ... | ... |
+| Hito | Descripción | Fecha  |
+| :--- | :--- | :--- |
+| **1. Cimientos y Modelos** | Creación del proyecto base, diseño del modelo de datos inicial y DAOs básicos para la persistencia manual en MySQL. | **Dic 2025** |
+| **2. Handshake y Auth** | Implementación del protocolo de login funcional y las primeras pruebas de autorización de usuarios sobre socket TCP. | **Ene 2026** |
+| **3. Protocolo de Sockets** | Definición del protocolo binario de red (cabecera de 4 bytes) y ajustes de concurrencia multihilo en el servidor central. | **Feb 2026** |
+| **4. Simulador de pruebas** | Creación de un **simulador de conexión y flujo de datos** para validar el funcionamiento completo del sistema. | **Mar 2026** |
+| **5. Refactor v1 Local** | Hito de estabilidad local: limpieza profunda de "God Classes" en controladores y optimización de la lógica de red. | **Mar 2026** |
+| **6. Despliegue en AWS** | Configuración de entornos de producción con IP elástica en EC2 y persistencia relacional en RDS. | **Abr 2026** |
+| **7. Benchmarks y Test Finales** | Pruebas de carga con múltiples clientes concurrentes y validación de la estabilidad del sistema en la nube bajo demanda. | **Abr - May 2026** |
+| **8. Documentación y Memoria** | Redacción técnica final, diseño de diagramas definitivos y preparación de la presentación de defensa del proyecto. | **Mar - Jun 2026** |
 
 #### Diagrama de Gantt
 
-> [Inserta aquí la imagen del diagrama de Gantt o una tabla Markdown equivalente representando la planificación temporal del proyecto.]
+El cronograma del proyecto muestra una carga de trabajo intensiva en la fase de integración (marzo), donde se sincronizaron los tres módulos del sistema.
+
+![Diagrama de Gantt](diagramas/diagramaGantt.png)
 
 ---
 
@@ -136,13 +162,12 @@
 
 #### Descripción de los casos de uso
 
-> [Describe aquí los actores del sistema (Cliente, Operario, Gerente, Admin) y los principales casos de uso de cada uno. Por ejemplo: el cliente puede crear incidencias, ver el estado de sus reparaciones, aceptar presupuestos, etc.]
+En FixFinder cada uno tiene su papel: el **cliente** es quien pone la rueda en marcha, el **gerente** es el director de orquesta que organiza y presupuesta, y el **operario** es quien soluciona el problema sobre el terreno. Todos están conectados para que la información fluya sin interrupciones.
 
 **Actores principales:**
-- **Cliente:** [Descripción...]
-- **Operario:** [Descripción...]  
-- **Gerente:** [Descripción...]
-- **Administrador:** [Descripción...]
+- **Cliente:** Usuario final que demanda servicios de mantenimiento.
+- **Operario:** Técnico especialista encargado de ejecutar las reparaciones.  
+- **Gerente:** Supervisor de operaciones y responsable de gestión de la empresa.
 
 #### Diagrama de Casos de Uso (UML)
 
@@ -150,34 +175,17 @@
 
 ![Diagrama de Casos de Uso UML](diagramas/diagrama_casos_de_uso_UML.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
----
-config:
-  theme: 
-  layout: elk
----
-<!-- El contenido completo se encuentra en diagramas/diagrama_casos_de_uso_UML.txt -->
-```
-</details>
 
 ---
 
 #### Diagrama de Flujo de Casos de Uso
 
-> *Este diagrama representa el flujo completo de un proceso de incidencia, desde la creación por el cliente hasta el cierre y valoración, mostrando las transiciones de estado y los actores involucrados en cada paso.*
+> *Este diagrama representa el flujo completo de un proceso de incidencia, siguiendo la línea mas gruesa del diagrama, desde la creación por el cliente hasta el cierre y valoración, mostrando las transiciones de estado y los actores involucrados en cada paso.*
 
 ![Diagrama de Flujo de Casos de Uso](diagramas/diagrama_casos_de_uso_FLUJO.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_casos_de_uso_FLUJO.txt -->
-```
-</details>
 
 ---
 
@@ -185,7 +193,7 @@ config:
 
 #### Descripción de las clases (diseño inicial)
 
-> [Describe aquí el diseño de clases que tenías en mente al inicio del proyecto. No tiene por qué ser el definitivo. Menciona las entidades principales: Usuario, Cliente, Operario, Empresa, Trabajo, Presupuesto, Factura, etc.]
+Desde el principio tuve claro que la estructura debía ser sólida. Empecé con un diseño de clases sencillo donde todo gira alrededor del `Trabajo` (la avería). Quería que la herencia entre usuarios fuera limpia y que cada paso, desde el presupuesto hasta el pago final, quedara atado para no dejar cabos sueltos en la base de datos.
 
 #### Diagrama de Clases Simplificado (Inicial)
 
@@ -193,13 +201,7 @@ config:
 
 ![Diagrama de Clases Simplificado](diagramas/diagrama_clases_simple.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_clases_simple.txt -->
-```
-</details>
 
 ---
 
@@ -209,39 +211,29 @@ config:
 
 ![Diagrama Entidad-Relación](diagramas/diagrama_entidad_relacion.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_entidad_relacion.txt -->
-```
-</details>
 
 ---
 
 ## 3.5. Wireframes de interfaces
 
-> [Inserta aquí las imágenes de los wireframes o mockups de las pantallas principales de la aplicación móvil y del dashboard de escritorio. Si no tienes imágenes, describe las pantallas: Lista de trabajos, Detalle de trabajo, Creación de incidencia, Perfil de usuario, Panel del gerente, etc.]
+Las interfaces se diseñaron para ser directas y sin distracciones. En el escritorio buscamos la potencia y simplicidad haciendo una interfaz sencilla y funcional, y en el móvil usamos un sistema de tarjetas simples para que el cliente sepa al instante en qué punto está su reparación sin tener que leer textos largos.
 
+
+Capturas de escritorio y app.........................................
 ---
 
 ## 3.6. Otros diagramas y descripciones
 
-> [Esta sección es de libre uso para incluir cualquier otro diagrama relevante de la fase de análisis. En este caso, se incluye el diagrama de flujo completo del sistema.]
+Hasta yo mismo durante le desarrollo me he perdido en el flujo de datos, por lo que este diagrama es fundamental para entender el sistema. Desde que se crea la incidencia, pasa por el gerente que presupuesta, vuelve al cliente que la acepta, el gerente asigna operario, este finaliza la reparación, el cliente envia valoración, y mientras tanto el sistema trata y modifica todos los datos, el flujo puede perderse en cualquier momento.
 
 #### Diagrama de Flujo Completo del Sistema
 
-> *Representa el ciclo de vida completo de una incidencia en FixFinder, desde que el cliente la reporta hasta que se cierra con una factura pagada y valoración final.*
+> *Representa el ciclo de vida completo de una incidencia en FixFinder, desde que el cliente la reporta hasta que se cierra.*
 
 ![Diagrama de Flujo Completo](diagramas/diagrama_flujo_completo.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_flujo_completo.txt -->
-```
-</details>
 
 ---
 
@@ -251,7 +243,7 @@ config:
 
 #### Descripción de la arquitectura
 
-> [Describe aquí la arquitectura del sistema en capas: Capa de presentación (Flutter App + Dashboard JavaFX), Capa de red (Sockets TCP, protocolo JSON personalizado), Capa de lógica de negocio (Servicios), Capa de acceso a datos (Patrón DAO) y Capa de persistencia (MySQL + Firebase). Menciona el patrón Thread-per-client del servidor.]
+La arquitectura de FixFinder es como un puzzle donde todas las piezas encajan para que los datos vuelen de un sitio a otro. El **servidor** es el corazón que nunca duerme, atendiendo a cada cliente en su propio "carril" de ejecución (hilos). La **red** es el sistema circulatorio, usando un protocolo que nosotros mismos hemos diseñado para que los mensajes JSON viajen rápido y sin errores. Y finalmente, la **nube** (AWS y Firebase) nos da el músculo necesario para que el sistema sea real y no se quede solo en mi ordenador.
 
 #### Diagrama de Arquitectura del Backend
 
@@ -259,13 +251,7 @@ config:
 
 ![Diagrama de Arquitectura del Backend](diagramas/diagrama_backend.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_backend.txt -->
-```
-</details>
 
 ---
 
@@ -275,13 +261,7 @@ config:
 
 ![Diagrama de Despliegue Local](diagramas/diagrama_despliegue_local.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_despliegue_local.txt -->
-```
-</details>
 
 ---
 
@@ -291,13 +271,7 @@ config:
 
 ![Diagrama de Despliegue AWS](diagramas/diagrama_despliege_aws.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_despliege_aws.txt -->
-```
-</details>
 
 ---
 
@@ -305,7 +279,7 @@ config:
 
 #### Descripción de las clases (diseño final)
 
-> [Describe aquí el modelo de clases definitivo tras el desarrollo. Destaca cambios respecto al diseño inicial: herencia entre Usuario, Cliente y Operario, patrón DAO, patrón Repository (DataRepository), Servicios, Modelos FX para JavaFX, etc.]
+El diseño final es el resultado de muchas pruebas. Hemos conseguido que cada entidad (como un Trabajo o un Presupuesto) sepa exactamente qué tiene que hacer. La jerarquía de usuarios nos permite tratar a todos por igual en la base, pero darles "superpoderes" distintos según si eres cliente, operario o gerente. Todo está atado con estados claros que controlan que un trabajo no se salte pasos, como pagar algo que todavía no se ha terminado.
 
 #### Diagrama de Clases Completo (Definitivo)
 
@@ -313,13 +287,7 @@ config:
 
 ![Diagrama de Clases Completo](diagramas/diagrama_clases_completo.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_clases_completo.txt -->
-```
-</details>
 
 ---
 
@@ -327,32 +295,36 @@ config:
 
 #### Mockups y pantallas principales
 
-> [Inserta aquí capturas de pantalla reales de la aplicación (tanto del Dashboard JavaFX como de la App móvil Flutter) o los mockups de diseño previo. Describe brevemente cada pantalla: su propósito, los componentes principales y el flujo de navegación al que pertenece.]
+El diseño de la interfaz busca un equilibrio entre la densidad de información necesaria para la gestión y la simplicidad requerida por el usuario móvil. Se han utilizado paletas de colores sobrias con acentos vibrantes para los estados de las incidencias (naranja para pendientes, verde para finalizados, rojo para cancelados).
+
+**Flujo de diseño:**
+1. **Dashboard:** Orientado a la eficiencia. Uso de tablas con ordenación dinámica y filtrado por texto.
+2. **App Móvil:** Orientada a la acción. Navegación mediante barra inferior y botones de acción flotantes para la creación de contenido prioritario.
 
 **Pantallas de la App Móvil (Flutter):**
 
 > [Captura 1 — Pantalla de Login]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Interfaz minimalista que requiere email y contraseña. Permite el acceso diferenciado según el rol detectado por el servidor tras el handshake inicial.
 
 > [Captura 2 — Dashboard Cliente (Lista de Trabajos)]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Listado principal de incidencias del cliente. Muestra tarjetas con el título, categoría y un badge de estado visual. Permite el refresco mediante gesto *pull-to-refresh*.
 
 > [Captura 3 — Detalle de Trabajo / Incidencia]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Vista pormenorizada de una incidencia. Incluye la galería de fotos, descripción ampliada, datos de contacto del operario asignado y el desglose del presupuesto en caso de existir.
 
 > [Captura 4 — Perfil de Usuario]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Gestión de los datos personales del usuario. Permite cambiar la foto de perfil (subida a Firebase) y actualizar datos de contacto como teléfono o dirección principal.
 
 **Pantallas del Dashboard de Escritorio (JavaFX):**
 
 > [Captura 5 — Pantalla de Login del Dashboard]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Acceso restringido para personal administrativo. Utiliza el mismo protocolo de red que la app móvil pero con permisos de nivel Gerente/Admin.
 
 > [Captura 6 — Panel Principal (Lista de Incidencias del Gerente)]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Centro neurálgico de la gestión. Permite filtrar incidencias por estado, reasignar operarios de forma masiva y acceder a las métricas de rendimiento de la empresa.
 
 > [Captura 7 — Gestión de Operarios]  
-> [Escribe aquí una descripción breve de esta pantalla...]
+Módulo para el alta, baja y modificación de técnicos. Permite visualizar el estado actual de cada operario (activo/baja) y su carga de trabajo pendiente.
 
 ---
 
@@ -362,13 +334,7 @@ config:
 
 ![Diagrama de Navegación](diagramas/diagrama_navegacion.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_navegacion.txt -->
-```
-</details>
 
 ---
 
@@ -380,13 +346,7 @@ config:
 
 ![Diagrama de Componentes de la App](diagramas/diagrama_componentes_app.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_componentes_app.txt -->
-```
-</details>
 
 ---
 
@@ -396,13 +356,7 @@ config:
 
 ![Diagrama de Secuencia de Sockets](diagramas/diagrama_secuencia_sockets.png)
 
-<details>
-<summary>Ver código fuente Mermaid</summary>
 
-```mermaid
-<!-- El contenido completo se encuentra en diagramas/diagrama_secuencia_sockets.txt -->
-```
-</details>
 
 ---
 
@@ -410,7 +364,11 @@ config:
 
 ## 5.1. Estructura del proyecto
 
-> [Describe aquí la estructura de directorios del proyecto. Puedes incluir un árbol de carpetas simplificado mostrando los módulos: FIXFINDER (servidor + dashboard legacy), fixfinder_app (app Flutter), DOCS (documentación y diagramas).]
+El proyecto se organiza en tres grandes bloques desacoplados:
+
+1. **Módulo Central (Java):** Contiene tanto el servidor de sockets como el código compartido de modelos y lógica de negocio.
+2. **App Móvil (Flutter):** Proyecto Dart independiente que implementa la lógica de cliente para Android.
+3. **Documentación:** Carpeta centralizada con diagramas, esquemas SQL y la memoria técnica.
 
 ```
 FF/
@@ -469,15 +427,15 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 
 #### Servidor Java (Backend)
 
-> [Describe los componentes clave del servidor: `ServidorCentral`, `GestorConexion`, los `Procesadores` de cada acción, la capa de `Servicios`, los `DAOs` y el `DataRepository`. Menciona el patrón Thread-per-client y el protocolo JSON.]
+Actúa como el cerebro del sistema. Implementa la persistencia mediante DAOs y gestiona la comunicación bidireccional con los clientes mediante el protocolo de 4 bytes + JSON. Su arquitectura de procesadores permite una gran extensibilidad.
 
 #### Dashboard de Escritorio (JavaFX)
 
-> [Describe el dashboard: acceso por roles (Gerente/Admin), gestión de incidencias, gestión de operarios, registro de empresas/usuarios, el simulador E2E, etc.]
+Interfaz de alta productividad para el gerente. Se comunica con el servidor para la gestión masiva de incidencias, creación de presupuestos y administración de usuarios, integrando un simulador de estados para pruebas E2E.
 
 #### Aplicación Móvil (Flutter)
 
-> [Describe la app móvil: roles (Cliente y Operario), pantallas principales, comunicación via Sockets, gestión de fotos con Firebase Storage, notificaciones, etc.]
+Orientada a la movilidad de clientes y operarios. Gestiona fotos con Firebase Storage y utiliza un sistema de proveedores (Provider) para mantener la UI sincronizada con los mensajes asíncronos recibidos por el socket.
 
 ---
 
@@ -501,13 +459,13 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 
 ## 5.3. Despliegue de la aplicación
 
-> El entorno **local** (servidor corriendo en el PC con MySQL local y emuladores Android) se ha utilizado exclusivamente durante el **desarrollo y las pruebas**. El despliegue **final y definitivo** de la aplicación es sobre **AWS Free Tier**: el servidor Java se ejecuta en una instancia EC2 dentro de un contenedor Docker, la base de datos MySQL se aloja en RDS gestionado, y los clientes (App Flutter y Dashboard JavaFX) se conectan a través de la IP elástica pública de EC2. Las imágenes siguen subiéndose directamente a Firebase Storage desde los clientes.
+Aunque durante las pruebas nos hemos movido cómodamente en **local**, FixFinder está diseñado para volar en la **nube**. El salto a **AWS** no es solo por estética tecnológica; es lo que permite que el sistema sea real, accesible desde cualquier red y capaz de aguantar el ritmo de una empresa de verdad. El entorno local ha sido nuestro laboratorio, pero AWS es el mundo real.
 
 ---
 
 ## 5.4. Capturas de pantalla y ejemplos de código
 
-> [Inserta aquí capturas de pantalla que demuestren el funcionamiento del sistema en ejecución. Incluye al menos: el servidor en funcionamiento, el dashboard del gerente con una incidencia, la app móvil mostrando el listado de trabajos, y un flujo completo de creación de incidencia hasta su resolución.]
+No hay mejor forma de ver cómo funciona FixFinder que con imágenes reales. Aquí se puede ver el servidor procesando peticiones, el gerente organizando el trabajo y la app móvil lista para la acción. Es el resultado de meses de trabajo resumido en pantallas funcionales.
 
 > **Nota:** Los fragmentos de código relevantes se encuentran en el Anexo A (código fuente completo).
 
@@ -517,31 +475,31 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 
 ## 6.1. Evaluación del proyecto respecto a los objetivos iniciales
 
-> [Valora aquí en qué medida se han cumplido los objetivos planteados al inicio. ¿Qué está completamente implementado? ¿Qué quedó pendiente? ¿Se superaron las expectativas en algún aspecto?]
+Haciendo balance, FixFinder ha superado lo que imaginamos al principio. El flujo de trabajo funciona como un reloj: desde que el cliente pulsa "enviar" hasta que el operario marca como "terminado". Hemos conseguido integrar tres plataformas distintas con un protocolo propio, algo que parecía un mundo al empezar. Aunque siempre se puede mejorar (¡nunca se termina de programar del todo!), la base es sólida, profesional y cumple con todos los objetivos técnicos que nos marcamos.
 
 ---
 
 ## 6.2. Problemas encontrados y soluciones aplicadas
 
-> [Describe aquí los principales problemas técnicos y de diseño que surgieron durante el desarrollo, y cómo se resolvieron. Ejemplos: gestión de hilos en el servidor, sincronización de la UI de JavaFX con hilos de red, compatibilidad de módulos JavaFX, etc.]
+No voy a mentir: ha habido momentos difíciles. Sincronizar los hilos para que la pantalla no se quedara congelada mientras el servidor pensaba fue un reto (lo solucionamos con `Platform.runLater` y `Futures`), y entenderse con los sockets byte a byte nos llevó más tiempo de lo esperado (el protocolo de 4 bytes fue la clave). Pero cada problema ha servido para que el sistema sea hoy mucho más robusto.
 
 | Problema | Solución aplicada |
 |---|---|
-| [Problema 1...] | [Solución 1...] |
-| [Problema 2...] | [Solución 2...] |
-| [Problema 3...] | [Solución 3...] |
-| ... | ... |
+| Congelación de UI por red | Desplazamiento de tareas a hilos secundarios y actualización asíncrona. |
+| Corrupción de mensajes JSON | Implementación de cabecera de 4 bytes para prefijo de longitud. |
+| Carga lenta de imágenes | Integración de Firebase Storage con carga directa vía URL. |
+| Desconexiones inesperadas | Sistema de reconexión automática en el cliente (SocketService). |
 
 ---
 
 ## 6.3. Futuras mejoras y ampliaciones
 
-> [Lista aquí las mejoras que quedarían pendientes para una versión futura del proyecto. Ejemplos: push notifications reales, despliegue completo en AWS, sistema de chat en tiempo real, aplicación web administrativa, app para iOS, etc.]
+FixFinder es solo el principio. Lo siguiente sería añadir notificaciones "push" reales que te avisen al móvil al momento, un chat integrado para no depender de llamadas externas y, por qué no, una versión web para que el gerente pueda trabajar desde cualquier navegador sin instalar nada. El sistema está preparado para crecer.
 
-- [ ] [Mejora 1...]
-- [ ] [Mejora 2...]
-- [ ] [Mejora 3...]
-- [ ] [Mejora 4...]
+- [ ] Notificaciones Push nativas.
+- [ ] Sistema de Chat interno Cliente-Operario.
+- [ ] Dashboard administrativo en formato Web.
+- [ ] Generación automática de facturas en PDF.
 
 ---
 
@@ -549,13 +507,13 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 
 ## 7.1. Relación con los contenidos de los módulos
 
-> [Reflexión final sobre cómo el proyecto ha permitido aplicar y consolidar los conocimientos de cada uno de los módulos estudiados durante el ciclo. Sé específico con ejemplos concretos del proyecto para cada módulo.]
+Este proyecto ha sido el examen final perfecto. He tenido que poner en práctica todo lo aprendido en clase: desde cómo conectar una base de datos segura (Acceso a Datos) hasta cómo diseñar una interfaz que no confunda al usuario (DI y PMDM), pasando por la gestión de servidores y procesos en tiempo real (PSP y SGE). FixFinder no es solo código; es la suma de todo lo aprendido en estos dos años.
 
 ---
 
 ## 7.2. Valoración personal del proyecto
 
-> [Escribe aquí tu valoración personal del proceso de desarrollo: qué has aprendido, qué cambiarías si empezaras de nuevo, qué aspectos te han resultado más difíciles y más satisfactorios, etc.]
+Personalmente, FixFinder ha sido un reto increíble que me ha hecho crecer como programador. Me ha servido para darme cuenta de que lo más difícil no es escribir código, sino planificar cómo se van a hablar todas las partes de un sistema tan grande. Me voy con la satisfacción de haber creado algo que funciona de verdad, que resuelve un problema real y con muchas ganas de seguir puliendo el sistema. Ha sido, sin duda, la mejor forma de cerrar esta etapa.
 
 ---
 
@@ -575,7 +533,7 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 
 ### Anexo A — Código Fuente
 
-> [Referencia al archivo ZIP con el código fuente completo del proyecto, incluyendo los tres módulos: servidor Java, dashboard JavaFX y app Flutter.]
+Anexo A — Código Fuente completa.
 
 ### Anexo B — Guía de Instalación y Configuración
 
