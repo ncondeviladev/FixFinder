@@ -4,16 +4,12 @@ import '../services/socket_service.dart';
 import '../models/presupuesto.dart';
 import '../models/usuario.dart';
 
-/**
- * Servicio encargado de la comunicación con el servidor para temas relacionados con Trabajos.
- * Desacopla la lógica de red de los Providers de Flutter.
- */
+/// Servicio encargado de la comunicación con el servidor para temas relacionados con Trabajos.
+/// Desacopla la lógica de red de los Providers de Flutter.
 class JobApiService {
   final SocketService _socket = SocketService();
 
-  /**
-   * Obtiene la lista de trabajos para un usuario y rol específicos.
-   */
+  /// Obtiene la lista de trabajos para un usuario y rol específicos.
   Future<List<Trabajo>> fetchTrabajos(Usuario usuario) async {
     final Map<String, dynamic> peticion = {
       'accion': 'LISTAR_TRABAJOS',
@@ -44,9 +40,7 @@ class JobApiService {
     return [];
   }
 
-  /**
-   * Envía la creación de un nuevo trabajo.
-   */
+  /// Envía la creación de un nuevo trabajo.
   Future<bool> createTrabajo(
       Usuario usuario, Map<String, dynamic> datosTrabajo) async {
     datosTrabajo['idCliente'] = usuario.id;
@@ -62,9 +56,7 @@ class JobApiService {
     return true;
   }
 
-  /**
-   * Finaliza un trabajo con informe y fotos.
-   */
+  /// Finaliza un trabajo con informe y fotos.
   Future<bool> finalizeTrabajo(Usuario usuario, int idTrabajo, String informe,
       List<String>? fotos) async {
     final Map<String, dynamic> peticion = {
@@ -82,9 +74,7 @@ class JobApiService {
     return true;
   }
 
-  /**
-   * Obtiene presupuestos asociados a un trabajo.
-   */
+  /// Obtiene presupuestos asociados a un trabajo.
   Future<List<Presupuesto>> fetchPresupuestos(
       Usuario usuario, int idTrabajo) async {
     final Map<String, dynamic> peticion = {
@@ -114,9 +104,7 @@ class JobApiService {
     return [];
   }
 
-  /**
-   * Acepta un presupuesto específico.
-   */
+  /// Acepta un presupuesto específico.
   Future<bool> acceptPresupuesto(Usuario usuario, int idPresupuesto) async {
     final Map<String, dynamic> peticion = {
       'accion': 'ACEPTAR_PRESUPUESTO',
@@ -129,9 +117,7 @@ class JobApiService {
     return true;
   }
 
-  /**
-   * Registra la valoración de un cliente.
-   */
+  /// Registra la valoración de un cliente.
   Future<bool> valorateTrabajo(
       Usuario usuario, int idTrabajo, int valoracion, String comentario) async {
     final Map<String, dynamic> peticion = {
@@ -149,9 +135,7 @@ class JobApiService {
     return true;
   }
 
-  /**
-   * Cancela un trabajo con un motivo específico.
-   */
+  /// Cancela un trabajo con un motivo específico.
   Future<bool> cancelTrabajo(
       Usuario usuario, int idTrabajo, String motivo) async {
     final Map<String, dynamic> peticion = {
@@ -165,9 +149,7 @@ class JobApiService {
     return true;
   }
 
-  /**
-   * Modifica los datos de un trabajo existente.
-   */
+  /// Modifica los datos de un trabajo existente.
   Future<bool> modifyTrabajo(
       Usuario usuario, int idTrabajo, Map<String, dynamic> datos) async {
     datos['idTrabajo'] = idTrabajo;

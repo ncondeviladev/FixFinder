@@ -175,7 +175,7 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
               const SizedBox(height: 16),
               // Selector de urgencia
               DropdownButtonFormField<int>(
-                value: _urgenciaSeleccionada,
+                initialValue: _urgenciaSeleccionada,
                 decoration: const InputDecoration(
                   labelText: 'Urgencia',
                   prefixIcon: Icon(Icons.warning_amber),

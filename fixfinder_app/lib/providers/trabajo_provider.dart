@@ -6,13 +6,11 @@ import '../services/auth_service.dart';
 import '../services/job_api_service.dart';
 import '../models/presupuesto.dart';
 
-/**
- * Proveedor de estado (Provider) para la gestión del ciclo de vida de los Trabajos.
- * 
- * Orquestra el estado de la lista de incidencias para el usuario activo,
- * gestiona el refresco automático (polling) y delega las operaciones de red
- * al JobApiService.
- */
+/// Proveedor de estado (Provider) para la gestión del ciclo de vida de los Trabajos.
+/// 
+/// Orquestra el estado de la lista de incidencias para el usuario activo,
+/// gestiona el refresco automático (polling) y delega las operaciones de red
+/// al JobApiService.
 class TrabajoProvider with ChangeNotifier {
   final JobApiService _api = JobApiService();
   final SocketService _socket = SocketService();
@@ -30,9 +28,7 @@ class TrabajoProvider with ChangeNotifier {
     _inicializarEscuchaSockets();
   }
 
-  /**
-   * Configura la escucha de eventos en tiempo real.
-   */
+  /// Configura la escucha de eventos en tiempo real.
   void _inicializarEscuchaSockets() {
     _socket.respuestas.listen((respuesta) {
       if (respuesta['event'] == 'NEW_JOB_ASSIGNED') {
@@ -43,9 +39,7 @@ class TrabajoProvider with ChangeNotifier {
 
   // --- Gestión de Polling ---
 
-  /**
-   * Inicia el ciclo de refresco automático.
-   */
+  /// Inicia el ciclo de refresco automático.
   void startPolling({int intervaloSegundos = 15}) {
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(
@@ -54,18 +48,14 @@ class TrabajoProvider with ChangeNotifier {
     );
   }
 
-  /**
-   * Detiene el ciclo de refresco automático.
-   */
+  /// Detiene el ciclo de refresco automático.
   void stopPolling() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
   }
 
-  /**
-   * Actualiza la lista de trabajos sin disparar indicadores de carga invasivos.
-   * Solo notifica si detecta cambios críticos de estado.
-   */
+  /// Actualiza la lista de trabajos sin disparar indicadores de carga invasivos.
+  /// Solo notifica si detecta cambios críticos de estado.
   Future<void> _actualizarEstadoSilencioso() async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return;
@@ -95,9 +85,7 @@ class TrabajoProvider with ChangeNotifier {
 
   // --- Operaciones de Negocio ---
 
-  /**
-   * Carga completa de trabajos con indicador de carga.
-   */
+  /// Carga completa de trabajos con indicador de carga.
   Future<void> obtenerTrabajos() async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return;

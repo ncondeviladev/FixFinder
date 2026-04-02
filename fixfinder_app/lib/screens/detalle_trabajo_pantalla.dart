@@ -146,7 +146,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     }
 
     if (partesInforme.isNotEmpty) {
-      informeFinal = partesInforme.join('. ') + '.';
+      informeFinal = '${partesInforme.join('. ')}.';
     }
 
     final exito = await context.read<TrabajoProvider>().actualizarEstadoTrabajo(

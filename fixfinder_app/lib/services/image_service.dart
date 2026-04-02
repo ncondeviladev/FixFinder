@@ -3,9 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 
-/**
- * Servicio central para la gestión de imágenes (Selección y Subida a Firebase).
- */
+/// Servicio central para la gestión de imágenes (Selección y Subida a Firebase).
 class ImageService {
   static final ImageService _instance = ImageService._internal();
   factory ImageService() => _instance;
@@ -14,9 +12,7 @@ class ImageService {
   final ImagePicker _picker = ImagePicker();
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  /**
-   * Abre la galería para seleccionar una imagen.
-   */
+  /// Abre la galería para seleccionar una imagen.
   Future<File?> elegirImagen({ImageSource source = ImageSource.gallery}) async {
     try {
       final XFile? pick = await _picker.pickImage(
@@ -33,13 +29,11 @@ class ImageService {
     }
   }
 
-  /**
-   * Sube un archivo a Firebase Storage y devuelve la URL descargable.
-   * 
-   * @param archivo El archivo File local.
-   * @param carpeta Carpeta destino en Storage (ej: 'perfiles').
-   * @param nombreArchivo Nombre único del archivo.
-   */
+  /// Sube un archivo a Firebase Storage y devuelve la URL descargable.
+  /// 
+  /// @param archivo El archivo File local.
+  /// @param carpeta Carpeta destino en Storage (ej: 'perfiles').
+  /// @param nombreArchivo Nombre único del archivo.
   Future<String?> subirImagen(File archivo, String carpeta, String nombreArchivo) async {
     try {
       final String extension = archivo.path.split('.').last;

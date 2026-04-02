@@ -308,7 +308,8 @@ public class ProcesadorTrabajos {
             List<FotoTrabajo> actuales = fotoTrabajoDAO.obtenerPorTrabajo(idT);
             List<String> urlsActuales = new ArrayList<>();
             if (actuales != null) {
-                for (FotoTrabajo ft : actuales) urlsActuales.add(ft.getUrl());
+                for (FotoTrabajo ft : actuales)
+                    urlsActuales.add(ft.getUrl());
             }
             for (JsonNode node : array) {
                 String url = node.asText();
@@ -324,7 +325,8 @@ public class ProcesadorTrabajos {
             List<FotoTrabajo> actuales = fotoTrabajoDAO.obtenerPorTrabajo(idT);
             List<String> urlsActuales = new ArrayList<>();
             if (actuales != null) {
-                for (FotoTrabajo ft : actuales) urlsActuales.add(ft.getUrl());
+                for (FotoTrabajo ft : actuales)
+                    urlsActuales.add(ft.getUrl());
             }
             for (JsonNode f : array) {
                 String url = f.asText();
