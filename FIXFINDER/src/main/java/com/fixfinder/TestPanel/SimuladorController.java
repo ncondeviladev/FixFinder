@@ -1,4 +1,6 @@
-package com.fixfinder.controladores;
+package com.fixfinder.TestPanel;
+
+import com.fixfinder.config.GlobalConfig;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -503,7 +505,7 @@ public class SimuladorController {
     }
 
     private JsonNode enviarSolicitud(ObjectNode requestJson) {
-        try (Socket socket = new Socket("localhost", 5000);
+        try (Socket socket = new Socket(GlobalConfig.getServerIp(), GlobalConfig.PORT);
                 DataInputStream entrada = new DataInputStream(socket.getInputStream());
                 DataOutputStream salida = new DataOutputStream(socket.getOutputStream())) {
 

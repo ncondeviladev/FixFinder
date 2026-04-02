@@ -1,4 +1,4 @@
-package com.fixfinder.controladores;
+package com.fixfinder.TestPanel;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import javafx.beans.property.SimpleStringProperty;

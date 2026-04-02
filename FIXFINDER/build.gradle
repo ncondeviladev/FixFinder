@@ -98,3 +98,10 @@ task runDashboard(type: JavaExec) {
         '--add-modules', 'javafx.controls,javafx.fxml,javafx.graphics'
     ]
 }
+
+task runTestPanel(type: JavaExec) {
+    group = 'application'
+    description = 'Arranca el Panel de Pruebas Independiente'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.LanzadorTestPanel'
+}
