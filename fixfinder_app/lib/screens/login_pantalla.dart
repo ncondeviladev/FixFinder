@@ -1,6 +1,7 @@
 // Pantalla de inicio de sesión de la aplicación móvil.
 // Recibe las credenciales y las valida mediante el AuthService.
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
 import 'dart:async';
@@ -163,10 +164,11 @@ class _ConnectionStatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
-    if (isConectado == null) {
+    if (isConectado == null || !isConectado!) {
       color = Colors.grey;
     } else {
-      color = isConectado! ? Colors.green : Colors.blue;
+      final isNube = dotenv.get('ENVIRONMENT', fallback: 'LOCAL') == 'NUBE';
+      color = isNube ? Colors.green : Colors.blue;
     }
 
     return Container(
