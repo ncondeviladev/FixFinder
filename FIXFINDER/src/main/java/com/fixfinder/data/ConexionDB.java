@@ -1,5 +1,7 @@
 package com.fixfinder.data;
 
+import com.fixfinder.config.GlobalConfig;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -11,10 +13,10 @@ import java.sql.SQLException;
  */
 public class ConexionDB {
 
-    // 1. Configuración de la conexión (coincide con tu docker-compose.yml)
-    private static final String URL = "jdbc:mysql://localhost:3306/fixfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String USER = "user";
-    private static final String PASSWORD = "user";
+    // 1. Configuración dinámica (Smart Switch: Local vs AWS)
+    private static final String URL = GlobalConfig.getDbUrl();
+    private static final String USER = GlobalConfig.getDbUser();
+    private static final String PASSWORD = GlobalConfig.getDbPass();
 
     // 2. La variable estática que guardará la ÚNICA conexión
     private static Connection conexion;

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Servicio centralizado para la comunicación por Sockets con el servidor Java.
 /// 
@@ -19,9 +20,14 @@ class SocketService {
   /// Indica si hay una conexión activa con el servidor.
   bool get isConectado => _socket != null;
 
-  // Configuración de red
-  final String _servidor = '192.168.0.13';
-  final int _puerto = 5000;
+  // Configuración de red (Resuelta dinámicamente)
+  String get _servidor => dotenv.get(
+        dotenv.get('ENVIRONMENT') == 'NUBE'
+            ? 'SERVER_IP_NUBE'
+            : 'SERVER_IP_LOCAL',
+        fallback: '127.0.0.1',
+      );
+  int get _puerto => int.parse(dotenv.get('PORT', fallback: '5000'));
 
   bool _estaConectando = false;
   final StreamController<Map<String, dynamic>> _controladorRespuestas =
@@ -29,6 +35,18 @@ class SocketService {
 
   /// Stream de respuestas entrantes desde el servidor.
   Stream<Map<String, dynamic>> get respuestas => _controladorRespuestas.stream;
+
+  /// Verifica la conexión con el servidor (Ping)
+  Future<bool> ping() async {
+    try {
+      final s = await Socket.connect(_servidor, _puerto,
+          timeout: const Duration(seconds: 2));
+      s.destroy();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Establece la conexión con el servidor si no existe ya una activa.
   Future<bool> connect() async {

@@ -1,5 +1,7 @@
 package com.fixfinder;
 
+import com.fixfinder.config.GlobalConfig;
+
 import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.DataRepository;
 import com.fixfinder.data.DataRepositoryImpl;
@@ -39,9 +41,16 @@ public class DbClean {
                         // 1. Recrear Esquema (Asegura ENUMs actualizados)
                         SchemaUpdater.actualizarEsquema();
 
-                        // 2. Limpiar datos viejos residuales (Local + Nube)
+                        // 2. Limpiar datos viejos residuales (SEGURIDAD ACTIVA)
+                        if (GlobalConfig.MODO_NUBE) {
+                            System.err.println("¡ATENCIÓN! Modo NUBE detectado. ¿Deseas formatear AWS RDS? (escribe 'confirmar')");
+                            if (!new java.util.Scanner(System.in).nextLine().equals("confirmar")) {
+                                System.out.println("Abortado para proteger la nube.");
+                                return;
+                            }
+                            limpiarFirebaseStorage();
+                        }
                         limpiarBaseDeDatos();
-                        limpiarFirebaseStorage();
 
                         // 3. Inicializar DAOs
                         DataRepository repo = new DataRepositoryImpl();

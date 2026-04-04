@@ -2,6 +2,8 @@
 // Recibe las credenciales y las valida mediante el AuthService.
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/socket_service.dart';
+import 'dart:async';
 
 class LoginPantalla extends StatefulWidget {
   const LoginPantalla({super.key});
@@ -17,9 +19,30 @@ class _LoginPantallaState extends State<LoginPantalla> {
   final _passFocus = FocusNode();
   bool _cargando = false;
   String? _error;
+  bool? _isConectado;
+  Timer? _pingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkStatus();
+    _pingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _checkStatus();
+    });
+  }
+
+  Future<void> _checkStatus() async {
+    final status = await SocketService().ping();
+    if (mounted) {
+      setState(() {
+        _isConectado = status;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _pingTimer?.cancel();
     _emailController.dispose();
     _passController.dispose();
     _emailFocus.dispose();
@@ -60,6 +83,12 @@ class _LoginPantallaState extends State<LoginPantalla> {
                 child: ClipOval(child: Image.asset('assets/images/logo.png')),
               ),
         title: const Text('Iniciar Sesión'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: _ConnectionStatusDot(isConectado: _isConectado),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -121,6 +150,38 @@ class _LoginPantallaState extends State<LoginPantalla> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ConnectionStatusDot extends StatelessWidget {
+  final bool? isConectado;
+
+  const _ConnectionStatusDot({this.isConectado});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    if (isConectado == null) {
+      color = Colors.grey;
+    } else {
+      color = isConectado! ? Colors.green : Colors.blue;
+    }
+
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.5),
+            blurRadius: 4,
+            spreadRadius: 1,
+          ),
+        ],
       ),
     );
   }
