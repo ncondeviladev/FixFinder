@@ -9,7 +9,7 @@ public class GlobalConfig {
 
     // --- CONFIGURACIÓN DE RED (IPs y Puertos) ---
     public static final String LOCAL_IP = "127.0.0.1";
-    public static final String CLOUD_IP = "51.48.149.20";
+    public static final String CLOUD_IP = "18.101.131.34";
     public static final int PORT = 5000;
 
     // --- CONFIGURACIÓN DE BASE DE DATOS (Local vs RDS) ---

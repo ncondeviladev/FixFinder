@@ -384,6 +384,7 @@ public class ServiceTest {
             assertEquals(EstadoTrabajo.REALIZADO, tCheck.getEstado());
 
             // Generar Factura
+            /* Comentado para evitar ruido en la base de datos de producción (AWS)
             Factura f = facturaService.generarFactura(tPresu.getId());
             assertNotNull(f, "Factura no debe ser nula");
             assertNotNull(f.getId(), "Factura debe tener ID");
@@ -393,6 +394,7 @@ public class ServiceTest {
             facturaService.marcarComoPagada(f.getId());
             Factura fPagada = facturaService.obtenerPorTrabajo(tPresu.getId());
             assertTrue(fPagada.isPagada());
+            */
 
         } catch (Exception e) {
             System.err.println("❌ Error en testFinanzasFlow: " + e.getMessage());
