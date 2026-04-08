@@ -22,3 +22,4 @@ bin/
 out/
 # Secrets and Credentials
 FIXFINDER/src/main/resources/firebase-service-account.json
+*.pem

@@ -1,15 +1,21 @@
 package com.fixfinder.ui.dashboard.dialogos;
 
+import com.fixfinder.ui.dashboard.componentes.tabla.UtilidadesTabla;
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 
 /**
  * Diálogo modal de solo lectura que muestra los datos de contacto del cliente
@@ -55,22 +61,34 @@ public class DialogoFichaCliente {
         String fotoUrl = t.getClienteUrlFoto();
         if (fotoUrl != null && !fotoUrl.isBlank() && !fotoUrl.equals("null")) {
             try {
-                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(new javafx.scene.image.Image(fotoUrl, 64, 64, true, true, true));
-                iv.setFitWidth(60);
-                iv.setFitHeight(60);
-                iv.setPreserveRatio(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(30, 30, 30);
-                iv.setClip(clip);
-                avatar.getChildren().add(iv);
+                // Cargamos la imagen de forma asíncrona
+                Image img = new Image(fotoUrl, 128, 128, true, true, true);
+                
+                Circle circuloFoto = new Circle(32);
+                circuloFoto.setSmooth(true);
+                // Color de fondo (pincel temporal mientras carga)
+                circuloFoto.setFill(Color.web("#2D3348"));
+
+                // TRUCO: Cuando la imagen carga (progreso == 1), aplicamos el patrón de relleno
+                img.progressProperty().addListener((obs, old, progress) -> {
+                    if (progress.doubleValue() == 1.0 && !img.isError()) {
+                        Platform.runLater(() -> {
+                            circuloFoto.setFill(new ImagePattern(img));
+                        });
+                    }
+                });
+                
+                // Si ya está cargada (caché o carga inmediata)
+                if (img.getProgress() == 1.0 && !img.isError()) {
+                    circuloFoto.setFill(new ImagePattern(img));
+                }
+                
+                avatar.getChildren().add(circuloFoto);
             } catch (Exception e) {
-                Label lIni = new Label(iniciales(t.getCliente()));
-                lIni.setStyle("-fx-text-fill: #F97316; -fx-font-size: 24px; -fx-font-weight: bold;");
-                avatar.getChildren().add(lIni);
+                avatar.getChildren().add(UtilidadesTabla.generarMiniAvatar(t.getCliente()));
             }
         } else {
-            Label lIni = new Label(iniciales(t.getCliente()));
-            lIni.setStyle("-fx-text-fill: #F97316; -fx-font-size: 24px; -fx-font-weight: bold;");
-            avatar.getChildren().add(lIni);
+            avatar.getChildren().add(UtilidadesTabla.generarMiniAvatar(t.getCliente()));
         }
 
         VBox titulos = new VBox(2);
@@ -110,14 +128,5 @@ public class DialogoFichaCliente {
         val.setWrapText(true);
         f.getChildren().addAll(lbl, val);
         return f;
-    }
-
-    private String iniciales(String nombre) {
-        if (nombre == null || nombre.isBlank())
-            return "?";
-        String[] p = nombre.trim().split("\\s+");
-        return p.length >= 2
-                ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()
-                : nombre.substring(0, Math.min(1, nombre.length())).toUpperCase();
     }
 }

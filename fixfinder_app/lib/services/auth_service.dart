@@ -1,6 +1,7 @@
 // Servicio de Autenticación.
 // Gestiona el login, logout y la persistencia de sesión mediante SharedPreferences.
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/usuario.dart';
@@ -17,37 +18,11 @@ class AuthService {
   Usuario? get usuarioActual => _usuarioActual;
 
   Future<bool> login(String email, String password) async {
-    final Map<String, dynamic> peticion = {
-      'accion': 'LOGIN',
-      'datos': {
-        'email': email,
-        'password': password,
-      }
-    };
-
-    StreamSubscription? suscripcion;
     try {
-      await _socket.connect();
-
-      final completer = Completer<Map<String, dynamic>>();
-
-      suscripcion = _socket.respuestas.listen((respuesta) {
-        final msg = respuesta['mensaje']?.toString() ?? '';
-        final status = respuesta['status'];
-        // Solo completar si es una respuesta de LOGIN: tiene token o es un error de auth
-        if (status == 200 && respuesta['token'] != null) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        } else if (status == 401 && msg.contains('redencial')) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        } else if (status == 500 && msg.contains('nterno')) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        }
+      final respuesta = await _socket.request('LOGIN', {
+        'email': email.trim(),
+        'password': password.trim(),
       });
-
-      await _socket.send(peticion);
-
-      final respuesta =
-          await completer.future.timeout(const Duration(seconds: 10));
 
       if (respuesta['status'] == 200) {
         final datosUsuario = respuesta['datos'];
@@ -58,22 +33,19 @@ class AuthService {
           'token': token,
         });
 
-        // INTENTO DE PERSISTENCIA (Si falla por los plugins de Windows, lo ignoramos)
+        // Intentar persistir la sesión
         try {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(
               'userData', jsonEncode(_usuarioActual!.toJson()));
-        } catch (e) {
-          // No se pudo persistir la sesión, continuamos en memoria
-        }
+        } catch (_) {}
 
         return true;
       }
       return false;
     } catch (e) {
+      debugPrint('[AuthService] Error en login: $e');
       return false;
-    } finally {
-      await suscripcion?.cancel();
     }
   }
 
@@ -108,52 +80,29 @@ class AuthService {
   Future<bool> actualizarFotoPerfil(String urlFoto) async {
     if (_usuarioActual == null) return false;
 
-    final Map<String, dynamic> peticion = {
-      'accion': 'ACTUALIZAR_FOTO_PERFIL',
-      'token': _usuarioActual!.token,
-      'datos': {
-        'idUsuario': _usuarioActual!.id,
-        'url_foto': urlFoto,
-      }
-    };
-
-    StreamSubscription? suscripcion;
     try {
-      await _socket.connect();
-      final completer = Completer<Map<String, dynamic>>();
-
-      suscripcion = _socket.respuestas.listen((respuesta) {
-        final msg = respuesta['mensaje']?.toString() ?? '';
-
-        if (msg.contains('Foto de perfil actualizada')) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        } else if (respuesta['status'] != 200 &&
-            msg.contains('Error al actualizar foto')) {
-          if (!completer.isCompleted) {
-            completer.completeError('Error del servidor: $msg');
-          }
-        }
-      });
-
-      await _socket.send(peticion);
-
-      final respuesta =
-          await completer.future.timeout(const Duration(seconds: 10));
+      final respuesta = await _socket.request(
+        'ACTUALIZAR_FOTO_PERFIL',
+        {
+          'idUsuario': _usuarioActual!.id,
+          'url_foto': urlFoto,
+        },
+        token: _usuarioActual!.token,
+      );
 
       if (respuesta['status'] == 200) {
         _usuarioActual!.urlFoto = urlFoto;
-
         try {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(
               'userData', jsonEncode(_usuarioActual!.toJson()));
-        } catch (e) {}
-
+        } catch (_) {}
         return true;
       }
       return false;
-    } finally {
-      await suscripcion?.cancel();
+    } catch (e) {
+      debugPrint('[AuthService] Error actualizando foto: $e');
+      return false;
     }
   }
 
@@ -166,9 +115,8 @@ class AuthService {
     required String password,
     String? urlFoto,
   }) async {
-    final Map<String, dynamic> peticion = {
-      'accion': 'REGISTRO_USUARIO',
-      'datos': {
+    try {
+      final respuesta = await _socket.request('REGISTRO_USUARIO', {
         'esOperario': false,
         'nombreCompleto': nombre,
         'dni': dni,
@@ -177,29 +125,10 @@ class AuthService {
         'telefono': telefono,
         'direccion': direccion,
         'url_foto': urlFoto ?? '',
-      }
-    };
-
-    StreamSubscription? suscripcion;
-    try {
-      if (!_socket.isConectado) await _socket.connect();
-
-      final completer = Completer<Map<String, dynamic>>();
-      suscripcion = _socket.respuestas.listen((respuesta) {
-        final msg = respuesta['mensaje']?.toString() ?? '';
-        if (msg.contains('registrado') ||
-            msg.contains('Error') ||
-            respuesta['status'] != null) {
-          if (!completer.isCompleted) completer.complete(respuesta);
-        }
       });
-
-      await _socket.send(peticion);
-      return await completer.future.timeout(const Duration(seconds: 15));
+      return respuesta;
     } catch (e) {
       return {'status': 500, 'mensaje': 'Error de conexión: $e'};
-    } finally {
-      await suscripcion?.cancel();
     }
   }
 }

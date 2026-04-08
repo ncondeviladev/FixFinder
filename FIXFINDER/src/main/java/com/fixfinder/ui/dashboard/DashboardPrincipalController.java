@@ -12,6 +12,7 @@ import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
 import com.fixfinder.ui.dashboard.utils.BackgroundService;
 import com.fixfinder.ui.dashboard.utils.VistaRouter;
 import com.fixfinder.ui.dashboard.vistas.VistaDashboard;
+import com.fixfinder.ui.dashboard.vistas.VistaEmpresa;
 import com.fixfinder.utilidades.ClienteException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -272,7 +273,7 @@ public class DashboardPrincipalController {
                 infoEmpresaActual.put(entry.getKey(), entry.getValue().asText());
             }
         });
-        if (rootPane != null && rootPane.getCenter() instanceof com.fixfinder.ui.dashboard.vistas.VistaEmpresa) {
+        if (rootPane != null && rootPane.getCenter() instanceof VistaEmpresa) {
             navegarA("empresa");
         }
     }

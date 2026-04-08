@@ -653,6 +653,43 @@ Las siguientes mejoras estructurales y de rendimiento han sido implementadas:
 
 ---
 
+## ✅ SESIÓN 08/04/2026 — Refactor Estructural, IDs de Transacción y Estabilización
+
+### Lo que hemos conseguido hoy (Resumen Técnico)
+
+#### 🚀 1. Refactor de Red y Protocolo (Capa de Transporte)
+- **Implementación de Transaction IDs (`txid`)**: Hemos blindado la comunicación Sockets. Ahora cada paquete JSON incluye un `txid` único generado por el cliente. El servidor devuelve el mismo ID en la respuesta, lo que permite a la App y al Dashboard saber exactamente qué respuesta corresponde a qué petición, eliminando colisiones asíncronas.
+- **Refactor de `socket_service.dart`**: Implementado el método maestro `request()`. Hemos eliminado más de 200 líneas de código repetitivo (boilerplate) en los providers de Flutter. Ahora las peticiones son atómicas, tienen timeout integrado y son mucho más seguras.
+- **Estandarización de Claves**: Unificado el campo de imagen a **`url_foto`** en todo el sistema (Servidor, Dashboard y App), terminando con los fallos de visualización cruzada.
+
+#### 🛠️ 2. Modularización del Dashboard (JavaFX)
+- **Muerte a la God Class (`TablaIncidencias.java`)**: Hemos desmontado el "Objeto Dios". La lógica de la tabla ahora está segmentada:
+    - **Celdas Independientes**: `CeldaOperario`, `CeldaEstado`, etc., tienen su propia clase, facilitando el mantenimiento.
+    - **Gestores de Diálogos**: La lógica de abrir fichas y presupuestos se ha movido a controladores específicos.
+- **Estabilización de Avatares**: Implementada carga asíncrona robusta y recorte circular con efecto "cover" real. Las fichas de cliente y operario ahora lucen una UI premium y fluida.
+
+#### 🔒 3. Seguridad y UX
+- **Confirmación de Salida**: Añadido diálogo de seguridad (Sí/No) en el logout del Dashboard.
+- **Limpieza de Tabla**: Eliminado ruido visual en la columna de operarios asignados, priorizando la legibilidad del texto sobre el avatar innecesario.
+
+#### 🏗️ 4. Estabilización del Entorno de Desarrollo
+- **Fix de Infraestructura**: Configurado el uso de **Gradle 8.10 global** ante la corrupción del wrapper local.
+- **Recuperación de Emulador**: Aplicado Cold Boot y limpieza de procesos zombies (`qemu`, `java`) para restaurar la visibilidad de la App.
+
+---
+
+## 🎯 PRÓXIMOS PASOS (URGENTE)
+
+### Prioridad 1 — Lógica de Presupuesto (Pendiente)
+- [ ] **Rechazar Presupuesto:** Implementar el flujo para que el cliente pueda rechazar ofertas y la incidencia vuelva a estado `PENDIENTE`.
+- [ ] **Reset de Descripción:** Al rechazar, limpiar notas previas de la descripción técnica para volver al mensaje original.
+
+### Prioridad 2 — Perfil y Datos
+- [ ] **Modificar Datos Personales:** Habilitar edición de teléfono y dirección en la App (ahora solo funciona la foto).
+
+### Prioridad 3 — Memoria
+- [ ] Redactar los campos de texto de `DOCS/MEMORIA.md` y volcar las capturas finales de hoy.
+
 ## 🚀 FASE 4: DESPLIEGUE REAL EN AWS (FREE TIER)
 
 ### 1. Seguridad y Control de Gastos (COMPLETADO)
@@ -746,8 +783,9 @@ Las siguientes mejoras estructurales y de rendimiento han sido implementadas:
 
 ## 🎯 PRÓXIMOS PASOS (SIGUIENTE SESIÓN)
 
-### Prioridad 1 — Bugfix pendiente
-- [ ] **Foto de perfil del cliente en la ficha del Dashboard** no se visualiza. Investigar `DialogoFichaCliente.java` y la carga de imagen desde URL de Firebase.
+### Prioridad 1 — Bugfix pendiente (COMPLETADO 08/04)
+- [x] **Foto de perfil del cliente en la ficha del Dashboard:** ¡Resuelto! Corregida carga asíncrona y mapeo de campo JSON.
+
 
 ### Prioridad 2 — Despliegue AWS (Producción)
 - [ ] **Levantar RDS MySQL:** Crear instancia `db.t3.micro`, configurar Security Group (puerto 3306 solo desde EC2).
@@ -1003,7 +1041,8 @@ Recuperación total de las herramientas de simulación de bajo nivel:
 *   **Simulador E2E:** Recuperado el simulador completo para realizar flujos de "Un Solo Hombre" (Gerente/Operario/Cliente a la vez).
 
 #### 5. Optimización de Compilación
-*   **Gradle Magic:** Añadida la tarea personalizada unTestPanel en uild.gradle que permite el lanzamiento limpio de las herramientas de test sin pasar por el modularismo estricto de JavaFX, resolviendo errores de visión de clases con las librerías de Firebase.
+*   **Gradle Magic:** Añadida la tarea personalizada 
+unTestPanel en uild.gradle que permite el lanzamiento limpio de las herramientas de test sin pasar por el modularismo estricto de JavaFX, resolviendo errores de visión de clases con las librerías de Firebase.
 
 ---
 

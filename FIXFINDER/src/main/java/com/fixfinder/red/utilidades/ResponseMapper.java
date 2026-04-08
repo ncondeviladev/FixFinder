@@ -88,7 +88,7 @@ public class ResponseMapper {
         node.put("nombre", u.getNombreCompleto());
         node.put("telefono", u.getTelefono());
         node.put("email", u.getEmail());
-        node.put("foto", u.getUrlFoto());
+        node.put("url_foto", u.getUrlFoto());
         node.put("direccion", u.getDireccion());
 
         if (u instanceof Operario) {

@@ -1,8 +1,11 @@
 package com.fixfinder.ui.dashboard.componentes;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -11,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
@@ -159,7 +163,23 @@ public class Sidebar extends VBox {
         Button btnLogout = new Button("↪");
         btnLogout.getStyleClass().add("btn-logout");
         btnLogout.setTooltip(new Tooltip("Cerrar sesión"));
-        btnLogout.setOnAction(e -> onLogout.run());
+        btnLogout.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Cerrar Sesión");
+            alert.setHeaderText("¿Estás seguro de que deseas salir?");
+            alert.setContentText("Cualquier cambio no guardado podría perderse.");
+
+            // Personalizamos los botones a Sí/No para que sea más claro
+            ButtonType btnSi = new ButtonType("Sí");
+            ButtonType btnNo = new ButtonType("No", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(btnSi, btnNo);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == btnSi) {
+                    onLogout.run();
+                }
+            });
+        });
 
         row.getChildren().addAll(avatarPane, info, btnLogout);
         box.getChildren().add(row);
@@ -171,10 +191,25 @@ public class Sidebar extends VBox {
     private void cargarFotoEnPane(StackPane pane, String url, String nombre) {
         if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
             try {
-                Image img = new Image(url, 36, 36, true, true, false);
-                ImageView iv = new ImageView(img);
-                iv.setClip(new Circle(18, 18, 18));
-                pane.getChildren().add(iv);
+                // Carga asíncrona de alta calidad
+                Image img = new Image(url, 72, 72, true, true, true);
+                Circle circulo = new Circle(18);
+                circulo.setSmooth(true);
+                circulo.setFill(javafx.scene.paint.Color.web("#1A1D27")); // Fondo neutro mientras carga
+
+                img.progressProperty().addListener((obs, old, progress) -> {
+                    if (progress.doubleValue() == 1.0) {
+                        Platform.runLater(() -> {
+                            circulo.setFill(new ImagePattern(img));
+                        });
+                    }
+                });
+
+                if (img.getProgress() == 1.0) {
+                    circulo.setFill(new ImagePattern(img));
+                }
+
+                pane.getChildren().add(circulo);
             } catch (Exception e) {
                 mostrarAvatarTexto(pane, nombre);
             }

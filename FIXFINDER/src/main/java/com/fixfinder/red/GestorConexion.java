@@ -95,6 +95,11 @@ public class GestorConexion implements Runnable {
                         respuesta.put("status", 400);
                         respuesta.put("mensaje", "Falta campo 'accion'");
                     } else {
+                        // REBOTAR ID DE PETICIÓN (Si existe) para el sistema de tickets
+                        if (nodo.has("id_peticion")) {
+                            respuesta.set("id_peticion", nodo.get("id_peticion"));
+                        }
+
                         String accion = nodo.get("accion").asText();
                         respuesta.put("accion", accion);
                         JsonNode datos = nodo.get("datos");

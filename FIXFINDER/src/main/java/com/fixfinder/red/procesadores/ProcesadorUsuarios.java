@@ -16,6 +16,7 @@ import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
+import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.service.interfaz.OperarioService;
 import com.fixfinder.utilidades.ServiceException;
 
@@ -202,8 +203,7 @@ public class ProcesadorUsuarios {
                 }
                 if (datos.has("especialidad")) {
                     try {
-                        op.setEspecialidad(com.fixfinder.modelos.enums.CategoriaServicio
-                                .valueOf(datos.get("especialidad").asText()));
+                        op.setEspecialidad(CategoriaServicio.valueOf(datos.get("especialidad").asText()));
                     } catch (Exception ignored) { }
                 }
                 if (datos.has("estaActivo")) op.setEstaActivo(datos.get("estaActivo").asBoolean());

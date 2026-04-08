@@ -36,7 +36,9 @@ public class TrabajoFX {
                     : c.has("nombreCompleto") ? c.get("nombreCompleto").asText() : "";
             cliTelefono = c.has("telefono") ? c.get("telefono").asText() : "";
             cliEmail = c.has("email") ? c.get("email").asText() : "";
-            cliUrlFoto = c.has("url_foto") && !c.get("url_foto").isNull() ? c.get("url_foto").asText() : "";
+            cliUrlFoto = c.has("url_foto") ? c.get("url_foto").asText()
+                    : c.has("urlFoto") ? c.get("urlFoto").asText()
+                    : c.has("foto") ? c.get("foto").asText() : "";
         }
 
         if (cliente.isBlank() && n.has("nombreCliente") && !n.get("nombreCliente").isNull()) {

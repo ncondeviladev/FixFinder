@@ -4,6 +4,7 @@ import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -13,12 +14,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 
 /**
@@ -202,23 +203,25 @@ public class VistaOperarios extends VBox {
 
         if (urlFoto != null && (urlFoto.startsWith("http://") || urlFoto.startsWith("https://"))) {
             try {
-                // backgroundLoading=true: descarga en hilo secundario, sin congelar la UI
-                // Se muestran las iniciales de placeholder hasta que la imagen esté lista
-                Image img = new Image(urlFoto, size, size, true, true, true);
-                ImageView iv = new ImageView(img);
-                iv.setFitWidth(size);
-                iv.setFitHeight(size);
-                iv.setClip(new Circle(size / 2.0, size / 2.0, size / 2.0));
+                // Carga asíncrona de 2 niveles de calidad
+                Image img = new Image(urlFoto, size * 2, size * 2, true, true, true);
+                Circle circuloFoto = new Circle(size / 2.0);
+                circuloFoto.setSmooth(true);
+                circuloFoto.setFill(Color.TRANSPARENT);
 
-                // Si la carga falla, quitar el ImageView y mostrar iniciales
-                img.errorProperty().addListener((obs, wasErr, isErr) -> {
-                    if (isErr) {
-                        av.getChildren().remove(iv);
-                        mostrarIniciales(av, nombre, size);
+                img.progressProperty().addListener((obs, old, progress) -> {
+                    if (progress.doubleValue() == 1.0) {
+                        Platform.runLater(() -> {
+                            circuloFoto.setFill(new ImagePattern(img));
+                        });
                     }
                 });
 
-                av.getChildren().add(iv);
+                if (img.getProgress() == 1.0) {
+                    circuloFoto.setFill(new ImagePattern(img));
+                }
+
+                av.getChildren().add(circuloFoto);
                 return av;
             } catch (Exception ignored) {
             }

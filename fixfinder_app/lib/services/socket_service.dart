@@ -30,11 +30,42 @@ class SocketService {
   int get _puerto => int.parse(dotenv.get('PORT', fallback: '5000'));
 
   bool _estaConectando = false;
+  
+  // Mapa para gestionar el patrón Request-Response (Tickets)
+  final Map<String, Completer<Map<String, dynamic>>> _peticionesPendientes = {};
+  
   final StreamController<Map<String, dynamic>> _controladorRespuestas =
       StreamController.broadcast();
 
-  /// Stream de respuestas entrantes desde el servidor.
+  /// Stream de respuestas entrantes desde el servidor (para eventos Push).
   Stream<Map<String, dynamic>> get respuestas => _controladorRespuestas.stream;
+
+  /// Envía una petición y espera su respuesta específica mediante un ID único.
+  Future<Map<String, dynamic>> request(String accion, Map<String, dynamic> datos, {String? token, Duration timeout = const Duration(seconds: 15)}) async {
+    final String idTicket = DateTime.now().microsecondsSinceEpoch.toString();
+    final Completer<Map<String, dynamic>> completer = Completer();
+    
+    _peticionesPendientes[idTicket] = completer;
+
+    final Map<String, dynamic> peticion = {
+      'id_peticion': idTicket,
+      'accion': accion,
+      'datos': datos,
+    };
+
+    // Si nos pasan un token, lo ponemos al nivel superior (como pide el GestorConexion de Java)
+    if (token != null) {
+      peticion['token'] = token;
+    }
+    
+    try {
+      await send(peticion);
+      return await completer.future.timeout(timeout);
+    } catch (e) {
+      _peticionesPendientes.remove(idTicket);
+      rethrow;
+    }
+  }
 
   /// Verifica la conexión con el servidor (Ping)
   Future<bool> ping() async {
@@ -110,7 +141,16 @@ class SocketService {
           final String jsonStr =
               utf8.decode(mensajeBytes, allowMalformed: true);
           final Map<String, dynamic> respuesta = jsonDecode(jsonStr);
-          _controladorRespuestas.add(respuesta);
+          
+          // LÓGICA DE TICKETS: ¿Es respuesta a una petición nuestra?
+          final String? idTicket = respuesta['id_peticion']?.toString();
+          if (idTicket != null && _peticionesPendientes.containsKey(idTicket)) {
+            _peticionesPendientes[idTicket]!.complete(respuesta);
+            _peticionesPendientes.remove(idTicket);
+          } else {
+            // Si no tiene ID o es un evento PUSH del servidor, va al canal general
+            _controladorRespuestas.add(respuesta);
+          }
         } catch (e) {
           debugPrint('[Socket] Error al procesar mensaje: $e');
         }

@@ -12,18 +12,28 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint("🚀 Iniciando FixFinder App...");
 
   // Cargar variables de entorno securizadas
   try {
+    debugPrint("📂 Cargando .env...");
     await dotenv.load(fileName: ".env");
+    debugPrint("✅ .env cargado.");
   } catch (e) {
-    debugPrint("Advertencia: No se pudo cargar el archivo .env: $e");
+    debugPrint("⚠️ Advertencia: No se pudo cargar el archivo .env: $e");
   }
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    debugPrint("🔥 Inicializando Firebase...");
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint("✅ Firebase listo.");
+  } catch (e) {
+    debugPrint("❌ Error Firebase (ignorado): $e");
+  }
 
+  debugPrint("🏗️ Arrancando aplicación...");
   runApp(
     MultiProvider(
       providers: [
