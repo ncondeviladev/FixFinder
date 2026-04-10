@@ -2,12 +2,9 @@ package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.interfaces.*;
-import com.fixfinder.modelos.Operario;
-import com.fixfinder.modelos.Trabajo;
-import com.fixfinder.modelos.componentes.FotoTrabajo;
-import com.fixfinder.modelos.componentes.Ubicacion;
-import com.fixfinder.modelos.enums.CategoriaServicio;
-import com.fixfinder.modelos.enums.EstadoTrabajo;
+import com.fixfinder.modelos.*;
+import com.fixfinder.modelos.componentes.*;
+import com.fixfinder.modelos.enums.*;
 import com.fixfinder.utilidades.DataAccessException;
 
 import java.sql.*;
@@ -253,11 +250,45 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     }
 
     /**
+     * Obtiene solo los trabajos que tienen valoración y pertenecen a la empresa indicada.
+     * Optimizado mediante JOIN para evitar filtrado en memoria en el servidor.
+     */
+    @Override
+    public List<Trabajo> obtenerValoracionesPorEmpresa(int idEmpresa) throws DataAccessException {
+        String sql = "SELECT t.* FROM trabajo t " +
+                     "JOIN operario o ON t.id_operario = o.id " +
+                     "WHERE o.id_empresa = ? AND t.valoracion > 0";
+        List<Trabajo> lista = new ArrayList<>();
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idEmpresa);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al obtener valoraciones de la empresa " + idEmpresa, e);
+        }
+
+        // Cargar relaciones
+        for (Trabajo t : lista) {
+            cargarRelaciones(t);
+        }
+
+        return lista;
+    }
+
+    /**
      * Obtiene los trabajos pendientes de una categoría específica.
      * Útil para que los operarios vean qué hay disponible.
      */
+    @Override
     public List<Trabajo> obtenerPendientesPorCategoria(CategoriaServicio categoria) throws DataAccessException {
-        String sql = "SELECT * FROM trabajo WHERE estado = 'PENDIENTE' AND categoria = ?";
+        String sql = "SELECT * FROM trabajo WHERE (estado = 'PENDIENTE' OR estado = 'PRESUPUESTADO') AND categoria = ?";
         List<Trabajo> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();

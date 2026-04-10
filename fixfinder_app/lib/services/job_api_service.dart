@@ -102,6 +102,20 @@ class JobApiService {
     }
   }
 
+  /// Rechaza un presupuesto específico.
+  Future<bool> rejectPresupuesto(Usuario usuario, int idPresupuesto) async {
+    try {
+      final respuesta = await _socket.request(
+        'RECHAZAR_PRESUPUESTO',
+        {'idPresupuesto': idPresupuesto},
+        token: usuario.token,
+      );
+      return respuesta['status'] == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Registra la valoración de un cliente.
   Future<bool> valorateTrabajo(
       Usuario usuario, int idTrabajo, int valoracion, String comentario) async {

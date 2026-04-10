@@ -1,58 +1,52 @@
 package com.fixfinder.ui.dashboard.componentes.tabla.celdas;
 
 import com.fixfinder.ui.dashboard.componentes.TablaIncidencias;
-import com.fixfinder.ui.dashboard.dialogos.DialogoAsignarOperario;
-import com.fixfinder.ui.dashboard.dialogos.DialogoDetalleIncidencia;
+import com.fixfinder.ui.dashboard.dialogos.DialogoGestionIncidencia;
 import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Celda compleja que contiene los botones de acción (Ver y Asignar) para cada incidencia.
- * Gestiona el estado de los botones (habilitado/deshabilitado) según el estado del trabajo
- * y lanza los diálogos correspondientes.
+ * Celda compleja que contiene los botones de acción para cada incidencia.
+ * Ahora unificada para usar el DialogoGestionIncidencia modular.
  */
 public class CeldaAcciones extends TableCell<TrabajoFX, Void> {
 
     private final Button btnVer;
-    private final Button btnAsignar;
     private final HBox contenedor;
-    
+
     private final TablaIncidencias.AccionesCallback callback;
     private final ObservableList<OperarioFX> operarios;
     private final String cssUrl;
+    private final int idEmpresaLogueada;
 
-    public CeldaAcciones(TablaIncidencias.AccionesCallback callback, 
-                        ObservableList<OperarioFX> operarios, 
-                        String cssUrl) {
+    public CeldaAcciones(TablaIncidencias.AccionesCallback callback,
+            ObservableList<OperarioFX> operarios,
+            String cssUrl,
+            int idEmpresa) {
         this.callback = callback;
         this.operarios = operarios;
         this.cssUrl = cssUrl;
+        this.idEmpresaLogueada = idEmpresa;
 
         this.btnVer = crearBotonAccion("👁", "Ver detalle / Gestionar");
-        this.btnAsignar = crearBotonAccion("👤", "Asignar operario");
-        
-        this.btnVer.setOnAction(e -> manejarVerDetalle());
-        this.btnAsignar.setOnAction(e -> manejarAsignarOperario());
+
+        this.btnVer.setOnAction(e -> abrirGestionIncidencia());
 
         this.contenedor = new HBox(5);
         this.contenedor.setAlignment(Pos.CENTER);
-        this.contenedor.getChildren().addAll(btnVer, btnAsignar);
+        this.contenedor.getChildren().addAll(btnVer);
     }
 
     @Override
     protected void updateItem(Void item, boolean vacio) {
         super.updateItem(item, vacio);
-
         if (vacio) {
             setGraphic(null);
             return;
@@ -61,42 +55,49 @@ public class CeldaAcciones extends TableCell<TrabajoFX, Void> {
         TrabajoFX trabajo = getTableView().getItems().get(getIndex());
         String estado = trabajo.getEstado();
 
-        // Lógica de negocio: solo se puede asignar si está ACEPTADO o ASIGNADO (para re-asignar)
-        btnAsignar.setDisable(!"ACEPTADO".equals(estado) && !"ASIGNADO".equals(estado));
+        if ("PENDIENTE".equals(estado) || "PRESUPUESTADO".equals(estado)) {
+            if (trabajo.fueRechazado(idEmpresaLogueada)) {
+                btnVer.setText("🔄");
+                btnVer.setTooltip(new Tooltip("Re-pujar / Nueva oferta (Rechazada)"));
+            } else if (trabajo.haPresupuestado(idEmpresaLogueada)) {
+                btnVer.setText("✅");
+                btnVer.setTooltip(new Tooltip("Oferta enviada (En espera)"));
+            } else {
+                btnVer.setText("💰");
+                btnVer.setTooltip(new Tooltip("Presentar Presupuesto"));
+            }
+        } else {
+            btnVer.setText("👁");
+            btnVer.setTooltip(new Tooltip("Ver ficha gestión"));
+        }
 
         setGraphic(contenedor);
     }
 
-    private void manejarVerDetalle() {
+    private void abrirGestionIncidencia() {
         TrabajoFX trabajo = getTableView().getItems().get(getIndex());
-        boolean esPendiente = "PENDIENTE".equals(trabajo.getEstado());
+        String estado = trabajo.getEstado();
         
-        Optional<DialogoDetalleIncidencia.Resultado> resultado = 
-            new DialogoDetalleIncidencia(trabajo, cssUrl, esPendiente).mostrar();
+        // Es presupuestable si está en fase de puja y: No he pujado O fue rechazado
+        boolean esPresupuestable = ("PENDIENTE".equals(estado) || "PRESUPUESTADO".equals(estado))
+                && (!trabajo.haPresupuestado(idEmpresaLogueada) || trabajo.fueRechazado(idEmpresaLogueada));
 
-        if (esPendiente) {
-            resultado.ifPresent(datos -> 
-                callback.onPresupuestar(trabajo, datos.monto(), datos.notas()));
-        }
-    }
+        Optional<DialogoGestionIncidencia.Resultado> resultado = new DialogoGestionIncidencia(
+                trabajo, cssUrl, idEmpresaLogueada, operarios, esPresupuestable).mostrar();
 
-    private void manejarAsignarOperario() {
-        TrabajoFX trabajo = getTableView().getItems().get(getIndex());
-        
-        if (operarios.isEmpty()) {
-            new Alert(Alert.AlertType.WARNING, "No hay operarios disponibles.").show();
-            return;
-        }
-        
-        Optional<Integer> resultado = 
-            new DialogoAsignarOperario(trabajo, List.copyOf(operarios), cssUrl).mostrar();
-            
-        resultado.ifPresent(idOp -> callback.onAsignar(trabajo, idOp));
+        resultado.ifPresent(datos -> {
+            if (datos.idOperario() != null) {
+                callback.onAsignar(trabajo, datos.idOperario());
+            } else if (datos.monto() != null) {
+                callback.onPresupuestar(trabajo, datos.monto(), datos.notas());
+            }
+        });
     }
 
     private Button crearBotonAccion(String texto, String tooltipTxt) {
         Button btn = new Button(texto);
         btn.getStyleClass().add("action-btn");
+        btn.setStyle("-fx-font-size: 13px;");
         btn.setTooltip(new Tooltip(tooltipTxt));
         return btn;
     }

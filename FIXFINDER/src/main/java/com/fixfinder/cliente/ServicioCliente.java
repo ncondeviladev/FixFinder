@@ -140,13 +140,13 @@ public class ServicioCliente {
         enviarJson("ACTUALIZAR_FOTO_PERFIL", datos);
     }
 
-    public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto, String nuevaDescripcion)
+    public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto, String notas)
             throws IOException {
         ObjectNode datos = mapper.createObjectNode();
         datos.put("idTrabajo", idTrabajo);
         datos.put("idEmpresa", idEmpresa);
         datos.put("monto", monto);
-        datos.put("nuevaDescripcion", nuevaDescripcion);
+        datos.put("notas", notas);
         enviarJson("CREAR_PRESUPUESTO", datos);
     }
 
@@ -182,13 +182,14 @@ public class ServicioCliente {
             String mensaje = root.has("mensaje") ? root.get("mensaje").asText() : "";
             JsonNode datos = root.has("datos") ? root.get("datos") : null;
             String tokenRespuesta = root.has("token") ? root.get("token").asText() : null;
+            String accion = root.has("accion") ? root.get("accion").asText() : null;
 
             // Si el servidor envía un token (normalmente en el Login), lo guardamos
             if (tokenRespuesta != null) {
                 this.tokenActual = tokenRespuesta;
             }
 
-            return new RespuestaServidor(status, mensaje, datos, tokenRespuesta);
+            return new RespuestaServidor(status, mensaje, datos, tokenRespuesta, accion);
         } catch (Exception e) {
             throw new ClienteException("Error procesando JSON respuesta", e);
         }

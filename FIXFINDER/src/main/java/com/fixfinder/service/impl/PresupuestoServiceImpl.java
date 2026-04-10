@@ -108,8 +108,39 @@ public class PresupuestoServiceImpl implements PresupuestoService {
             }
 
             t.setEstado(EstadoTrabajo.ACEPTADO);
+            
+            // Inyección estructurada de las notas del presupuesto en el bloque GERENTE
+            if (pAceptado.getNotas() != null && !pAceptado.getNotas().trim().isEmpty()) {
+                String descActual = t.getDescripcion();
+                String marcadorInicio = "💰 GERENTE:\n";
+                String marcadorFin = "\n==============================";
+                
+                int indexInicio = descActual.indexOf(marcadorInicio);
+                if (indexInicio != -1) {
+                    int posInicioTexto = indexInicio + marcadorInicio.length();
+                    int indexFin = descActual.indexOf(marcadorFin, posInicioTexto);
+                    
+                    if (indexFin != -1) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(descActual, 0, posInicioTexto);
+                        sb.append(pAceptado.getNotas().trim());
+                        sb.append(descActual.substring(indexFin));
+                        t.setDescripcion(sb.toString());
+                        System.out.println("✅ [DEBUG-BUDGET] Inyección estructurada completada en bloque GERENTE.");
+                    } else {
+                        // Fallback por si la estructura está rota
+                        t.setDescripcion(descActual + "\n\n[NOTAS GERENTE]: " + pAceptado.getNotas().trim());
+                        System.err.println("⚠️ [DEBUG-BUDGET] Estructura de descripción no encontrada, aplicando fallback.");
+                    }
+                } else {
+                    // Fallback si no existe el marcador
+                    t.setDescripcion(descActual + "\n\n💰 GERENTE:\n" + pAceptado.getNotas().trim());
+                    System.err.println("⚠️ [DEBUG-BUDGET] Marcador '💰 GERENTE:' no encontrado, añadiendo al final.");
+                }
+            }
+            
             trabajoDAO.actualizar(t);
-            System.out.println("[DEBUG-SERVICE] Trabajo ID " + t.getId() + " pasó a ACEPTADO satisfactoriamente.");
+            System.out.println("🚀 [DEBUG-BUDGET] Trabajo ID " + t.getId() + " marcado como ACEPTADO.");
 
         } catch (DataAccessException e) {
             System.err.println("[DEBUG-SERVICE] Error de acceso a datos al aceptar presupuesto: " + e.getMessage());
@@ -126,18 +157,34 @@ public class PresupuestoServiceImpl implements PresupuestoService {
                 p.setEstado(EstadoPresupuesto.RECHAZADO);
                 presupuestoDAO.actualizar(p);
 
-                // Si no quedan presupuestos pendientes, volver trabajo a PENDIENTE
-                List<Presupuesto> restantes = presupuestoDAO.obtenerPorTrabajo(p.getTrabajo().getId());
-                boolean quedaAlguno = restantes.stream()
-                        .anyMatch(pr -> pr.getId() != idPresupuesto && pr.getEstado() == EstadoPresupuesto.PENDIENTE);
-
-                if (!quedaAlguno) {
-                    Trabajo t = trabajoDAO.obtenerPorId(p.getTrabajo().getId());
-                    if (t.getEstado() == EstadoTrabajo.PRESUPUESTADO) {
-                        t.setEstado(EstadoTrabajo.PENDIENTE);
-                        trabajoDAO.actualizar(t);
+                Trabajo t = trabajoDAO.obtenerPorId(p.getTrabajo().getId());
+                
+                // Si rechazamos el presupuesto que ya estaba ACEPTADO, hay que limpiar y revertir
+                if (t.getEstado() == EstadoTrabajo.ACEPTADO) {
+                    // 1. Limpiar rastro del gerente en la descripción
+                    String desc = t.getDescripcion();
+                    int indexGerente = desc.indexOf("💰 GERENTE:\n");
+                    int indexCierre = desc.indexOf("\n==============================", indexGerente);
+                    
+                    if (indexGerente != -1 && indexCierre != -1) {
+                        String nuevaDesc = desc.substring(0, indexGerente + "💰 GERENTE:\n".length()) + 
+                                          desc.substring(indexCierre);
+                        t.setDescripcion(nuevaDesc);
                     }
                 }
+
+                // Determinar nuevo estado del trabajo
+                List<Presupuesto> restantes = presupuestoDAO.obtenerPorTrabajo(t.getId());
+                boolean tienePendientes = restantes.stream()
+                        .anyMatch(pr -> pr.getId() != idPresupuesto && pr.getEstado() == EstadoPresupuesto.PENDIENTE);
+
+                if (tienePendientes) {
+                    t.setEstado(EstadoTrabajo.PRESUPUESTADO);
+                } else {
+                    t.setEstado(EstadoTrabajo.PENDIENTE);
+                }
+                
+                trabajoDAO.actualizar(t);
             }
         } catch (DataAccessException e) {
             throw new ServiceException("Error al rechazar presupuesto", e);

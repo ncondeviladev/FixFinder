@@ -1,18 +1,12 @@
 package com.fixfinder.ui.dashboard;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fixfinder.cliente.RespuestaServidor;
-import com.fixfinder.cliente.ServicioCliente;
-import com.fixfinder.ui.dashboard.componentes.Sidebar;
-import com.fixfinder.ui.dashboard.componentes.TablaIncidencias;
-import com.fixfinder.ui.dashboard.dialogos.DialogoEditarOperario;
-import com.fixfinder.ui.dashboard.dialogos.DialogoNuevoOperario;
-import com.fixfinder.ui.dashboard.modelos.OperarioFX;
-import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
-import com.fixfinder.ui.dashboard.utils.BackgroundService;
-import com.fixfinder.ui.dashboard.utils.VistaRouter;
+import com.fixfinder.cliente.*;
+import com.fixfinder.ui.dashboard.componentes.*;
+import com.fixfinder.ui.dashboard.dialogos.*;
+import com.fixfinder.ui.dashboard.modelos.*;
+import com.fixfinder.ui.dashboard.red.ManejadorRespuestas;
+import com.fixfinder.ui.dashboard.utils.*;
 import com.fixfinder.ui.dashboard.vistas.VistaDashboard;
-import com.fixfinder.ui.dashboard.vistas.VistaEmpresa;
 import com.fixfinder.utilidades.ClienteException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -21,17 +15,17 @@ import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Controlador principal del Dashboard FixFinder.
+ * Controlador principal del Dashboard FixFinder (Patrón Mediador).
+ * Coordina la comunicación entre el servicio de red, el router de vistas
+ * y el manejo de datos de la empresa.
  * 
- * Gestiona la orquestación entre la comunicación con el servidor,
- * el estado dinámico de la aplicación y la navegación entre vistas.
+ * Refactorizado para evitar el anti-patrón God Class delegando responsabilidades
+ * de UI a HeaderBar y de procesamiento de red a ManejadorRespuestas.
  */
 public class DashboardPrincipalController {
 
@@ -43,36 +37,40 @@ public class DashboardPrincipalController {
     private final String usuarioFoto;
     private final int idEmpresa;
 
+    // Estado observable de la aplicación
     private final ObservableList<TrabajoFX> todosTrabajos = FXCollections.observableArrayList();
     private final FilteredList<TrabajoFX> trabajosFiltrados = new FilteredList<>(todosTrabajos, t -> true);
     private final ObservableList<OperarioFX> listaOperarios = FXCollections.observableArrayList();
     private final Map<String, Object> infoEmpresaActual = new HashMap<>();
 
+    // Servicios y ayudantes
     private final BackgroundService backgroundService = new BackgroundService();
     private final VistaRouter vistaRouter;
+    private final ManejadorRespuestas manejadorRespuestas;
 
+    // Componentes de interfaz
     private BorderPane rootPane;
     private VistaDashboard vistaDashboard;
     private Sidebar sidebar;
 
     /**
-     * Callback para acciones ejecutadas desde la tabla de incidencias.
+     * Callbacks para acciones sobre la tabla de incidencias.
      */
     private final TablaIncidencias.AccionesCallback accionesCallback = new TablaIncidencias.AccionesCallback() {
         @Override
-        public void onAsignar(TrabajoFX t, int idOp) {
-            enviarAsignacionOperario(t, idOp);
-        }
-
+        public void onAsignar(TrabajoFX t, int idOp) { enviarAsignacionOperario(t, idOp); }
         @Override
-        public void onPresupuestar(TrabajoFX t, double monto, String nuevaDescripcion) {
-            enviarPresupuesto(t, monto, nuevaDescripcion);
+        public void onPresupuestar(TrabajoFX t, double m, String n) { enviarPresupuesto(t, m, n); }
+        @Override
+        public void onRefresh() {
+            sincronizarTodo();
+            registrarActividad("↻ Actualizando lista de incidencias...");
         }
     };
 
     public DashboardPrincipalController(ServicioCliente servicioCliente, String cssUrl,
-            int usuarioId, String usuarioNombre, String usuarioRol,
-            String usuarioFoto, int idEmpresa) {
+                                     int usuarioId, String usuarioNombre, String usuarioRol,
+                                     String usuarioFoto, int idEmpresa) {
         this.servicioCliente = servicioCliente;
         this.cssUrl = cssUrl;
         this.usuarioId = usuarioId;
@@ -81,105 +79,97 @@ public class DashboardPrincipalController {
         this.usuarioFoto = usuarioFoto;
         this.idEmpresa = idEmpresa;
         this.vistaRouter = new VistaRouter(cssUrl, this);
+        
+        // Inicialización del manejador de red especializado
+        this.manejadorRespuestas = new ManejadorRespuestas(
+            todosTrabajos, listaOperarios, infoEmpresaActual,
+            this::registrarActividad, this::sincronizarTodo, this::navegarA, idEmpresa
+        );
 
         this.servicioCliente.setOnMensajeRecibido(json -> Platform.runLater(() -> procesarRespuesta(json)));
     }
 
     /**
-     * Inicializa la interfaz gráfica principal.
+     * Ensambla la vista raíz de la aplicación.
      */
     public BorderPane construirVista(Runnable onLogout) {
-        vistaDashboard = new VistaDashboard(trabajosFiltrados, listaOperarios, accionesCallback,
-                this::solicitarTrabajos, cssUrl);
+        this.vistaDashboard = new VistaDashboard(trabajosFiltrados, listaOperarios, accionesCallback, cssUrl, idEmpresa);
         this.sidebar = new Sidebar(usuarioNombre, usuarioRol, usuarioFoto, this::navegarA, onLogout);
-
-        rootPane = new BorderPane();
-        rootPane.setLeft(sidebar);
-        rootPane.setCenter(vistaDashboard);
+        this.rootPane = new BorderPane();
+        
+        this.rootPane.setLeft(sidebar);
+        this.rootPane.setTop(new HeaderBar("Dashboard", this::sincronizarTodo));
+        this.rootPane.setCenter(vistaDashboard);
+        
+        // Disparar una actualización de KPIs por si los datos llegaron antes de crear la vista
+        actualizarKpisIniciales();
+        
         return rootPane;
     }
 
-    // --- Lógica de Navegación ---
+    private void actualizarKpisIniciales() {
+        if (vistaDashboard != null && !todosTrabajos.isEmpty()) {
+            manejadorRespuestas.actualizarKpisManual(vistaDashboard);
+        }
+    }
 
+    /**
+     * Cambia el contenido central del panel principal.
+     */
     public void navegarA(String vistaId) {
         Node vista = vistaRouter.crearVista(vistaId, trabajosFiltrados, listaOperarios,
-                accionesCallback, infoEmpresaActual,
-                usuarioNombre, usuarioRol, idEmpresa, rootPane);
-
-        if (vista == null)
-            vista = vistaDashboard;
+                accionesCallback, infoEmpresaActual, usuarioNombre, usuarioRol, idEmpresa, rootPane);
+        
+        if (vista == null) vista = vistaDashboard;
         rootPane.setCenter(vista);
     }
 
-    // --- Comunicación con el Servidor ---
+    // --- MÉTODOS DE COMUNICACIÓN CON EL SERVICIO ---
 
-    public void cargarDatosIniciales() {
-        solicitarTrabajos();
-        if (idEmpresa > 0) {
-            try {
-                servicioCliente.solicitarListaOperarios(idEmpresa);
-            } catch (IOException e) {
-                logError("operarios", e);
-            }
-        }
-    }
-
-    private void solicitarTrabajos() {
+    /**
+     * Punto de entrada único para la sincronización de datos de red.
+     * Refresca Incidencias, Perfil de Empresa y Lista de Operarios.
+     */
+    public void sincronizarTodo() {
         try {
+            // Refresco total de datos
             servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
-            if (idEmpresa > 0)
-                refrescarDatosEmpresa(idEmpresa);
-        } catch (IOException e) {
-            logError("trabajos", e);
-        }
-    }
-
-    public void refrescarDatosEmpresa(int idEmpresa) {
-        try {
-            servicioCliente.enviarGetEmpresa(idEmpresa);
-        } catch (IOException e) {
-            logError("empresa", e);
-        }
+            if (idEmpresa > 0) {
+                servicioCliente.enviarGetEmpresa(idEmpresa);
+                servicioCliente.solicitarListaOperarios(idEmpresa);
+            }
+        } catch (IOException e) { logError("sincronización total", e); }
     }
 
     private void enviarAsignacionOperario(TrabajoFX t, int idOp) {
         try {
             servicioCliente.enviarAsignarOperario(t.getId(), idOp, usuarioId);
             registrarActividad("⚙️ Operario asignado a Incidencia #" + t.getId());
-        } catch (IOException e) {
-            logError("asignar operario", e);
-        }
+        } catch (IOException e) { logError("asignación", e); }
     }
 
-    private void enviarPresupuesto(TrabajoFX t, double monto, String nuevaDescripcion) {
+    private void enviarPresupuesto(TrabajoFX t, double monto, String desc) {
         try {
-            servicioCliente.enviarCrearPresupuesto(t.getId(), idEmpresa, monto, nuevaDescripcion);
+            servicioCliente.enviarCrearPresupuesto(t.getId(), idEmpresa, monto, desc);
             registrarActividad("💰 Presupuesto de " + monto + "€ enviado para #" + t.getId());
-        } catch (IOException e) {
-            logError("enviar presupuesto", e);
-        }
+        } catch (IOException e) { logError("presupuesto", e); }
     }
 
-    // --- Gestión de Operarios ---
+    // --- GESTIÓN DE OPERARIOS ---
 
-    public void registrarNuevoOperario(DialogoNuevoOperario.DatosOperario op, int idEmpresa) {
+    public void registrarNuevoOperario(DialogoGestionOperario.ResultadoOperario op, int idEmp) {
         try {
-            servicioCliente.enviarRegistroUsuario(true, op.nombre, op.dni, op.email,
-                    op.password, op.telefono, "", String.valueOf(idEmpresa), op.especialidad);
-            registrarActividad("Nuevo operario registrado: " + op.nombre);
-        } catch (IOException e) {
-            logError("crear operario", e);
-        }
+            servicioCliente.enviarRegistroUsuario(true, op.nombre(), op.dni(), op.email(),
+                    op.password(), op.telefono(), "", String.valueOf(idEmp), op.especialidad());
+            registrarActividad("Nuevo operario registrado: " + op.nombre());
+        } catch (IOException e) { logError("registro op", e); }
     }
 
-    public void actualizarOperario(int id, DialogoEditarOperario.DatosOperarioAct op, boolean activo) {
+    public void actualizarOperario(int id, DialogoGestionOperario.ResultadoOperario op, boolean activo) {
         try {
-            servicioCliente.enviarModificarOperario(id, op.nombre, op.dni, op.email, op.telefono, op.especialidad,
-                    activo);
-            registrarActividad("⚙️ Solicitada actualización: " + op.nombre);
-        } catch (IOException e) {
-            logError("editar operario", e);
-        }
+            servicioCliente.enviarModificarOperario(id, op.nombre(), op.dni(), op.email(), op.telefono(), op.especialidad(), activo);
+            registrarActividad("⚙️ Solicitada actualización: " + op.nombre());
+        } catch (IOException e) { logError("edición op", e); }
     }
 
     public void cambiarEstadoOperario(OperarioFX operario, boolean nuevoEstado) {
@@ -187,13 +177,9 @@ public class DashboardPrincipalController {
             servicioCliente.enviarModificarOperario(operario.getId(), operario.getNombre(),
                     operario.getDni(), operario.getEmail(), operario.getTelefono(),
                     operario.getEspecialidad(), nuevoEstado);
-            registrarActividad("⛔ Solicitado cambio estado: " + operario.getNombre());
-        } catch (Exception e) {
-            logError("cambiar estado", e);
-        }
+            registrarActividad("⛔ Cambio de estado: " + operario.getNombre());
+        } catch (Exception e) { logError("estado op", e); }
     }
-
-    // --- Gestión de Multimedia (Async) ---
 
     public void subirFotoOperario(OperarioFX operario, File file) {
         String path = "perfiles/" + operario.getId() + "_op_" + System.currentTimeMillis() + file.getName();
@@ -202,18 +188,16 @@ public class DashboardPrincipalController {
                     try {
                         servicioCliente.enviarActualizarFotoPerfil(operario.getId(), url);
                         registrarActividad("📸 Actualizada foto de " + operario.getNombre());
-                    } catch (IOException e) {
-                        logError("actualizar foto perfil", e);
-                    }
+                    } catch (IOException e) { logError("foto op", e); }
                 },
-                err -> logError("subir imagen", (Exception) err));
+                err -> logError("subida imagen", (Exception) err));
     }
 
     public void iniciarCambioFotoGerente() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar foto de perfil Gerente");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
-        File file = fileChooser.showOpenDialog(rootPane.getScene().getWindow());
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Seleccionar foto Perfil");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+        File file = chooser.showOpenDialog(rootPane.getScene().getWindow());
 
         if (file != null) {
             String path = "perfiles/" + usuarioId + "_ger_" + System.currentTimeMillis() + file.getName();
@@ -222,108 +206,25 @@ public class DashboardPrincipalController {
                         try {
                             servicioCliente.enviarActualizarFotoPerfil(usuarioId, url);
                             registrarActividad("📸 Foto de gerente actualizada");
-                            if (sidebar != null) {
-                                Platform.runLater(() -> sidebar.actualizarFoto(url));
-                            }
-                        } catch (IOException e) {
-                            logError("actualizar foto gerente", e);
-                        }
+                            if (sidebar != null) Platform.runLater(() -> sidebar.actualizarFoto(url));
+                        } catch (IOException e) { logError("foto gerente", e); }
                     },
-                    err -> logError("subir foto gerente", (Exception) err));
+                    err -> logError("subida gerente", (Exception) err));
         }
     }
 
-    // --- Procesamiento de Respuestas (Network Layer) ---
+    // --- PROCESAMIENTO DE RESPUESTAS (Delegado) ---
 
     private void procesarRespuesta(String json) {
-        Platform.runLater(() -> {
-            try {
-                RespuestaServidor r = servicioCliente.interpretarRespuesta(json);
-                String msg = r.getMensaje();
-                JsonNode datos = r.getDatos();
-
-                if (datos != null && datos.isArray() && msg.contains("Listado obtenido")) {
-                    procesarListaTrabajos(datos);
-                } else if (datos != null && datos.isArray() && msg.contains("Lista de operarios")) {
-                    procesarListaOperarios(datos);
-                } else if (msg.contains("Operario asignado") || msg.contains("desasignado") ||
-                        msg.contains("Presupuesto") || msg.contains("presupuesto") ||
-                        msg.contains("Operario registrado") || msg.contains("modificado") ||
-                        msg.contains("foto")) {
-                    solicitarTrabajos();
-                    if (idEmpresa > 0)
-                        servicioCliente.solicitarListaOperarios(idEmpresa);
-                } else if (datos != null && !datos.isArray() && msg.contains("empresa")) {
-                    actualizarEstadoEmpresa(datos);
-                } else if (r.getStatus() >= 400) {
-                    registrarActividad("❌ " + msg);
-                }
-            } catch (ClienteException | IOException e) {
-                logError("procesar respuesta", (Exception) e);
+        try {
+            RespuestaServidor r = servicioCliente.interpretarRespuesta(json);
+            if (r != null) {
+                manejadorRespuestas.procesar(r.getAccion(), r.getMensaje(), r.getDatos(), r.getStatus(), vistaDashboard, rootPane);
             }
-        });
-    }
-
-    private void actualizarEstadoEmpresa(JsonNode datos) {
-        infoEmpresaActual.clear();
-        datos.fields().forEachRemaining(entry -> {
-            if (entry.getValue().isArray() || entry.getValue().isObject()) {
-                infoEmpresaActual.put(entry.getKey(), entry.getValue());
-            } else {
-                infoEmpresaActual.put(entry.getKey(), entry.getValue().asText());
-            }
-        });
-        if (rootPane != null && rootPane.getCenter() instanceof VistaEmpresa) {
-            navegarA("empresa");
-        }
-    }
-
-    private void procesarListaTrabajos(JsonNode datos) {
-        todosTrabajos.clear();
-        int activos = 0, pendientes = 0, completados = 0, presupuestados = 0;
-
-        for (JsonNode n : datos) {
-            TrabajoFX trabajoFX = TrabajoFX.fromNode(n);
-            todosTrabajos.add(trabajoFX);
-
-            String estado = trabajoFX.getEstado();
-            if (!"FINALIZADO".equals(estado) && !"CANCELADO".equals(estado))
-                activos++;
-            if ("PENDIENTE".equals(estado))
-                pendientes++;
-            if ("FINALIZADO".equals(estado) || "REALIZADO".equals(estado))
-                completados++;
-            if ("PRESUPUESTADO".equals(estado))
-                presupuestados++;
-        }
-
-        todosTrabajos.sort((t1, t2) -> {
-            int p1 = priorizar(t1.getEstado());
-            int p2 = priorizar(t2.getEstado());
-            if (p1 != p2)
-                return Integer.compare(p1, p2);
-            return Integer.compare(t2.getId(), t1.getId());
-        });
-
-        if (vistaDashboard != null) {
-            vistaDashboard.actualizarKpis(activos, pendientes, completados, presupuestados);
-        }
-    }
-
-    private int priorizar(String estado) {
-        return switch (estado) {
-            case "ASIGNADO", "ACEPTADO" -> 1;
-            case "PRESUPUESTADO" -> 2;
-            case "PENDIENTE" -> 3;
-            case "REALIZADO", "FINALIZADO" -> 4;
-            default -> 5;
-        };
-    }
-
-    private void procesarListaOperarios(JsonNode datos) {
-        listaOperarios.clear();
-        for (JsonNode n : datos) {
-            listaOperarios.add(OperarioFX.fromNode(n));
+        } catch (ClienteException e) {
+            logError("interpretación red", e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -333,7 +234,7 @@ public class DashboardPrincipalController {
         }
     }
 
-    private void logError(String operacion, Exception e) {
-        System.err.println("Error en " + operacion + ": " + e.getMessage());
+    private void logError(String op, Exception e) {
+        System.err.println("❌ [" + op + "] Error: " + e.getMessage());
     }
 }

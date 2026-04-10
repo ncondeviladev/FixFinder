@@ -47,7 +47,7 @@ public class DashboardPrincipal {
         stage.setMinHeight(600);
         stage.show();
 
-        controller.cargarDatosIniciales();
+        controller.sincronizarTodo();
     }
 
     private void cerrar() {

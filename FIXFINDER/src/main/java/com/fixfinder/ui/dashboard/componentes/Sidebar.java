@@ -9,7 +9,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -23,7 +22,8 @@ import java.util.function.Consumer;
 
 /**
  * Barra lateral de navegación del Dashboard JavaFX.
- * Muestra el logo, los botones de sección y el panel del usuario activo con logout.
+ * Muestra el logo, los botones de sección y el panel del usuario activo con
+ * logout.
  */
 public class Sidebar extends VBox {
 
@@ -46,7 +46,6 @@ public class Sidebar extends VBox {
         this.nombreUsuario = usuarioNombre;
         getStyleClass().add("sidebar");
         getChildren().addAll(
-                construirLogo(),
                 construirNav(onNavegar),
                 construirUsuario(usuarioNombre, usuarioRol, urlFoto, onLogout));
     }
@@ -71,61 +70,29 @@ public class Sidebar extends VBox {
 
     // ─── Construcción de secciones ────────────────────────────────────────────
 
-    private HBox construirLogo() {
-        HBox logoBox = new HBox(12);
-        logoBox.getStyleClass().add("sidebar-logo-box");
-        logoBox.setAlignment(Pos.CENTER_LEFT);
-
-        ImageView logoIcon = new ImageView();
-        try {
-            Image img = new Image(getClass().getResourceAsStream(
-                    "/com/fixfinder/ui/dashboard/imagenes/logo.png"));
-            logoIcon.setImage(img);
-            logoIcon.setFitWidth(32);
-            logoIcon.setFitHeight(32);
-            logoIcon.setPreserveRatio(true);
-            logoIcon.setClip(new Circle(16, 16, 16));
-        } catch (Exception e) {
-            StackPane icono = new StackPane();
-            icono.getStyleClass().add("sidebar-logo-icon");
-            icono.setMinSize(32, 32);
-            Label letra = new Label("F");
-            letra.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
-            icono.getChildren().add(letra);
-            logoBox.getChildren().add(icono);
-        }
-
-        if (logoIcon.getImage() != null) {
-            logoBox.getChildren().add(logoIcon);
-        }
-
-        Label texto = new Label("FixFinder");
-        texto.getStyleClass().add("sidebar-logo-text");
-        logoBox.getChildren().add(texto);
-        return logoBox;
-    }
-
     private VBox construirNav(Consumer<String> onNavegar) {
         VBox nav = new VBox(4);
         nav.setPadding(new Insets(12, 8, 12, 8));
         VBox.setVgrow(nav, Priority.ALWAYS);
 
         String[][] items = {
-                { "dashboard",  "⊞", "Dashboard"  },
-                { "incidencias","≡", "Incidencias" },
-                { "operarios",  "●", "Operarios"   },
-                { "empresa",    "◉", "Empresa"     }
+                { "dashboard", "⊞", "Dashboard" },
+                { "incidencias", "≡", "Incidencias" },
+                { "operarios", "●", "Operarios" },
+                { "empresa", "◉", "Empresa" }
         };
 
         for (String[] item : items) {
             Button btn = new Button(item[1] + "  " + item[2]);
             btn.getStyleClass().add("nav-item");
             btn.setMaxWidth(Double.MAX_VALUE);
-            if ("dashboard".equals(item[0])) btn.getStyleClass().add("active");
+            if ("dashboard".equals(item[0]))
+                btn.getStyleClass().add("active");
 
             String vistaId = item[0];
             btn.setOnAction(e -> {
-                if (vistaId.equals(vistaActual)) return;
+                if (vistaId.equals(vistaActual))
+                    return;
                 vistaActual = vistaId;
                 navButtons.forEach(b -> b.getStyleClass().remove("active"));
                 btn.getStyleClass().add("active");
@@ -225,7 +192,8 @@ public class Sidebar extends VBox {
     }
 
     private String iniciales(String nombre) {
-        if (nombre == null || nombre.isBlank()) return "??";
+        if (nombre == null || nombre.isBlank())
+            return "??";
         String[] p = nombre.trim().split("\\s+");
         return p.length >= 2
                 ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()

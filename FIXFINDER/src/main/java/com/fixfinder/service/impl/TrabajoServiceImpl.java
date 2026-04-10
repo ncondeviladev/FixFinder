@@ -291,7 +291,7 @@ public class TrabajoServiceImpl implements TrabajoService {
             List<Trabajo> todos = trabajoDAO.obtenerTodos();
 
             return todos.stream()
-                    .filter(t -> t.getEstado() == EstadoTrabajo.PENDIENTE)
+                    .filter(t -> t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO)
                     // Filtro de empresa eliminado porque el Cliente ya no pertenece a una empresa.
                     // Ahora los trabajos pendientes son visibles para todos (Modelo Marketplace)
                     // .filter(t -> idEmpresa == null || ... )

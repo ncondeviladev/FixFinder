@@ -63,6 +63,19 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     }
   }
 
+  Future<void> _rechazarPresupuesto(int idPresupuesto) async {
+    setState(() => _procesando = true);
+    final exito =
+        await context.read<TrabajoProvider>().rechazarPresupuesto(idPresupuesto);
+    if (mounted) {
+      setState(() => _procesando = false);
+      if (exito) {
+        // En lugar de cerrar, refrescamos la lista para que desaparezca el rechazado
+        _cargarPresupuestos();
+      }
+    }
+  }
+
   Future<void> _handleFinalizar(int idTrabajo) async {
     final datos = await DialogosTrabajo.mostrarDialogoFinalizar(context);
     if (datos != null) {
@@ -229,6 +242,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                     procesando: _procesando,
                     onRefresh: _cargarPresupuestos,
                     onAceptar: _aceptarPresupuesto,
+                    onRechazar: _rechazarPresupuesto,
                   ),
                 if (esOperario &&
                     (trabajoActual.estado == EstadoTrabajo.ASIGNADO ||

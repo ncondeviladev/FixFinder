@@ -21,7 +21,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     @Override
     public void insertar(Presupuesto presupuesto) throws DataAccessException {
-        String sql = "INSERT INTO presupuesto (id_trabajo, id_empresa, monto, estado, fecha_envio) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO presupuesto (id_trabajo, id_empresa, monto, estado, fecha_envio, notas) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -37,6 +37,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             Timestamp fecha = (presupuesto.getFechaEnvio() != null) ? Timestamp.valueOf(presupuesto.getFechaEnvio())
                     : Timestamp.valueOf(LocalDateTime.now());
             stmt.setTimestamp(5, fecha);
+            stmt.setString(6, presupuesto.getNotas());
 
             int filas = stmt.executeUpdate();
             if (filas == 0)
@@ -55,7 +56,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     @Override
     public void actualizar(Presupuesto presupuesto) throws DataAccessException {
-        String sql = "UPDATE presupuesto SET id_trabajo=?, id_empresa=?, monto=?, estado=?, fecha_envio=? WHERE id=?";
+        String sql = "UPDATE presupuesto SET id_trabajo=?, id_empresa=?, monto=?, estado=?, fecha_envio=?, notas=? WHERE id=?";
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -65,7 +66,8 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             stmt.setDouble(3, presupuesto.getMonto());
             stmt.setString(4, presupuesto.getEstado().toString());
             stmt.setTimestamp(5, Timestamp.valueOf(presupuesto.getFechaEnvio()));
-            stmt.setInt(6, presupuesto.getId());
+            stmt.setString(6, presupuesto.getNotas());
+            stmt.setInt(7, presupuesto.getId());
 
             stmt.executeUpdate();
 
@@ -156,6 +158,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         Presupuesto p = new Presupuesto();
         p.setId(rs.getInt("id"));
         p.setMonto(rs.getDouble("monto"));
+        p.setNotas(rs.getString("notas"));
 
         Timestamp ts = rs.getTimestamp("fecha_envio");
         if (ts != null) {

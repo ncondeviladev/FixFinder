@@ -164,6 +164,15 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  Future<bool> rechazarPresupuesto(int idPresupuesto) async {
+    final usuario = _auth.usuarioActual;
+    if (usuario == null) return false;
+
+    final exito = await _api.rejectPresupuesto(usuario, idPresupuesto);
+    if (exito) await obtenerTrabajos();
+    return exito;
+  }
+
   Future<bool> valorarTrabajo(
       int idTrabajo, int valoracion, String comentario) async {
     final usuario = _auth.usuarioActual;

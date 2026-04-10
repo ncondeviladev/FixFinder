@@ -13,6 +13,7 @@ public class Presupuesto {
     private double monto;
     private LocalDateTime fechaEnvio;
     private EstadoPresupuesto estado;
+    private String notas;
 
     public Presupuesto() {
     }
@@ -63,6 +64,14 @@ public class Presupuesto {
 
     public void setEstado(EstadoPresupuesto estado) {
         this.estado = estado;
+    }
+
+    public String getNotas() {
+        return notas;
+    }
+
+    public void setNotas(String notas) {
+        this.notas = notas;
     }
 
     // Campo informativo estático (No persistido)

@@ -149,27 +149,23 @@ public class ProcesadorUsuarios {
                         System.err.println("Error buscando foto de gerente: " + ex_g.getMessage());
                     }
 
-                    // Obtener valoraciones reales de trabajos FINALIZADOS
+                    // Obtener valoraciones reales de trabajos FINALIZADOS mediante consulta optimizada
                     try {
                         TrabajoDAO trabajoDAO = new TrabajoDAOImpl();
+                        List<Trabajo> trabajosConValoracion = trabajoDAO.obtenerValoracionesPorEmpresa(id);
                         List<Map<String, Object>> valoraciones = new ArrayList<>();
-                        List<Trabajo> todosTrabajos = trabajoDAO.obtenerTodos();
-                        for (Trabajo t : todosTrabajos) {
-                            if (t.getOperarioAsignado() != null && t.getOperarioAsignado().getIdEmpresa() == id
-                                    && t.getValoracion() > 0) {
-                                Map<String, Object> v = new HashMap<>();
-                                v.put("cliente", t.getCliente() != null ? t.getCliente().getNombreCompleto()
-                                        : "Cliente Anónimo");
-                                v.put("puntos", t.getValoracion());
-                                v.put("comentario", t.getComentarioCliente());
-                                v.put("fecha", t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString()
-                                        : "Reciente");
-                                valoraciones.add(v);
-                            }
+                        
+                        for (Trabajo t : trabajosConValoracion) {
+                            Map<String, Object> v = new HashMap<>();
+                            v.put("cliente", t.getCliente() != null ? t.getCliente().getNombreCompleto() : "Cliente Anónimo");
+                            v.put("puntos", t.getValoracion());
+                            v.put("comentario", t.getComentarioCliente());
+                            v.put("fecha", t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString() : "Reciente");
+                            valoraciones.add(v);
                         }
                         m.put("valoraciones", valoraciones);
                     } catch (Exception ex_v) {
-                        System.err.println("Error cargando valoraciones: " + ex_v.getMessage());
+                        System.err.println("Error cargando valoraciones optimizadas: " + ex_v.getMessage());
                     }
 
                     respuesta.put("status", 200);

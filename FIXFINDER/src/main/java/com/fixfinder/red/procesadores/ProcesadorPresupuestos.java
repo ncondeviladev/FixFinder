@@ -4,14 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fixfinder.data.DataRepository;
-import com.fixfinder.data.DataRepositoryImpl;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Presupuesto;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.utilidades.ServiceException;
 
+import com.fixfinder.modelos.enums.EstadoPresupuesto;
 import java.util.List;
 
 public class ProcesadorPresupuestos {
@@ -25,52 +24,39 @@ public class ProcesadorPresupuestos {
     }
 
     public void procesarCrearPresupuesto(JsonNode datos, ObjectNode respuesta) {
-        System.out.println("[DEBUG] INICIO procesarCrearPresupuesto");
+        System.err.println("🚨 [DEBUG-CRITICO] Entrando en ProcesadorPresupuestos.procesarCrearPresupuesto");
         if (datos == null) {
-            System.out.println("[DEBUG] Datos es NULL");
+            System.err.println("🚨 [DEBUG-CRITICO] Error: Datos son NULL");
             respuesta.put("status", 400);
             return;
         }
-        System.out.println("[DEBUG] Datos: " + datos.toString());
+        System.err.println("🚨 [DEBUG-CRITICO] Payload: " + datos.toString());
         try {
             int idTrabajo = datos.get("idTrabajo").asInt();
             int idEmpresa = datos.get("idEmpresa").asInt();
             double monto = datos.get("monto").asDouble();
+            String notas = datos.path("notas").asText("");
+
+            System.out.println("📩 [DEBUG-BUDGET] Recibida oferta: Trabajo=" + idTrabajo + ", Empresa=" + idEmpresa + ", Monto=" + monto);
 
             Presupuesto p = new Presupuesto();
             Trabajo t = new Trabajo();
             t.setId(idTrabajo);
             p.setTrabajo(t);
-
-            Empresa e = new Empresa();
-            e.setId(idEmpresa);
-            p.setEmpresa(e);
-
+            
+            Empresa emp = new Empresa();
+            emp.setId(idEmpresa);
+            p.setEmpresa(emp);
+            
             p.setMonto(monto);
+            p.setNotas(notas);
+            p.setEstado(EstadoPresupuesto.PENDIENTE);
 
-            // Actualizar la descripción del trabajo como "Hoja Informativa" compartida
-            if (datos.has("nuevaDescripcion")) {
-                String desc = datos.get("nuevaDescripcion").asText();
-                try {
-                    // Acceder al repositorio de trabajos directamente o vía servicio
-                    DataRepository repository = new DataRepositoryImpl();
-                    Trabajo trabajoOriginal = repository.getTrabajoDAO().obtenerPorId(idTrabajo);
-                    if (trabajoOriginal != null) {
-                        trabajoOriginal.setDescripcion(desc);
-                        repository.getTrabajoDAO().actualizar(trabajoOriginal);
-                        System.out.println("[DEBUG] Hoja informativa de trabajo #" + idTrabajo + " actualizada.");
-                    }
-                } catch (Exception e_repo) {
-                    System.err.println("Error actualizando descripción del trabajo: " + e_repo.getMessage());
-                }
-            }
-
-            System.out.println("[DEBUG] Llamando a presupuestoService.crearPresupuesto...");
             presupuestoService.crearPresupuesto(p);
-            System.out.println("[DEBUG] Retorno de presupuestoService.crearPresupuesto OK");
 
-            respuesta.put("status", 200);
-            respuesta.put("mensaje", "Presupuesto enviado correctamente por " + monto + "€");
+            respuesta.put("status", 201);
+            respuesta.put("mensaje", "Presupuesto enviado correctamente");
+            System.out.println("✅ [DEBUG-BUDGET] Presupuesto procesado y guardado en DB.");
             respuesta.set("datos", presupuestoToJson(p));
 
         } catch (ServiceException e) {
@@ -128,13 +114,31 @@ public class ProcesadorPresupuestos {
         }
     }
 
+    public void procesarRechazarPresupuesto(JsonNode datos, ObjectNode respuesta) {
+        try {
+            int idPresupuesto = datos.get("idPresupuesto").asInt();
+            presupuestoService.rechazarPresupuesto(idPresupuesto);
+
+            respuesta.put("status", 200);
+            respuesta.put("mensaje", "Presupuesto rechazado correctamente.");
+
+        } catch (ServiceException e) {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", e.getMessage());
+        } catch (Exception e) {
+            respuesta.put("status", 500);
+            respuesta.put("mensaje", "Error interno al rechazar presupuesto");
+            e.printStackTrace();
+        }
+    }
+
     private ObjectNode presupuestoToJson(Presupuesto p) {
         ObjectNode n = mapper.createObjectNode();
         n.put("id", p.getId());
         n.put("monto", p.getMonto());
         n.put("estado", p.getEstado() != null ? p.getEstado().toString() : "PENDIENTE");
         n.put("fechaEnvio", p.getFechaEnvio() != null ? p.getFechaEnvio().toString() : null);
-        // notas eliminadas del JSON de salida del presupuesto
+        n.put("notas", p.getNotas());
 
         if (p.getEmpresa() != null) {
             ObjectNode emp = n.putObject("empresa");

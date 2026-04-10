@@ -3,6 +3,7 @@ package com.fixfinder.red;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fixfinder.data.ConexionDB;
 import com.fixfinder.red.procesadores.ProcesadorAutenticacion;
 import com.fixfinder.red.procesadores.ProcesadorFacturas;
 import com.fixfinder.red.procesadores.ProcesadorPresupuestos;
@@ -77,12 +78,18 @@ public class GestorConexion implements Runnable {
                 DataOutputStream salida = new DataOutputStream(socket.getOutputStream())) {
 
             while (!socket.isClosed()) {
-
+                System.err.println("📡 [SOCKET-WAIT] Esperando nueva cabecera (4 bytes)...");
                 int length = entrada.readInt();
-                if (length <= 0 || length > 10485760)
-                    throw new IOException("Tamaño mensaje inválido");
+                System.err.println("📡 [SOCKET-IN] Recibidos " + length + " bytes.");
+
+                if (length <= 0 || length > 1024 * 1024) {
+                    System.err.println("⚠️ [SOCKET-WARN] Longitud inválida recibida: " + length);
+                    continue;
+                }
+
                 byte[] bytes = new byte[length];
                 entrada.readFully(bytes);
+                System.err.println("📡 [SOCKET-IN] Payload leído completo.");
                 String mensajeCliente = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
                 System.out.println("📩 Recibido: " + mensajeCliente);
 
@@ -123,6 +130,7 @@ public class GestorConexion implements Runnable {
                                 // VALIDACIÓN DE TOKEN para el resto de acciones
                                 String tokenMsg = nodo.has("token") ? nodo.get("token").asText() : null;
                                 if (SessionManager.esTokenValido(tokenMsg)) {
+                                    System.err.println("🔥 [GESTOR-DEBUG] Acción: " + accion + " | Usuario: " + SessionManager.obtenerUsuario(tokenMsg));
                                     switch (accion) {
                                         case "CREAR_TRABAJO":
                                             procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
@@ -184,6 +192,10 @@ public class GestorConexion implements Runnable {
                                             procesadorPresupuestos.procesarAceptarPresupuesto(datos, respuesta);
                                             break;
 
+                                        case "RECHAZAR_PRESUPUESTO":
+                                            procesadorPresupuestos.procesarRechazarPresupuesto(datos, respuesta);
+                                            break;
+
                                         case "GENERAR_FACTURA":
                                             procesadorFacturas.procesarGenerarFactura(datos, respuesta);
                                             break;
@@ -208,6 +220,8 @@ public class GestorConexion implements Runnable {
                     System.err.println("❌ Error procesando solicitud: " + e.getMessage());
                     respuesta.put("status", 400);
                     respuesta.put("mensaje", "Error procesando solicitud");
+                } finally {
+                    ConexionDB.cerrarConexion();
                 }
 
                 String jsonSalida = mapper.writeValueAsString(respuesta);
@@ -223,10 +237,11 @@ public class GestorConexion implements Runnable {
 
         } catch (EOFException e) {
             // Desconexión normal del cliente
-            System.out.println("🔌 Cliente desconectado (Sesión finalizada).");
+            System.err.println("🔌 [SOCKET] Cliente desconectado (EOF alcanzado).");
         } catch (IOException e) {
             // Error real de red
-            System.err.println("❌ Error de comunicación con cliente: " + e.getMessage());
+            System.err.println("❌ [SOCKET] Error de comunicación: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             cerrarRecursos();
             semaforo.release();

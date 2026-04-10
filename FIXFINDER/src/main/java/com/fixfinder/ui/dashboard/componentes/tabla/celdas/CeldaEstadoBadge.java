@@ -5,10 +5,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 
 /**
- * Celda personalizada que renderiza el estado de un trabajo dentro de un "Badge"
- * (chip con color de fondo) para una mejor identificación visual.
+ * Celda personalizada que renderiza el estado de un trabajo dentro de un "Badge".
+ * Muestra el indicador » si la empresa ya ha presupuestado.
  */
 public class CeldaEstadoBadge extends TableCell<TrabajoFX, String> {
+
+    private final int idEmpresaLogueada;
+
+    public CeldaEstadoBadge(int idEmpresaLogueada) {
+        this.idEmpresaLogueada = idEmpresaLogueada;
+    }
 
     @Override
     protected void updateItem(String estado, boolean vacio) {
@@ -19,11 +25,23 @@ public class CeldaEstadoBadge extends TableCell<TrabajoFX, String> {
             return;
         }
 
-        Label badge = new Label(estado);
-        // Aplica las clases CSS definidas en dashboard-principal.css
-        // Ej: .badge y .badge-pendiente, .badge-aceptado, etc.
-        badge.getStyleClass().addAll("badge", "badge-" + estado.toLowerCase());
-        
+        TrabajoFX trabajo = getTableView().getItems().get(getIndex());
+        String textoEstado = estado;
+        String extraClass = "badge-" + estado.toLowerCase();
+
+        // 1. Prioridad: Si mi presupuesto fue RECHAZADO
+        if (trabajo.fueRechazado(idEmpresaLogueada)) {
+            textoEstado = "✘ RECHAZADO";
+            extraClass = "badge-cancelado"; // Usar el estilo rojo
+        } 
+        // 2. Si tengo un presupuesto ACTIVO (Pendiente/Aceptado)
+        else if (trabajo.haPresupuestado(idEmpresaLogueada)) {
+            textoEstado = "» " + estado;
+        }
+
+        Label badge = new Label(textoEstado);
+        badge.getStyleClass().addAll("badge", extraClass);
+
         setGraphic(badge);
         setText(null);
     }

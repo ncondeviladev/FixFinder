@@ -16,55 +16,44 @@ import java.util.List;
 
 /**
  * Componente principal que orquesta la visualización de la tabla de incidencias.
- * 
- * Ha sido refactorizado para delegar responsabilidades en componentes especializados:
- * - CabeceraTabla: Gestiona filtros y búsqueda.
- * - UtilidadesTabla: Lógica visual común.
- * - Celdas especializadas: Renderizado de datos específicos.
  */
 public class TablaIncidencias extends VBox {
 
-    /**
-     * Interfaz de comunicación para que el Dashboard reaccione a acciones de la tabla.
-     */
     public interface AccionesCallback {
         void onAsignar(TrabajoFX trabajo, int idOperario);
         void onPresupuestar(TrabajoFX trabajo, double monto, String notas);
+        void onRefresh();
     }
 
     private final FilteredList<TrabajoFX> trabajosFiltrados;
     private final ObservableList<OperarioFX> operarios;
     private final AccionesCallback callback;
     private final String cssUrl;
+    private final int idEmpresa;
 
     public TablaIncidencias(FilteredList<TrabajoFX> trabajosFiltrados,
             ObservableList<OperarioFX> operarios,
             AccionesCallback callback,
-            String cssUrl) {
+            String cssUrl,
+            int idEmpresa) {
         this.trabajosFiltrados = trabajosFiltrados;
         this.operarios = operarios;
         this.callback = callback;
         this.cssUrl = cssUrl;
+        this.idEmpresa = idEmpresa;
 
         getStyleClass().add("table-card");
         VBox.setVgrow(this, Priority.ALWAYS);
-        
+
         inicializarComponentes();
     }
 
     private void inicializarComponentes() {
-        // 1. Cabecera (Buscador + Tabs)
         CabeceraTabla cabecera = new CabeceraTabla(this::procesarCambioFiltro);
-        
-        // 2. Tabla de datos
         TableView<TrabajoFX> tabla = configurarTabla();
-        
         getChildren().addAll(cabecera, tabla);
     }
 
-    /**
-     * Configura la estructura de columnas de la tabla y asigna sus factorías de celdas.
-     */
     @SuppressWarnings("unchecked")
     private TableView<TrabajoFX> configurarTabla() {
         TableView<TrabajoFX> tabla = new TableView<>(trabajosFiltrados);
@@ -73,17 +62,15 @@ public class TablaIncidencias extends VBox {
         tabla.setPlaceholder(new Label("No hay incidencias para mostrar"));
         VBox.setVgrow(tabla, Priority.ALWAYS);
 
-        // Definición de columnas delegando el renderizado en las nuevas clases de 'celdas'
         tabla.getColumns().addAll(
-            crearColumnaAcciones(),
-            crearColumnaId(),
-            crearColumnaTitulo(),
-            crearColumnaCliente(),
-            crearColumnaCategoria(),
-            crearColumnaEstado(),
-            crearColumnaOperario(),
-            crearColumnaFecha()
-        );
+                crearColumnaAcciones(),
+                crearColumnaId(),
+                crearColumnaTitulo(),
+                crearColumnaCliente(),
+                crearColumnaCategoria(),
+                crearColumnaEstado(),
+                crearColumnaOperario(),
+                crearColumnaFecha());
 
         return tabla;
     }
@@ -93,7 +80,7 @@ public class TablaIncidencias extends VBox {
         col.setMinWidth(80);
         col.setMaxWidth(80);
         col.setSortable(false);
-        col.setCellFactory(c -> new CeldaAcciones(callback, operarios, cssUrl));
+        col.setCellFactory(c -> new CeldaAcciones(callback, operarios, cssUrl, idEmpresa));
         return col;
     }
 
@@ -102,11 +89,14 @@ public class TablaIncidencias extends VBox {
         col.setCellValueFactory(c -> c.getValue().idProperty());
         col.setMinWidth(40);
         col.setMaxWidth(50);
-        // Podríamos crear CeldaId, pero es tan simple que lo dejamos así o usamos una genérica
         col.setCellFactory(c -> new javafx.scene.control.TableCell<>() {
-            @Override protected void updateItem(Number v, boolean empty) {
+            @Override
+            protected void updateItem(Number v, boolean empty) {
                 super.updateItem(v, empty);
-                if (empty || v == null) { setGraphic(null); return; }
+                if (empty || v == null) {
+                    setGraphic(null);
+                    return;
+                }
                 Label l = new Label(String.valueOf(v.intValue()));
                 l.getStyleClass().add("cell-id");
                 setGraphic(l);
@@ -142,8 +132,8 @@ public class TablaIncidencias extends VBox {
     private TableColumn<TrabajoFX, String> crearColumnaEstado() {
         TableColumn<TrabajoFX, String> col = new TableColumn<>("Estado");
         col.setCellValueFactory(c -> c.getValue().estadoProperty());
-        col.setMinWidth(135);
-        col.setCellFactory(c -> new CeldaEstadoBadge());
+        col.setMinWidth(165);
+        col.setCellFactory(c -> new CeldaEstadoBadge(idEmpresa));
         return col;
     }
 
@@ -164,27 +154,20 @@ public class TablaIncidencias extends VBox {
         return col;
     }
 
-    /**
-     * Lógica unificada de filtrado que responde a cambios en el buscador o en los tabs.
-     */
     private void procesarCambioFiltro(String textoBusqueda, String filtroTab) {
         String query = textoBusqueda == null ? "" : textoBusqueda.toLowerCase().trim();
-        
         trabajosFiltrados.setPredicate(trabajo -> {
-            // 1. Filtro por texto (Buscador)
-            boolean coincideTexto = query.isEmpty() 
+            boolean coincideTexto = query.isEmpty()
                     || trabajo.getTitulo().toLowerCase().contains(query)
                     || trabajo.getCliente().toLowerCase().contains(query)
                     || String.valueOf(trabajo.getId()).contains(query);
-            
-            // 2. Filtro por categoría de estado (Tabs)
+
             boolean coincideTab = switch (filtroTab) {
                 case "pendientes" -> "PENDIENTE".equals(trabajo.getEstado());
                 case "proceso" -> List.of("ASIGNADO", "PRESUPUESTADO", "ACEPTADO").contains(trabajo.getEstado());
                 case "finalizadas" -> List.of("FINALIZADO", "REALIZADO").contains(trabajo.getEstado());
-                default -> true; // "todas"
+                default -> true;
             };
-            
             return coincideTexto && coincideTab;
         });
     }

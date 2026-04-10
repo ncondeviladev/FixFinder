@@ -21,8 +21,12 @@ public class TrabajoFX {
     /**
      * Crea una instancia de TrabajoFX a partir de un nodo JSON del servidor.
      * Centraliza la lógica de mapeo para evitar duplicidad en los controladores.
+     * 
+     * @param n Nodo JSON con datos del trabajo.
+     * @param idEmpresaLogueada ID de la empresa para contextualizar flags de puja.
+     * @return Instancia reactiva de TrabajoFX.
      */
-    public static TrabajoFX fromNode(JsonNode n) {
+    public static TrabajoFX fromNode(JsonNode n, int idEmpresaLogueada) {
         String estado = n.has("estado") ? n.get("estado").asText() : "";
 
         String cliente = "";
@@ -38,7 +42,7 @@ public class TrabajoFX {
             cliEmail = c.has("email") ? c.get("email").asText() : "";
             cliUrlFoto = c.has("url_foto") ? c.get("url_foto").asText()
                     : c.has("urlFoto") ? c.get("urlFoto").asText()
-                    : c.has("foto") ? c.get("foto").asText() : "";
+                            : c.has("foto") ? c.get("foto").asText() : "";
         }
 
         if (cliente.isBlank() && n.has("nombreCliente") && !n.get("nombreCliente").isNull()) {
@@ -80,12 +84,29 @@ public class TrabajoFX {
             t.setUrlsFotos(fotos);
         }
 
+        // Historial de presupuestos para lógica de visualización (Arrow/Re-bid)
+        if (n.has("presupuestos") && n.get("presupuestos").isArray()) {
+            for (JsonNode pNode : n.get("presupuestos")) {
+                if (pNode.has("empresa") && pNode.get("empresa").has("id")) {
+                    int idEmp = pNode.get("empresa").get("id").asInt();
+                    String est = pNode.has("estado") ? pNode.get("estado").asText() : "PENDIENTE";
+                    double monto = pNode.has("monto") ? pNode.get("monto").asDouble() : 0;
+                    String notas = pNode.has("notas") ? pNode.get("notas").asText() : "";
+                    
+                    t.agregarMetaPresupuesto(idEmp, est, monto, notas);
+                }
+            }
+        }
+
         if (!cliUrlFoto.isBlank()) {
             t.setClienteUrlFoto(cliUrlFoto);
         }
 
         return t;
     }
+
+    // Estructura ligera para metadatos de presupuesto
+    public record MetaPresupuesto(int idEmpresa, String estado, double monto, String notas) {}
 
     private final IntegerProperty id = new SimpleIntegerProperty();
     private final StringProperty titulo = new SimpleStringProperty();
@@ -105,6 +126,7 @@ public class TrabajoFX {
     private final StringProperty clienteUrlFoto = new SimpleStringProperty("");
 
     private final ObservableList<String> urlsFotos = FXCollections.observableArrayList();
+    private final List<MetaPresupuesto> historialPresupuestos = new ArrayList<>();
 
     public TrabajoFX(int id, String titulo, String cliente, String categoria,
             String estado, String operario, String fecha,
@@ -238,5 +260,42 @@ public class TrabajoFX {
 
     public void setUrlsFotos(java.util.List<String> fotos) {
         this.urlsFotos.setAll(fotos);
+    }
+
+    public void agregarMetaPresupuesto(int idEmp, String est, double monto, String notas) {
+        this.historialPresupuestos.add(new MetaPresupuesto(idEmp, est, monto, notas));
+    }
+
+    /**
+     * Indica si la empresa ya tiene un presupuesto activo (PENDIENTE o ACEPTADO).
+     */
+    public boolean haPresupuestado(int idEmp) {
+        return historialPresupuestos.stream().anyMatch(p -> 
+            p.idEmpresa() == idEmp && 
+            (p.estado().equalsIgnoreCase("PENDIENTE") || p.estado().equalsIgnoreCase("ACEPTADO"))
+        );
+    }
+
+    /**
+     * Indica si el último presupuesto de esta empresa fue rechazado y no ha vuelto a pujar.
+     */
+    public boolean fueRechazado(int idEmp) {
+        // Un trabajo se considera rechazado para esta empresa si NO tiene presupuestos pendientes
+        // pero TIENE al menos uno rechazado.
+        boolean tienePendiente = haPresupuestado(idEmp);
+        boolean tieneRechazado = historialPresupuestos.stream().anyMatch(p -> 
+            p.idEmpresa() == idEmp && p.estado().equalsIgnoreCase("RECHAZADO")
+        );
+        return !tienePendiente && tieneRechazado;
+    }
+
+    /**
+     * Obtiene el último presupuesto (más reciente) de la empresa para mostrarlo en el diálogo.
+     */
+    public MetaPresupuesto getMiUltimoPresupuesto(int idEmp) {
+        return historialPresupuestos.stream()
+            .filter(p -> p.idEmpresa() == idEmp)
+            .reduce((first, second) -> second) // Quedarnos con el último añadido
+            .orElse(null);
     }
 }

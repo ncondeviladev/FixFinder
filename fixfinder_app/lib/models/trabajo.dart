@@ -59,6 +59,7 @@ class Trabajo {
   final Usuario? cliente;
   final Usuario? operarioAsignado;
   final Presupuesto? presupuesto;
+  final List<Presupuesto> presupuestos;
 
   Trabajo({
     required this.id,
@@ -78,6 +79,7 @@ class Trabajo {
     this.cliente,
     this.operarioAsignado,
     this.presupuesto,
+    this.presupuestos = const [],
   });
 
   factory Trabajo.fromJson(Map<String, dynamic> json) {
@@ -112,6 +114,9 @@ class Trabajo {
       presupuesto: json['presupuesto'] != null
           ? Presupuesto.fromJson(json['presupuesto'])
           : null,
+      presupuestos: (json['presupuestos'] as List? ?? [])
+          .map((p) => Presupuesto.fromJson(p))
+          .toList(),
     );
   }
 
@@ -149,6 +154,7 @@ class Trabajo {
       // 'cliente': cliente?.toJson(), // Si fuera necesario reenviar
       // 'operarioAsignado': operarioAsignado?.toJson(),
       'presupuesto': presupuesto?.toJson(),
+      'presupuestos': presupuestos.map((p) => p.toJson()).toList(),
     };
   }
 }

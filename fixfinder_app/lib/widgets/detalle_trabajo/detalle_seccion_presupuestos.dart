@@ -9,6 +9,7 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
   final bool procesando;
   final VoidCallback onRefresh;
   final Function(int) onAceptar;
+  final Function(int) onRechazar;
 
   const DetalleSeccionPresupuestos({
     super.key,
@@ -17,6 +18,7 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
     required this.procesando,
     required this.onRefresh,
     required this.onAceptar,
+    required this.onRechazar,
   });
 
   void _verDetallesEmpresa(BuildContext context, Presupuesto p) {
@@ -98,41 +100,128 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
           children: [
             const Text('PRESUPUESTOS RECIBIDOS',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            IconButton(onPressed: onRefresh, icon: const Icon(Icons.refresh)),
+            IconButton(
+                onPressed: procesando ? null : onRefresh,
+                icon: const Icon(Icons.refresh)),
           ],
         ),
         const SizedBox(height: 8),
         if (cargando)
           const Center(child: CircularProgressIndicator())
         else if (presupuestos.isEmpty)
-          const Text('Aún no hay presupuestos para esta incidencia.')
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Text('Aún no hay presupuestos para esta incidencia.',
+                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+          )
         else
-          ...presupuestos.map((p) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                          child: Text(
-                              '${p.monto}€ - ${p.nombreEmpresa ?? "Empresa"}')),
-                      IconButton(
-                        icon:
-                            const Icon(Icons.info_outline, color: Colors.blue),
-                        onPressed: () => _verDetallesEmpresa(context, p),
-                        tooltip: 'Ver detalles de la empresa',
-                      ),
-                    ],
-                  ),
-                  subtitle: Text('Estado: ${p.estado}'),
-                  trailing: p.estado == 'PENDIENTE'
-                      ? ElevatedButton(
-                          onPressed: procesando ? null : () => onAceptar(p.id),
-                          child: const Text('ACEPTAR'),
-                        )
-                      : null,
-                ),
-              )),
+          ...presupuestos
+              .where((p) => p.estado != 'RECHAZADO')
+              .map((p) => _buildPresupuestoCard(context, p)),
       ],
+    );
+  }
+
+  Widget _buildPresupuestoCard(BuildContext context, Presupuesto p) {
+    final bool esPendiente = p.estado == 'PENDIENTE';
+
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabecera de la tarjeta: Empresa y Precio
+          ListTile(
+            leading: const CircleAvatar(
+              backgroundColor: Colors.blueAccent,
+              child: Icon(Icons.business, color: Colors.white),
+            ),
+            title: Text(
+              p.nombreEmpresa ?? "Empresa",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text('ID Oferta: #${p.id}'),
+            trailing: Text(
+              '${p.monto.toStringAsFixed(2)}€',
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green),
+            ),
+          ),
+
+          // Cuerpo de la tarjeta: Propuesta técnica
+          if (p.notas != null && p.notas!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.indigo.withOpacity(0.1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Propuesta técnica:',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey)),
+                    const SizedBox(height: 4),
+                    Text(p.notas!,
+                        style: const TextStyle(fontSize: 14, height: 1.3)),
+                  ],
+                ),
+              ),
+            ),
+
+          // Botones de acción
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () => _verDetallesEmpresa(context, p),
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text('INFO'),
+                ),
+                const Spacer(),
+                if (esPendiente) ...[
+                  OutlinedButton(
+                    onPressed: procesando ? null : () => onRechazar(p.id),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                    child: const Text('RECHAZAR'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: procesando ? null : () => onAceptar(p.id),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('ACEPTAR'),
+                  ),
+                ] else
+                  Chip(
+                    label: Text(p.estado),
+                    backgroundColor: p.estado == 'ACEPTADO'
+                        ? Colors.green[100]
+                        : Colors.grey[200],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

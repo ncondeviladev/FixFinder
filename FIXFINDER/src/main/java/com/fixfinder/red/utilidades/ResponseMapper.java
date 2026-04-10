@@ -14,17 +14,12 @@ import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.componentes.FotoTrabajo;
 
 /**
- * Utilidad para transformar modelos de dominio en estructuras JSON enriquecidas
- * preparadas para la red. Centraliza la lógica de DTOs y mapeo.
+ * Utilidad para transformar modelos de dominio en estructuras JSON enriquecidas.
  */
 public class ResponseMapper {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Transforma una lista de Trabajos en una lista de mapas enriquecidos con datos
-     * de contactos y presupuestos.
-     */
     public List<Map<String, Object>> mapearListaTrabajos(List<Trabajo> lista) {
         List<Map<String, Object>> resultado = new ArrayList<>();
         for (Trabajo t : lista) {
@@ -33,9 +28,6 @@ public class ResponseMapper {
         return resultado;
     }
 
-    /**
-     * Mapea un único trabajo con todos sus detalles relacionados.
-     */
     public Map<String, Object> mapearTrabajoEnriquecido(Trabajo t) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", t.getId());
@@ -49,11 +41,9 @@ public class ResponseMapper {
         map.put("comentarioCliente", t.getComentarioCliente());
         map.put("fechaFinalizacion", t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString() : null);
 
-        // IDs básicos
         map.put("idCliente", t.getCliente() != null ? t.getCliente().getId() : null);
         map.put("idOperario", t.getOperarioAsignado() != null ? t.getOperarioAsignado().getId() : null);
 
-        // Fotos
         List<String> urlsFotos = new ArrayList<>();
         if (t.getFotos() != null) {
             for (FotoTrabajo f : t.getFotos()) {
@@ -62,11 +52,9 @@ public class ResponseMapper {
         }
         map.put("urls_fotos", urlsFotos);
 
-        // Contactos
         map.put("cliente", mapearUsuario(t.getCliente()));
         map.put("operarioAsignado", mapearUsuario(t.getOperarioAsignado()));
 
-        // Ubicación
         if (t.getUbicacion() != null) {
             Map<String, Double> loc = new HashMap<>();
             loc.put("lat", t.getUbicacion().getLatitud());
@@ -77,12 +65,8 @@ public class ResponseMapper {
         return map;
     }
 
-    /**
-     * Mapea un usuario a un nodo JSON profesional.
-     */
     public ObjectNode mapearUsuario(Usuario u) {
-        if (u == null)
-            return null;
+        if (u == null) return null;
         ObjectNode node = mapper.createObjectNode();
         node.put("id", u.getId());
         node.put("nombre", u.getNombreCompleto());
@@ -99,15 +83,24 @@ public class ResponseMapper {
     }
 
     /**
-     * Mapea un presupuesto a un nodo JSON profesional.
+     * Mapea un presupuesto con Filtro de Privacidad Contextual.
      */
-    public ObjectNode mapearPresupuesto(Presupuesto p) {
-        if (p == null)
-            return null;
+    public ObjectNode mapearPresupuesto(Presupuesto p, int idEmpresaConsulta) {
+        if (p == null) return null;
         ObjectNode node = mapper.createObjectNode();
         node.put("id", p.getId());
         node.put("estado", p.getEstado().toString());
-        node.put("precioTotal", p.getMonto());
+
+        boolean esPropio = (p.getEmpresa() != null && p.getEmpresa().getId() == idEmpresaConsulta);
+        boolean esAceptado = "ACEPTADO".equalsIgnoreCase(p.getEstado().toString());
+
+        if (esAceptado || esPropio) {
+            node.put("monto", p.getMonto());
+            node.put("notas", p.getNotas());
+        } else {
+            node.put("monto", 0.0);
+            node.put("notas", "--- Contenido Privado (Oferta de competencia) ---");
+        }
 
         if (p.getEmpresa() != null) {
             ObjectNode emp = node.putObject("empresa");

@@ -1,11 +1,9 @@
 package com.fixfinder.ui.dashboard.utils;
 
 import com.fixfinder.ui.dashboard.DashboardPrincipalController;
-import com.fixfinder.ui.dashboard.componentes.TablaIncidencias;
-import com.fixfinder.ui.dashboard.dialogos.DialogoEditarOperario;
-import com.fixfinder.ui.dashboard.dialogos.DialogoNuevoOperario;
-import com.fixfinder.ui.dashboard.modelos.OperarioFX;
-import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
+import com.fixfinder.ui.dashboard.componentes.*;
+import com.fixfinder.ui.dashboard.dialogos.*;
+import com.fixfinder.ui.dashboard.modelos.*;
 import com.fixfinder.ui.dashboard.vistas.*;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.ObservableList;
@@ -39,7 +37,7 @@ public class VistaRouter {
             Node rootNode) {
 
         return switch (vistaId) {
-            case "incidencias" -> new VistaIncidencias(trabajos, operarios, accionesIncidencias, cssUrl);
+            case "incidencias" -> new VistaIncidencias(trabajos, operarios, accionesIncidencias, cssUrl, idEmpresa);
             case "operarios" -> crearVistaOperarios(operarios, idEmpresa, rootNode);
             case "empresa" -> crearVistaEmpresa(infoEmpresa, usuarioNombre, usuarioRol, operarios, idEmpresa);
             default -> null; // El controlador manejará el fallback a VistaDashboard
@@ -50,14 +48,14 @@ public class VistaRouter {
         return new VistaOperarios(operarios, new VistaOperarios.AccionesOperarioCallback() {
             @Override
             public void onCrearOperario() {
-                new DialogoNuevoOperario(cssUrl).mostrar().ifPresent(op -> {
+                new DialogoGestionOperario(cssUrl).mostrar().ifPresent(op -> {
                     controller.registrarNuevoOperario(op, idEmpresa);
                 });
             }
 
             @Override
             public void onEditarOperario(OperarioFX operario) {
-                new DialogoEditarOperario(operario, cssUrl).mostrar().ifPresent(op -> {
+                new DialogoGestionOperario(operario, cssUrl).mostrar().ifPresent(op -> {
                     controller.actualizarOperario(operario.getId(), op, operario.isActivo());
                 });
             }
@@ -84,7 +82,7 @@ public class VistaRouter {
     private Node crearVistaEmpresa(Map<String, Object> infoEmpresa, String usuarioNombre, String usuarioRol,
             ObservableList<OperarioFX> operarios, int idEmpresa) {
         if (infoEmpresa.isEmpty() && idEmpresa > 0) {
-            controller.refrescarDatosEmpresa(idEmpresa);
+            controller.sincronizarTodo();
         }
         return new VistaEmpresa(infoEmpresa, usuarioNombre, usuarioRol, operarios, () -> {
             // Lógica de cambio de foto de gerente delegada al controlador

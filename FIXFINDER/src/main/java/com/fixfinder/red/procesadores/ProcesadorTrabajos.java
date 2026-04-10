@@ -14,6 +14,7 @@ import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
+import com.fixfinder.modelos.enums.EstadoPresupuesto;
 import com.fixfinder.service.interfaz.FacturaService;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.service.interfaz.TrabajoService;
@@ -121,13 +122,19 @@ public class ProcesadorTrabajos {
                     lista = Collections.emptyList();
             }
 
+            int idEmpresaConsulta = -1;
+            if ("GERENTE".equals(rol)) {
+                Usuario u = usuarioService.obtenerPorId(idUsuario);
+                idEmpresaConsulta = (u instanceof Operario) ? ((Operario) u).getIdEmpresa() : -1;
+            }
+
             // Mapeo profesional y enriquecimiento mediante ResponseMapper
             List<Map<String, Object>> jobsData = new ArrayList<>();
             for (Trabajo t : lista) {
                 Map<String, Object> jobMap = mapper.mapearTrabajoEnriquecido(t);
 
-                // Enriquecimiento dinámico de presupuesto aceptado
-                enriquecerPresupuestoAceptado(t.getId(), jobMap);
+                // Enriquecimiento dinámico de lista de presupuestos (con filtro de privacidad)
+                enriquecerPresupuestos(t.getId(), jobMap, idEmpresaConsulta);
 
                 jobsData.add(jobMap);
             }
@@ -154,29 +161,33 @@ public class ProcesadorTrabajos {
             List<Trabajo> visibles = new ArrayList<>();
 
             for (Trabajo t : todos) {
-                // 1. Visibles para todos si están en fase de presupuesto
+                // 1. Visibles para todos si están en fase de subasta activa
                 if (t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO) {
                     visibles.add(t);
                     continue;
                 }
 
-                // 2. Si ya está asignado a mi empresa
+                // 2. Si el trabajo ya está en curso (ACEPTADO o superior), 
+                // solo lo ve la empresa que ganó la subasta.
+                try {
+                    List<Presupuesto> presus = presupuestoService.listarPorTrabajo(t.getId());
+                    if (presus != null) {
+                        boolean esMiGanador = presus.stream().anyMatch(p -> 
+                            p.getEmpresa() != null && 
+                            p.getEmpresa().getId() == idEmpresa && 
+                            p.getEstado() == EstadoPresupuesto.ACEPTADO
+                        );
+                        
+                        if (esMiGanador) {
+                            visibles.add(t);
+                            continue;
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                // 3. Fallback de seguridad por asignación directa de operario
                 if (t.getOperarioAsignado() != null && t.getOperarioAsignado().getIdEmpresa() == idEmpresa) {
                     visibles.add(t);
-                    continue;
-                }
-
-                // 3. Si tengo un presupuesto en este trabajo (aunque no sea el aceptado)
-                if (idEmpresa != -1) {
-                    int idEmp = idEmpresa;
-                    try {
-                        List<Presupuesto> presus = presupuestoService.listarPorTrabajo(t.getId());
-                        if (presus != null && presus.stream()
-                                .anyMatch(p -> p.getEmpresa() != null && p.getEmpresa().getId() == idEmp)) {
-                            visibles.add(t);
-                        }
-                    } catch (Exception ignored) {
-                    }
                 }
             }
             return visibles;
@@ -186,17 +197,32 @@ public class ProcesadorTrabajos {
         }
     }
 
-    private void enriquecerPresupuestoAceptado(int idTrabajo, Map<String, Object> jobMap) {
+    private void enriquecerPresupuestos(int idTrabajo, Map<String, Object> jobMap, int idEmpresaConsulta) {
         try {
             List<Presupuesto> listap = presupuestoService.listarPorTrabajo(idTrabajo);
             if (listap != null && !listap.isEmpty()) {
-                Presupuesto p = listap.stream()
-                        .filter(pr -> "ACEPTADO".equalsIgnoreCase(pr.getEstado().toString()))
-                        .findFirst()
-                        .orElse(listap.get(listap.size() - 1));
+                List<ObjectNode> nodosPresus = new ArrayList<>();
+                Presupuesto aceptado = null;
 
-                jobMap.put("presupuesto", mapper.mapearPresupuesto(p));
-                jobMap.put("tienePresupuestoAceptado", "ACEPTADO".equalsIgnoreCase(p.getEstado().toString()));
+                for (Presupuesto p : listap) {
+                    nodosPresus.add(mapper.mapearPresupuesto(p, idEmpresaConsulta));
+                    if ("ACEPTADO".equalsIgnoreCase(p.getEstado().toString())) {
+                        aceptado = p;
+                    }
+                }
+
+                // Lista completa para el modo "Subasta"
+                jobMap.put("presupuestos", nodosPresus);
+
+                // Mantener el campo singular para compatibilidad o para mostrar el ganador
+                if (aceptado != null) {
+                    jobMap.put("presupuesto", mapper.mapearPresupuesto(aceptado, idEmpresaConsulta));
+                    jobMap.put("tienePresupuestoAceptado", true);
+                } else {
+                    // Si no hay aceptado, mandamos el último enviado como "actual"
+                    jobMap.put("presupuesto", mapper.mapearPresupuesto(listap.get(listap.size() - 1), idEmpresaConsulta));
+                    jobMap.put("tienePresupuestoAceptado", false);
+                }
             }
         } catch (Exception ignored) {
         }
