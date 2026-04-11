@@ -148,6 +148,7 @@ CREATE TABLE presupuesto (
     monto DECIMAL(15, 2) NOT NULL,
     estado VARCHAR(50) DEFAULT 'PENDIENTE',
     fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notas TEXT,
     FOREIGN KEY (id_trabajo) REFERENCES trabajo (id) ON DELETE CASCADE,
     FOREIGN KEY (id_empresa) REFERENCES empresa (id)
 );

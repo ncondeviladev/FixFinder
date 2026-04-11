@@ -21,12 +21,15 @@ class SocketService {
   bool get isConectado => _socket != null;
 
   // Configuración de red (Resuelta dinámicamente)
-  String get _servidor => dotenv.get(
-        dotenv.get('ENVIRONMENT') == 'NUBE'
-            ? 'SERVER_IP_NUBE'
-            : 'SERVER_IP_LOCAL',
-        fallback: '127.0.0.1',
-      );
+  String get _servidor {
+    final env = dotenv.get('ENVIRONMENT', fallback: 'NUBE');
+    final ip = dotenv.get(
+      env == 'NUBE' ? 'SERVER_IP_NUBE' : 'SERVER_IP_LOCAL',
+      fallback: '51.48.92.76',
+    );
+    debugPrint('[Socket] Usando servidor: $ip ($env)');
+    return ip;
+  }
   int get _puerto => int.parse(dotenv.get('PORT', fallback: '5000'));
 
   bool _estaConectando = false;

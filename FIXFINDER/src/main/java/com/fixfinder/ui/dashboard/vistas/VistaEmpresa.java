@@ -28,6 +28,7 @@ public class VistaEmpresa extends VBox {
     public VistaEmpresa(Map<String, Object> infoEmpresa,
             String gerenteNombre, String gerenteRol,
             ObservableList<OperarioFX> operarios, Runnable onCambiarFotoGerente) {
+        
         getStyleClass().add("content-area");
         VBox.setVgrow(this, Priority.ALWAYS);
 
@@ -55,10 +56,10 @@ public class VistaEmpresa extends VBox {
         imagenPlaceholder.setMaxSize(80, 80);
         imagenPlaceholder.setStyle(
                 "-fx-background-color: rgba(249,115,22,0.12);" +
-                        "-fx-background-radius: 40;" +
-                        "-fx-border-color: rgba(249,115,22,0.3);" +
-                        "-fx-border-radius: 40;" +
-                        "-fx-border-width: 2;");
+                "-fx-background-radius: 40;" +
+                "-fx-border-color: rgba(249,115,22,0.3);" +
+                "-fx-border-radius: 40;" +
+                "-fx-border-width: 2;");
 
         VBox imgInfo = new VBox(4);
         Label lblDatos = new Label("Datos Personales del Gerente");
@@ -84,8 +85,7 @@ public class VistaEmpresa extends VBox {
                 iv.setClip(new Circle(40, 40, 40));
                 imagenPlaceholder.getChildren().add(iv);
                 tieneFoto = true;
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
 
         if (!tieneFoto) {
@@ -101,11 +101,9 @@ public class VistaEmpresa extends VBox {
         StackPane.setMargin(btnCambiarFoto, new Insets(0, -10, -10, 0));
 
         imagenPlaceholder.getChildren().add(btnCambiarFoto);
-
         perfilRow.getChildren().addAll(imagenPlaceholder, imgInfo);
 
         Separator sep1 = sep();
-
         Label lblEmp = new Label("Información Legal de Empresa");
         lblEmp.getStyleClass().add("modal-label");
 
@@ -122,47 +120,76 @@ public class VistaEmpresa extends VBox {
         card.getChildren().addAll(titulo, perfilRow, sep1, lblEmp, camposEmp);
 
         // --- SECCIÓN DE VALORACIONES ---
-        if (infoEmpresa.containsKey("valoraciones")) {
-            Separator sep2 = sep();
-            Label lblVal = new Label("Últimas Valoraciones de Clientes");
-            lblVal.getStyleClass().add("modal-label");
+        Separator sep2 = sep();
+        Label lblVal = new Label("Últimas Valoraciones de Clientes");
+        lblVal.getStyleClass().add("modal-label");
+        VBox boxValoraciones = new VBox(12);
 
-            VBox boxValoraciones = new VBox(12);
-            Object vNode = infoEmpresa.get("valoraciones");
-            if (vNode instanceof JsonNode array && array.isArray()) {
+        // Detección exhaustiva de la clave que viene del servidor
+        Object vRaw = null;
+        String[] possibleKeys = {"valoraciones", "Valoraciones", "VALORACIONES", "reviews", "ratings", "valoracion"};
+        for (String k : possibleKeys) {
+            if (infoEmpresa.containsKey(k)) {
+                vRaw = infoEmpresa.get(k);
+                break;
+            }
+        }
+
+        if (vRaw != null) {
+            if (vRaw instanceof JsonNode array && array.isArray()) {
                 for (JsonNode v : array) {
-                    HBox fVal = new HBox(10);
-                    fVal.setAlignment(Pos.CENTER_LEFT);
-                    fVal.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 10; -fx-background-radius: 8;");
-
-                    int estrellas = v.get("puntos").asInt();
-                    Label lEstrellas = new Label("⭐".repeat(estrellas));
-                    lEstrellas.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 14px;");
-
-                    Label lCliente = new Label(v.get("cliente").asText());
-                    lCliente.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
-
-                    Label lComentario = new Label(v.get("comentario").asText());
-                    lComentario.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic;");
-                    lComentario.setWrapText(true);
-
-                    VBox vText = new VBox(2, new HBox(10, lCliente, lEstrellas), lComentario);
-                    fVal.getChildren().add(vText);
-                    boxValoraciones.getChildren().add(fVal);
+                    boxValoraciones.getChildren().add(crearFilaValoracion(
+                        v.has("cliente") ? v.get("cliente").asText() : "Cliente",
+                        v.has("puntos") ? v.get("puntos").asInt() : 0,
+                        v.has("comentario") ? v.get("comentario").asText() : ""
+                    ));
+                }
+            } else if (vRaw instanceof java.util.List<?> list) {
+                for (Object item : list) {
+                    if (item instanceof Map m) {
+                        boxValoraciones.getChildren().add(crearFilaValoracion(
+                            String.valueOf(m.getOrDefault("cliente", "Cliente")),
+                            Integer.parseInt(String.valueOf(m.getOrDefault("puntos", 0))),
+                            String.valueOf(m.getOrDefault("comentario", ""))
+                        ));
+                    }
                 }
             }
-            if (boxValoraciones.getChildren().isEmpty()) {
-                boxValoraciones.getChildren().add(new Label("Aún no hay valoraciones disponibles."));
-            }
-            card.getChildren().addAll(sep2, lblVal, boxValoraciones);
         }
+
+        if (boxValoraciones.getChildren().isEmpty()) {
+            Label noVal = new Label("Aún no se han recibido valoraciones para esta empresa.");
+            noVal.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-padding: 10;");
+            boxValoraciones.getChildren().add(noVal);
+        }
+
+        card.getChildren().addAll(sep2, lblVal, boxValoraciones);
 
         body.getChildren().add(card);
         scroll.setContent(body);
         getChildren().add(scroll);
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────
+    private HBox crearFilaValoracion(String cliente, int puntos, String comentario) {
+        HBox fVal = new HBox(12);
+        fVal.setAlignment(Pos.CENTER_LEFT);
+        fVal.setStyle("-fx-background-color: rgba(255,255,255,0.04); -fx-padding: 12; -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius: 10;");
+
+        Label lEstrellas = new Label("★".repeat(Math.max(0, Math.min(5, puntos))) + "☆".repeat(Math.max(0, 5 - puntos)));
+        lEstrellas.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 14px;");
+
+        Label lCliente = new Label(cliente);
+        lCliente.setStyle("-fx-text-fill: #f8fafc; -fx-font-weight: bold;");
+
+        Label lComentario = new Label(comentario.isBlank() ? "(Sin comentario)" : "\"" + comentario + "\"");
+        lComentario.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic;");
+        lComentario.setWrapText(true);
+
+        VBox vText = new VBox(2, new HBox(10, lCliente, lEstrellas), lComentario);
+        HBox.setHgrow(vText, Priority.ALWAYS);
+        fVal.getChildren().add(vText);
+        return fVal;
+    }
 
     private HBox fila(String etiqueta, String valor) {
         HBox f = new HBox(8);

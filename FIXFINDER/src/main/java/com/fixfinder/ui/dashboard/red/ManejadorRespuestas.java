@@ -11,8 +11,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Clase especializada en procesar e interpretar las respuestas JSON del servidor.
- * Desacopla la lógica de red de la gestión de la interfaz de usuario, cumpliendo
+ * Clase especializada en procesar e interpretar las respuestas JSON del
+ * servidor.
+ * Desacopla la lógica de red de la gestión de la interfaz de usuario,
+ * cumpliendo
  * con el principio de responsabilidad única.
  */
 public class ManejadorRespuestas {
@@ -28,21 +30,23 @@ public class ManejadorRespuestas {
     /**
      * Constructor del manejador de respuestas.
      * 
-     * @param todosTrabajos Lista observable de trabajos.
-     * @param listaOperarios Lista observable de operarios.
-     * @param infoEmpresaActual Mapa de datos de la empresa actual.
+     * @param todosTrabajos        Lista observable de trabajos.
+     * @param listaOperarios       Lista observable de operarios.
+     * @param infoEmpresaActual    Mapa de datos de la empresa actual.
      * @param alRegistrarActividad Callback para registrar eventos en el historial.
-     * @param alSolicitarRefresco Callback para pedir una actualización de datos al servidor.
-     * @param alNavegarA Callback para forzar navegación a una vista específica.
-     * @param idEmpresaLogueada ID de la empresa del usuario en sesión.
+     * @param alSolicitarRefresco  Callback para pedir una actualización de datos al
+     *                             servidor.
+     * @param alNavegarA           Callback para forzar navegación a una vista
+     *                             específica.
+     * @param idEmpresaLogueada    ID de la empresa del usuario en sesión.
      */
     public ManejadorRespuestas(ObservableList<TrabajoFX> todosTrabajos,
-                              ObservableList<OperarioFX> listaOperarios,
-                              Map<String, Object> infoEmpresaActual,
-                              Consumer<String> alRegistrarActividad,
-                              Runnable alSolicitarRefresco,
-                              Consumer<String> alNavegarA,
-                              int idEmpresaLogueada) {
+            ObservableList<OperarioFX> listaOperarios,
+            Map<String, Object> infoEmpresaActual,
+            Consumer<String> alRegistrarActividad,
+            Runnable alSolicitarRefresco,
+            Consumer<String> alNavegarA,
+            int idEmpresaLogueada) {
         this.todosTrabajos = todosTrabajos;
         this.listaOperarios = listaOperarios;
         this.infoEmpresaActual = infoEmpresaActual;
@@ -55,21 +59,26 @@ public class ManejadorRespuestas {
     /**
      * Procesa la carga lógica de una respuesta del servidor.
      * 
-     * @param msg Mensaje descriptivo de la respuesta.
-     * @param datos Nodo JSON con la información recibida.
-     * @param status Código de estado HTTP de la respuesta.
+     * @param msg            Mensaje descriptivo de la respuesta.
+     * @param datos          Nodo JSON con la información recibida.
+     * @param status         Código de estado HTTP de la respuesta.
      * @param vistaDashboard Referencia a la vista para actualizar KPIs.
-     * @param rootPane Referencia al panel raíz para detectar la vista activa.
+     * @param rootPane       Referencia al panel raíz para detectar la vista activa.
      */
-    public void procesar(String accion, String msg, JsonNode datos, int status, VistaDashboard vistaDashboard, BorderPane rootPane) {
+    public void procesar(String accion, String msg, JsonNode datos, int status, VistaDashboard vistaDashboard,
+            BorderPane rootPane) {
         System.out.println("📡 [MANEJADOR] Accion: " + accion + " | Status: " + status);
-        
+
         if (accion == null) {
             // Fallback por si el servidor no envía acción (compatibilidad)
-            if (msg != null && msg.toLowerCase().contains("listado")) accion = "LISTAR_TRABAJOS";
-            else if (msg != null && msg.toLowerCase().contains("operarios")) accion = "GET_OPERARIOS";
-            else if (msg != null && msg.toLowerCase().contains("empresa")) accion = "GET_EMPRESA";
-            else return;
+            if (msg != null && msg.toLowerCase().contains("listado"))
+                accion = "LISTAR_TRABAJOS";
+            else if (msg != null && msg.toLowerCase().contains("operarios"))
+                accion = "GET_OPERARIOS";
+            else if (msg != null && msg.toLowerCase().contains("empresa"))
+                accion = "GET_EMPRESA";
+            else
+                return;
         }
 
         switch (accion) {
@@ -78,35 +87,39 @@ public class ManejadorRespuestas {
                     procesarListaTrabajos(datos, vistaDashboard);
                 }
                 break;
-                
+
             case "GET_OPERARIOS":
                 if (datos != null && datos.isArray()) {
                     procesarListaOperarios(datos);
                 }
                 break;
-                
+
             case "GET_EMPRESA":
                 if (datos != null && !datos.isArray()) {
                     actualizarEstadoEmpresa(datos, rootPane);
                 }
                 break;
-                
+
             case "ASIGNAR_OPERARIO":
             case "MODIFICAR_OPERARIO":
             case "CREAR_PRESUPUESTO":
             case "ACTUALIZAR_FOTO_PERFIL":
-                if (status < 400) alSolicitarRefresco.run();
-                else alRegistrarActividad.accept("❌ " + msg);
+                if (status < 400)
+                    alSolicitarRefresco.run();
+                else
+                    alRegistrarActividad.accept("❌ " + msg);
                 break;
-                
+
             default:
-                if (status >= 400) alRegistrarActividad.accept("❌ " + msg);
+                if (status >= 400)
+                    alRegistrarActividad.accept("❌ " + msg);
                 break;
         }
     }
 
     /**
-     * Mapea los datos JSON a la lista de trabajos y recalcula los indicadores (KPIs).
+     * Mapea los datos JSON a la lista de trabajos y recalcula los indicadores
+     * (KPIs).
      */
     private void procesarListaTrabajos(JsonNode datos, VistaDashboard vistaDashboard) {
         todosTrabajos.clear();
@@ -120,13 +133,13 @@ public class ManejadorRespuestas {
             // Lógica de conteo para KPIs
             if (!"FINALIZADO".equals(estado) && !"REALIZADO".equals(estado) && !"CANCELADO".equals(estado))
                 activos++;
-            
+
             if (t.haPresupuestado(idEmpresaLogueada)) {
                 presupuestados++;
             } else if ("PENDIENTE".equals(estado)) {
                 pendientes++;
             }
-            
+
             if ("REALIZADO".equals(estado) || "FINALIZADO".equals(estado))
                 completados++;
         }
@@ -135,7 +148,8 @@ public class ManejadorRespuestas {
         todosTrabajos.sort((t1, t2) -> {
             int p1 = obtenerPesoEstado(t1.getEstado());
             int p2 = obtenerPesoEstado(t2.getEstado());
-            if (p1 != p2) return Integer.compare(p1, p2);
+            if (p1 != p2)
+                return Integer.compare(p1, p2);
             return Integer.compare(t2.getId(), t1.getId());
         });
 

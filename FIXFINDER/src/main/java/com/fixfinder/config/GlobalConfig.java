@@ -5,11 +5,11 @@ package com.fixfinder.config;
  */
 public class GlobalConfig {
     // EL INTERRUPTOR FINAL: Cambiar a 'true' para usar AWS, 'false' para Docker Local
-    public static final boolean MODO_NUBE = false; 
+    public static final boolean MODO_NUBE = true; 
 
     // --- CONFIGURACIÓN DE RED (IPs y Puertos) ---
     public static final String LOCAL_IP = "127.0.0.1";
-    public static final String CLOUD_IP = "18.101.131.34";
+    public static final String CLOUD_IP = "51.48.92.76";
     public static final int PORT = 5000;
 
     // --- CONFIGURACIÓN DE BASE DE DATOS (Local vs RDS) ---

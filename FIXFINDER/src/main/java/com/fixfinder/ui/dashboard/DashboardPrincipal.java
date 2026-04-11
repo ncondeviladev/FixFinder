@@ -32,7 +32,7 @@ public class DashboardPrincipal {
     public void mostrar() {
         BorderPane root = controller.construirVista(this::cerrar);
 
-        Scene scene = new Scene(root, 1280, 800);
+        Scene scene = new Scene(root, 1080, 600);
         scene.getStylesheets().add(CSS_URL);
 
         stage.setTitle("FixFinder — Panel de Control");

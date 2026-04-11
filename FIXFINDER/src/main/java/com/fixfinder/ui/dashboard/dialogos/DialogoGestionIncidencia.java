@@ -128,6 +128,14 @@ public class DialogoGestionIncidencia {
             areaPropuesta.setWrapText(true); areaPropuesta.setPrefHeight(80);
             areaPropuesta.getStyleClass().add("modal-input");
 
+            // Permitir que el TAB pase al siguiente campo (txtMonto)
+            areaPropuesta.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.TAB) {
+                    txtMonto.requestFocus();
+                    event.consume();
+                }
+            });
+
             txtMonto.setPromptText("Importe en €");
             txtMonto.getStyleClass().add("modal-input");
 
@@ -168,7 +176,14 @@ public class DialogoGestionIncidencia {
             mainBox.getChildren().add(crearCajaValoracion());
         }
 
-        dialog.getDialogPane().setContent(mainBox);
+        // Envolver en ScrollPane para que sea movible si hay mucho contenido
+        ScrollPane scrollPane = new ScrollPane(mainBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(650); // Altura máxima recomendada
+        scrollPane.getStyleClass().add("transparent-scroll"); // Reutilizar clase si existe
+        scrollPane.setStyle("-fx-background-color:transparent; -fx-background:transparent;");
+
+        dialog.getDialogPane().setContent(scrollPane);
 
         // --- BOTONES ---
         ButtonType btnOk = new ButtonType(
@@ -256,10 +271,22 @@ public class DialogoGestionIncidencia {
     private void mostrarFotoGrande(String url) {
         Dialog<Void> imgDialog = new Dialog<>();
         imgDialog.setTitle("Evidencia Visual");
+        
+        if (cssPath != null) {
+            imgDialog.getDialogPane().getStylesheets().add(cssPath);
+        }
+        imgDialog.getDialogPane().getStyleClass().add("dialog-pane");
+
         ImageView img = new ImageView(new Image(url));
         img.setFitWidth(800); img.setFitHeight(600); img.setPreserveRatio(true);
         imgDialog.getDialogPane().setContent(img);
+        
         imgDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        Button closeBtn = (Button) imgDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+        if (closeBtn != null) {
+            closeBtn.getStyleClass().add("btn-secondary");
+        }
+        
         imgDialog.show();
     }
 }

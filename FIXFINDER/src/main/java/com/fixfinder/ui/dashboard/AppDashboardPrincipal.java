@@ -37,17 +37,17 @@ public class AppDashboardPrincipal extends Application {
     public void start(Stage stage) {
         this.loginStage = stage;
         this.servicioCliente = new ServicioCliente();
-        
+
         Circle dot = new Circle(6, javafx.scene.paint.Color.GRAY);
         conectarAServer(dot);
-        
+
         mostrarPantallaLogin(stage, dot);
     }
 
     private void mostrarPantallaLogin(Stage stage, Circle dot) {
         StackPane mainStack = new StackPane();
         mainStack.setStyle("-fx-background-color: #0F1117;");
-        
+
         VBox root = new VBox(20);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(48));
@@ -130,7 +130,7 @@ public class AppDashboardPrincipal extends Application {
         root.getChildren().addAll(lblTitulo, lblSub, formBox);
 
         mainStack.getChildren().add(root);
-        
+
         // El Semáforo en la esquina
         StackPane.setAlignment(dot, Pos.TOP_RIGHT);
         StackPane.setMargin(dot, new Insets(15));
@@ -151,14 +151,14 @@ public class AppDashboardPrincipal extends Application {
 
         txtPass.setOnAction(e -> btnEntrar.fire());
 
-        Scene scene = new Scene(mainStack, 480, 520);
+        Scene scene = new Scene(mainStack, 440, 500);
         scene.getStylesheets().add(CSS_URL);
         stage.setTitle("FixFinder — Acceso");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
     }
-    
+
     private void conectarAServer(Circle dot) {
         if (!GlobalConfig.MODO_NUBE) {
             dot.setFill(javafx.scene.paint.Color.DODGERBLUE);

@@ -256,7 +256,7 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     @Override
     public List<Trabajo> obtenerValoracionesPorEmpresa(int idEmpresa) throws DataAccessException {
         String sql = "SELECT t.* FROM trabajo t " +
-                     "JOIN operario o ON t.id_operario = o.id " +
+                     "JOIN operario o ON t.id_operario = o.id_usuario " +
                      "WHERE o.id_empresa = ? AND t.valoracion > 0";
         List<Trabajo> lista = new ArrayList<>();
 
