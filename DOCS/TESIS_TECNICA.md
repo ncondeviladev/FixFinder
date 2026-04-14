@@ -63,11 +63,25 @@ En un servidor multihilo, el mayor peligro es que dos hilos compartan la misma c
 
 ---
 
-## 5. El Protocolo Binario (Big-Endian Streaming)
+## 5. El Protocolo Binario (Arquitectura de Cabecera Big-Endian)
 
-Para lograr una comunicación profesional, hemos replicado el estándar de red industrial:
--   **El Integer de 32 bits:** Antes de enviar el JSON, enviamos 4 bytes que representan la longitud del cuerpo. Usamos Big-Endian (Byte de más peso primero).
--   **Reconstrucción Asíncrona:** Tanto en Java como en Dart, hemos programado un buffer acumulativo. Si un mensaje grande (ej: una foto perfil) llega troceado en varios paquetes de red, el sistema los va guardando hasta que la longitud acumulada coincide con el número de la cabecera. Solo entonces se dispara el procesado.
+Para lograr una comunicación de nivel industrial, hemos diseñado un protocolo de capa de aplicación propio que resuelve la fragmentación de paquetes TCP mediante una cabecera de longitud fija.
+
+### A. El Integer de 32 bits (Base 256)
+En lugar de enviar la longitud en formato texto (ASCII), lo enviamos como un flujo binario de 4 bytes. Esto nos permite un **empaquetamiento masivo**:
+- **Eficiencia Matemática:** Mientras que 4 bytes en formato texto solo podrían representar longitudes hasta 9,999 (10KB), 4 bytes en binario (Base 256) pueden direccionar hasta **4,29 Gigabytes**.
+- **Determinismo:** El receptor (ya sea Java o Flutter) sabe que debe leer **exactamente los primeros 4 bytes** para conocer el tamaño del mensaje. Esto elimina la ambigüedad y el "clipping" de mensajes en la red.
+
+### B. Cálculo de Pesos y Endianness
+Implementamos el estándar **Big-Endian** (Most Significant Byte first), donde el orden de los bytes sigue una jerarquía de potencias de 256:
+$$Longitud = (b0 \cdot 256^3) + (b1 \cdot 256^2) + (b2 \cdot 256^1) + (b3 \cdot 256^0)$$
+Esta arquitectura garantiza que, independientemente de si la CPU del cliente es Little-Endian (Intel) o Big-Endian (algunos ARM), el protocolo de red sea el "árbitro" que unifique el valor numérico.
+
+### C. Reconstrucción Asíncrona y Buffer de Seguridad
+Tanto en Java como en Dart, hemos programado un buffer acumulativo de seguridad:
+1.  **Vaciado del Socket:** El sistema lee fragmentos de red.
+2.  **Acumulación:** Si un mensaje llega troceado (ej: JSON grande de incidencias), los bytes se guardan en un buffer temporal.
+3.  **Disparo (Firing):** Solo cuando la longitud acumulada coincide exactamente con el valor calculado en la cabecera, se dispara el parseo JSON. Esto evita errores de sintaxis por mensajes incompletos.
 
 ---
 

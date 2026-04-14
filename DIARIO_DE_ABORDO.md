@@ -975,20 +975,24 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
   - Mostrar claramente que el presupuesto fue rechazado y que la incidencia vuelve a esperar una propuesta técnica.
 
 ## App Movil (Flutter)
-- [ ] **Gestión de Perfil:** Habilitar edición de datos personales (teléfono, dirección) en `perfil_pantalla.dart`.
-- [ ] **Registro de Usuarios:** Implementar pantalla y flujo de alta de nuevos clientes desde la App.
-- [ ] **Actualización Real-Time (Push):** Reemplazar el botón manual de refresco por escucha de eventos `PUSH_UPDATE` vía socket.
+- [ ] **Gestión de Perfil:** Habilitar edición de datos personales (teléfono, dirección) en `perfil_pantalla.dart`. Requiere la implementación de la nueva acción `ACTUALIZAR_DATOS_PERSONALES` en el servidor.
+- [ ] **Registro de Usuarios:** Implementar pantalla y flujo de alta de nuevos clientes/operarios desde la App (`registro_pantalla.dart`).
+- [ ] **Actualización Real-Time (Push Real):** Reemplazar el polling de 15s por una escucha reactiva de eventos vía socket.
+    - **Técnica:** El `SocketService` debe exponer un `Stream` de eventos globales que el `TrabajoProvider` escuchará para añadir/actualizar elementos sin recargar la vista.
 - [x] **Refactor de Red:** Migrar los metodos del TrabajoProvider al sistema generico _socket.request() para eliminar boilerplate masivo (~200 lineas).
-- [ ] **Tema de Colores:** Extraer todos los colores hardcodeados de `main.dart` a un fichero `lib/theme/app_theme.dart` con constantes nombradas. Limpiar el `darkTheme` para que use esas constantes en vez de `Color(0xFF...)` repetidos por todo el archivo.
-- [ ] **Documentación Explicativa:** Añadir comentarios didácticos línea a línea en todas las clases (`lib/`), explicando el flujo de datos y la lógica técnica para la defensa del proyecto. **REQUISITO:** Realizarlo con extremo cuidado, asegurando la integridad total de la lógica funcional (no eliminar métodos de soporte como `_sanitizarURL` ni bloques visuales de los `AppBar`).
+- [ ] **Tema de Colores (Centralización):** Extraer todos los colores hardcodeados a `lib/theme/app_theme.dart` usando `ThemeData`. 
+    - **Técnica:** Definir un `colorScheme` unificado y usar `Theme.of(context)` en todos los widgets para permitir cambios globales de diseño.
+- [ ] **Documentación Explicativa:** Añadir comentarios didácticos línea a línea en todas las clases (`lib/`), explicando el flujo de datos y la lógica técnica para la defensa del proyecto.
 
 ## Dashboard JavaFX
 - [x] **Bug Visual Foto Cliente:** Corregir carga de la foto de perfil en la ficha de detalle del cliente (DialogoFichaCliente.java).
-- [ ] **Registro de Empresas:** Formulario de alta para nuevos gerentes/empresas desde el lanzador del Dashboard.
+- [ ] **Registro de Empresas:** Implementar el formulario de alta y la validación visual para nuevos gerentes/empresas desde el lanzador (la lógica de BCrypt ya está operativa en el backend).
+- [ ] **Tematización (CSS Centralizado):** Crear `src/main/resources/css/style.css` para unificar el diseño (Dark Mode / Glassmorphism) y eliminar los `setStyle()` del código Java.
 - [x] **Ajuste de UI:** Calibrar el ancho de las columnas (especialmente "Estado") para evitar solapamientos.
 - [ ] **Diagrama de Dashboard:** Crear diagrama de componentes específico para la arquitectura JavaFX modularizada.
 
-## Backend y Deuda Tecnica (Java)
+- [ ] **Sistema de Broadcaster (Push):** Implementar una arquitectura de **Observer** en el servidor para notificar eventos en tiempo real.
+    - **Técnica:** Clase `SesionManager` que mantenga un `Set<GestorConexion>` de hilos activos. Al procesar un cambio (nuevo trabajo/presupuesto), iterar y emitir el JSON de aviso a los clientes interesados.
 - [x] **Optimizacion SQL (Problema N+1):** Refactorizar cargarRelaciones() en TrabajoDAOImpl.java para usar un unico LEFT JOIN masivo.
 - [x] **Refactor TablaIncidencias:** Desmontar la "God Class" TablaIncidencias.java. Separar factorias de celdas, filtrado y dialogos en clases independientes (SRP).
 - [x] **Micro-refactor Autenticacion:** Trocear procesarRegistro en metodos privados segregados por rol.
@@ -1194,21 +1198,24 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
   - Mostrar claramente que el presupuesto fue rechazado y que la incidencia vuelve a esperar una propuesta técnica.
 
 ## App Móvil (Flutter)
-- [ ] **Gestión de Perfil:** Habilitar edición de datos personales (teléfono, dirección) en `perfil_pantalla.dart`.
+- [ ] **Gestión de Perfil:** Habilitar la modificación de datos personales (teléfono, dirección) en `perfil_pantalla.dart` como cliente.
 - [ ] **Registro de Usuarios:** Implementar pantalla y flujo de alta de nuevos clientes desde la App.
-- [ ] **Actualización Real-Time (Push):** Reemplazar el botón manual de refresco por escucha de eventos `PUSH_UPDATE` vía socket.
+- [ ] **Actualización Real-Time (Broadcaster):** Implementar la escucha de eventos del Broadcaster para refrescar datos automáticamente sin polling.
 - [x] **Refactor de Red:** Migrar los métodos del `TrabajoProvider` al sistema genérico `_socket.request()` para eliminar boilerplate masivo (~200 líneas).
-- [ ] **Tema de Colores:** Extraer todos los colores hardcodeados de `main.dart` a un fichero `lib/theme/app_theme.dart` con constantes nombradas. Limpiar el `darkTheme` para que use esas constantes en vez de `Color(0xFF...)` repetidos por todo el archivo.
+- [ ] **Tema de Colores:** Extraer todos los colores hardcodeados de `main.dart` a un fichero `lib/theme/app_theme.dart` (ThemeData) para centralizar el estilo de la App.
 - [ ] **Documentación Explicativa:** Añadir comentarios didácticos línea a línea en todas las clases (`lib/`), explicando el flujo de datos y la lógica técnica para la defensa del proyecto. **REQUISITO:** Realizarlo con extremo cuidado, asegurando la integridad total de la lógica funcional (no eliminar métodos de soporte como `_sanitizarURL` ni bloques visuales de los `AppBar`).
 
 ## Dashboard JavaFX
 - [x] **Bug Visual Foto Cliente:** Corregir carga de la foto de perfil en la ficha de detalle del cliente (`DialogoFichaCliente.java`).
-- [ ] **Registro de Empresas:** Formulario de alta para nuevos gerentes/empresas desde el lanzador del Dashboard.
+- [ ] **Registro de Empresas:** Formulario de alta para nuevas empresas (con su correspondiente operario gerente) desde el lanzador del Dashboard.
+- [ ] **Tema para Dashboard (CSS):** Centralizar estilos en un archivo `style.css` y eliminar el uso de `setStyle` en el código Java.
+- [ ] **Actualización Real-Time (Broadcaster):** Implementar la escucha de eventos del Broadcaster en el Dashboard para refrescar la tabla de incidencias automáticamente.
 - [x] **Ajuste de UI:** Calibrar el ancho de las columnas (especialmente "Estado") para evitar solapamientos.
 - [ ] **Diagrama de Dashboard:** Crear diagrama de componentes específico para la arquitectura JavaFX modularizada.
 
 ## Backend y Deuda Técnica (Java)
-- [x] **Optimizacion SQL (Problema N+1):** Refactorizar `cargarRelaciones()` en `TrabajoDAOImpl.java` para usar un único `LEFT JOIN` masivo.
+- [ ] **Sistema Broadcaster:** Implementar la lógica en el servidor para notificar eventos en tiempo real a la App y al Dashboard.
+- [x] **Optimización SQL (Problema N+1):** Refactorizar `cargarRelaciones()` en `TrabajoDAOImpl.java` para usar un único `LEFT JOIN` masivo.
 - [x] **Refactor TablaIncidencias:** Desmontar la "God Class" `TablaIncidencias.java`. Separar factorías de celdas, filtrado y diálogos en clases independientes (SRP).
 - [x] **Micro-refactor Autenticacion:** Trocear `procesarRegistro` en métodos privados segregados por rol.
 - [x] **Gestion de Timeouts:** Asegurar que acciones como `VALORAR` o `CANCELAR` devuelvan siempre la clave `"mensaje"` en el JSON para evitar interrupciones de flujo en la App.
