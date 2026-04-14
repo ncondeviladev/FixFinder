@@ -1,0 +1,58 @@
+sequenceDiagram
+    autonumber
+    
+    box "App Móvil (Flutter)" #DEEBF7
+        participant AU as UI (Event Loop)
+        participant AS as SocketService
+    end
+
+    box "Nube (AWS/Firebase)" #f2f2f2
+        participant FIRE as Firebase Storage
+        participant DB as MySQL (ThreadLocal)
+    end
+
+    box "Backend Java (Servidor)" #E2F0D9
+        participant SW as GestorConexion (Worker)
+        participant SS as TrabajoServiceImpl (Negocio)
+    end
+
+    box "Dashboard PC (JavaFX)" #FFF2CC
+        participant DA as ClienteSocket (Lector Avaro)
+        participant DP as ManejadorRespuestas (Procesador)
+        participant DU as UI (Painter Thread)
+    end
+
+    Note over AU, DU: ESCENARIO: Creación de Incidencia con Fotos
+
+    %% FASE 1
+    rect rgb(240, 240, 240)
+        AU->>FIRE: uploadImage (ImageService)
+        FIRE-->>AU: URLs Retornadas
+    end
+
+    %% FASE 2
+    rect rgb(220, 235, 250)
+        AU->>AS: request("CREAR_TRABAJO", datos)
+        AS->>SW: [Header 4B] + [JSON Payload]
+    end
+
+    %% FASE 3
+    rect rgb(226, 240, 217)
+        SW->>SW: procesarCrearTrabajo (ProcesadorTrabajos)
+        SW->>SS: solicitarReparacion (TrabajoService)
+        SS->>DB: INSERT INTO trabajo + fotos
+        DB-->>SS: Confirmación (ID: 42)
+        SS-->>SW: Respuesta OK
+        SW-->>AS: [Header 4B] + { "status": 201 }
+    end
+
+    %% FASE 4: NUEVA LÍNEA DE PUSH Y ACTUALIZACIÓN DOBLE
+    rect rgb(255, 242, 204)
+        SW->>DA: [TCP Push] { "accion": "LISTAR_TRABAJOS", ... }
+        Note over DA: Paso 13: El Lector Avaro recibe bytes
+        DA->>DP: Transfiere JSON mediante Cola Interna
+        Note over DP: Paso 14: Procesa y mapea datos a TrabajoFX
+        DP->>DU: Platform.runLater(() -> Actualizar UI)
+        Note over DU: Paso 15: El hilo Pintor refresca la App
+        DU->>DU: Refresco: Tabla de Incidencias + KPIs
+    end
