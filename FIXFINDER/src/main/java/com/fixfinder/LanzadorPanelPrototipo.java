@@ -12,7 +12,7 @@ import java.io.IOException;
  * Panel de pruebas del Dashboard antiguo (Simulador de control).
  * Conservado para pruebas de desarrollo independientes.
  */
-public class LanzadorTestPanel {
+public class LanzadorPanelPrototipo {
 
     private static Scene scene;
 
@@ -20,7 +20,7 @@ public class LanzadorTestPanel {
         @Override
         public void start(Stage stage) throws IOException {
             // Cargar el FXML desde resources
-            FXMLLoader fxmlLoader = new FXMLLoader(LanzadorTestPanel.class.getResource("/com/fixfinder/vistas/dashboard.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(LanzadorPanelPrototipo.class.getResource("/com/fixfinder/vistas/dashboard.fxml"));
             Parent root = fxmlLoader.load();
 
             scene = new Scene(root, 800, 600);

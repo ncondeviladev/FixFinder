@@ -123,7 +123,8 @@ public class AppDashboardPrincipal extends Application {
         lblConexion.setVisible(false);
 
         Button btnRegistrar = new Button("¿Nueva Empresa? Regístrala aquí");
-        btnRegistrar.setStyle("-fx-background-color: transparent; -fx-text-fill: #3B82F6; -fx-underline: true; -fx-cursor: hand;");
+        btnRegistrar.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #e04700ff; -fx-underline: true; -fx-cursor: hand;");
         btnRegistrar.setMaxWidth(Double.MAX_VALUE);
         btnRegistrar.setOnAction(e -> {
             new com.fixfinder.ui.dashboard.dialogos.DialogoRegistroEmpresa(servicioCliente).mostrar();
@@ -158,7 +159,7 @@ public class AppDashboardPrincipal extends Application {
 
         txtPass.setOnAction(e -> btnEntrar.fire());
 
-        Scene scene = new Scene(mainStack, 440, 500);
+        Scene scene = new Scene(mainStack, 440, 580);
         scene.getStylesheets().add(CSS_URL);
         stage.setTitle("FixFinder — Acceso");
         stage.setScene(scene);

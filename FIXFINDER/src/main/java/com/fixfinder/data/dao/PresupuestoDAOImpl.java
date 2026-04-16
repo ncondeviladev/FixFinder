@@ -1,7 +1,6 @@
 package com.fixfinder.data.dao;
 
 import com.fixfinder.data.ConexionDB;
-import com.fixfinder.data.interfaces.BaseDAO;
 import com.fixfinder.data.interfaces.PresupuestoDAO;
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.modelos.Presupuesto;
@@ -17,7 +16,13 @@ import java.util.List;
 public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     private final TrabajoDAOImpl trabajoDAO = new TrabajoDAOImpl();
-    private final EmpresaDAOImpl empresaDAO = new EmpresaDAOImpl();
+
+    private static final String SQL_CON_RELACIONES = 
+        "SELECT p.*, " +
+        " e.nombre AS emp_nombre, e.cif AS emp_cif, e.email AS emp_email, e.telefono AS emp_telefono, " +
+        " e.direccion AS emp_direccion, e.logo_url AS emp_logo_url, e.id_gerente AS emp_id_gerente " +
+        "FROM presupuesto p " +
+        "LEFT JOIN empresa e ON p.id_empresa = e.id";
 
     @Override
     public void insertar(Presupuesto presupuesto) throws DataAccessException {
@@ -90,7 +95,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     @Override
     public Presupuesto obtenerPorId(int id) throws DataAccessException {
-        String sql = "SELECT * FROM presupuesto WHERE id=?";
+        String sql = SQL_CON_RELACIONES + " WHERE p.id=?";
         Presupuesto p = null;
 
         try (Connection conn = ConexionDB.getConnection();
@@ -99,41 +104,41 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    p = mapear(rs);
+                    p = mapearConRelaciones(rs);
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al obtener presupuesto ID: " + id, e);
         }
 
-        cargarRelaciones(p);
+        // El trabajo se carga por separado para evitar JOINs circulares complejos
+        hidratarTrabajo(p);
         return p;
     }
 
     @Override
     public List<Presupuesto> obtenerTodos() throws DataAccessException {
-        String sql = "SELECT * FROM presupuesto";
         List<Presupuesto> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql);
+                PreparedStatement stmt = conn.prepareStatement(SQL_CON_RELACIONES);
                 ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(mapear(rs));
+                lista.add(mapearConRelaciones(rs));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar presupuestos", e);
         }
 
         for (Presupuesto p : lista) {
-            cargarRelaciones(p);
+            hidratarTrabajo(p);
         }
         return lista;
     }
 
     public List<Presupuesto> obtenerPorTrabajo(int idTrabajo) throws DataAccessException {
-        String sql = "SELECT * FROM presupuesto WHERE id_trabajo = ?";
+        String sql = SQL_CON_RELACIONES + " WHERE p.id_trabajo = ?";
         List<Presupuesto> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
@@ -142,14 +147,16 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
             stmt.setInt(1, idTrabajo);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapear(rs));
+                    lista.add(mapearConRelaciones(rs));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar presupuestos por trabajo", e);
         }
+
+        // Carga de trabajo fuera del bucle para evitar cierres de conexión
         for (Presupuesto p : lista) {
-            cargarRelaciones(p);
+            hidratarTrabajo(p);
         }
         return lista;
     }
@@ -190,26 +197,32 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
         return p;
     }
 
-    private void cargarRelaciones(Presupuesto p) {
-        if (p == null)
-            return;
+    private Presupuesto mapearConRelaciones(ResultSet rs) throws SQLException {
+        Presupuesto p = mapear(rs);
 
-        try {
-            if (p.getTrabajo() != null && p.getTrabajo().getId() > 0) {
-                Trabajo t = trabajoDAO.obtenerPorId(p.getTrabajo().getId());
-                p.setTrabajo(t);
-            }
-        } catch (DataAccessException e) {
-            System.err.println("Error cargando trabajo para presupuesto " + p.getId());
+        // Hidratar Empresa desde el JOIN
+        int idEmp = rs.getInt("id_empresa");
+        if (idEmp > 0) {
+            Empresa e = new Empresa();
+            e.setId(idEmp);
+            e.setNombre(rs.getString("emp_nombre"));
+            e.setCif(rs.getString("emp_cif"));
+            e.setEmailContacto(rs.getString("emp_email"));
+            e.setTelefono(rs.getString("emp_telefono"));
+            e.setDireccion(rs.getString("emp_direccion"));
+            e.setUrlFoto(rs.getString("emp_logo_url"));
+            p.setEmpresa(e);
         }
+        return p;
+    }
 
+    private void hidratarTrabajo(Presupuesto p) {
+        if (p == null || p.getTrabajo() == null) return;
         try {
-            if (p.getEmpresa() != null && p.getEmpresa().getId() > 0) {
-                Empresa e = empresaDAO.obtenerPorId(p.getEmpresa().getId());
-                p.setEmpresa(e);
-            }
+            // Se carga fuera del bucle del ResultSet para evitar el error de conexión cerrada
+            p.setTrabajo(trabajoDAO.obtenerPorId(p.getTrabajo().getId()));
         } catch (DataAccessException e) {
-            System.err.println("Error cargando empresa para presupuesto " + p.getId());
+            System.err.println("Error hidratando trabajo en presupuesto " + p.getId());
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.fixfinder.TestPanel;
+package com.fixfinder.panelprototipo;
 
 import com.fixfinder.config.GlobalConfig;
 
@@ -30,7 +30,7 @@ import javafx.scene.control.ComboBox;
 import java.util.List;
 import java.util.ArrayList;
 
-public class TestPanelController {
+public class PanelPrototipoController {
 
     @FXML
     private Button btnConectar;

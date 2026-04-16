@@ -17,9 +17,25 @@ import java.util.List;
  */
 public class TrabajoDAOImpl implements TrabajoDAO {
 
-    private final UsuarioDAOImpl usuarioDAO = new UsuarioDAOImpl();
-    private final OperarioDAOImpl operarioDAO = new OperarioDAOImpl();
+    // Solo se mantiene fotoDAO ya que las fotos son 1:N y requieren query separada
     private final FotoTrabajoDAOImpl fotoDAO = new FotoTrabajoDAOImpl();
+
+    // SQL maestra con LEFT JOIN: evita el problema N+1 para cliente y operario
+    private static final String SQL_CON_RELACIONES =
+        "SELECT t.id AS t_id, t.id_cliente, t.id_operario, t.categoria, t.titulo, t.descripcion, " +
+        "  t.direccion, t.ubicacion_lat, t.ubicacion_lon, t.estado, t.fecha_creacion, " +
+        "  t.fecha_finalizacion, t.valoracion, t.comentario_cliente, " +
+        "  uc.id AS cli_id, uc.nombre_completo AS cli_nombre, uc.email AS cli_email, " +
+        "  uc.telefono AS cli_telefono, uc.direccion AS cli_direccion, " +
+        "  uc.url_foto AS cli_url_foto, uc.dni AS cli_dni, " +
+        "  uo.id AS op_id, uo.nombre_completo AS op_nombre, uo.email AS op_email, " +
+        "  uo.telefono AS op_telefono, uo.rol AS op_rol, " +
+        "  uo.url_foto AS op_url_foto, uo.dni AS op_dni, " +
+        "  op.id_empresa AS op_id_empresa, op.especialidad AS op_especialidad " +
+        "FROM trabajo t " +
+        "LEFT JOIN usuario uc ON t.id_cliente = uc.id " +
+        "LEFT JOIN usuario uo ON t.id_operario = uo.id " +
+        "LEFT JOIN operario op ON t.id_operario = op.id_usuario";
 
     @Override
     public void insertar(Trabajo trabajo) throws DataAccessException {
@@ -172,49 +188,46 @@ public class TrabajoDAOImpl implements TrabajoDAO {
 
     @Override
     public Trabajo obtenerPorId(int id) throws DataAccessException {
-        String sql = "SELECT * FROM trabajo WHERE id=?";
+        String sql = SQL_CON_RELACIONES + " WHERE t.id = ?";
         Trabajo t = null;
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    t = mapear(rs);
+                    t = mapearConRelaciones(rs);
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al obtener trabajo ID: " + id, e);
         }
 
-        // Cargar relaciones fuera del bloque try-with-resources del ResultSet principal
         if (t != null) {
-            cargarRelaciones(t);
+            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
         }
-
         return t;
     }
 
     @Override
     public List<Trabajo> obtenerTodos() throws DataAccessException {
-        String sql = "SELECT * FROM trabajo";
         List<Trabajo> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql);
+                PreparedStatement stmt = conn.prepareStatement(SQL_CON_RELACIONES);
                 ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(mapear(rs));
+                lista.add(mapearConRelaciones(rs));
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar trabajos", e);
         }
 
-        // Cargar relaciones para cada elemento
+        // Cargamos las fotos DESPUÉS de cerrar el ResultSet de trabajos
+        // para evitar el error de 'ResultSet closed' al reusar la conexión del ThreadLocal
         for (Trabajo t : lista) {
-            cargarRelaciones(t);
+            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
         }
 
         return lista;
@@ -225,25 +238,23 @@ public class TrabajoDAOImpl implements TrabajoDAO {
      * Evita el problema de getCliente()==null por fallos de cargarRelaciones.
      */
     public List<Trabajo> obtenerPorCliente(int idCliente) throws DataAccessException {
-        String sql = "SELECT * FROM trabajo WHERE id_cliente = ?";
+        String sql = SQL_CON_RELACIONES + " WHERE t.id_cliente = ?";
         List<Trabajo> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, idCliente);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapear(rs));
+                    lista.add(mapearConRelaciones(rs));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar trabajos del cliente " + idCliente, e);
         }
 
-        // Solo son los trabajos del cliente (no todos), carga secuencial segura.
         for (Trabajo t : lista) {
-            cargarRelaciones(t);
+            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
         }
 
         return lista;
@@ -255,28 +266,24 @@ public class TrabajoDAOImpl implements TrabajoDAO {
      */
     @Override
     public List<Trabajo> obtenerValoracionesPorEmpresa(int idEmpresa) throws DataAccessException {
-        String sql = "SELECT t.* FROM trabajo t " +
-                     "JOIN operario o ON t.id_operario = o.id_usuario " +
-                     "WHERE o.id_empresa = ? AND t.valoracion > 0";
+        String sql = SQL_CON_RELACIONES +
+                     " WHERE op.id_empresa = ? AND t.valoracion > 0";
         List<Trabajo> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, idEmpresa);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapear(rs));
+                    lista.add(mapearConRelaciones(rs));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al obtener valoraciones de la empresa " + idEmpresa, e);
         }
 
-        // Cargar relaciones
         for (Trabajo t : lista) {
-            cargarRelaciones(t);
+            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
         }
 
         return lista;
@@ -288,54 +295,53 @@ public class TrabajoDAOImpl implements TrabajoDAO {
      */
     @Override
     public List<Trabajo> obtenerPendientesPorCategoria(CategoriaServicio categoria) throws DataAccessException {
-        String sql = "SELECT * FROM trabajo WHERE (estado = 'PENDIENTE' OR estado = 'PRESUPUESTADO') AND categoria = ?";
+        String sql = SQL_CON_RELACIONES +
+                     " WHERE (t.estado = 'PENDIENTE' OR t.estado = 'PRESUPUESTADO') AND t.categoria = ?";
         List<Trabajo> lista = new ArrayList<>();
 
         try (Connection conn = ConexionDB.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, categoria.toString());
-
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    lista.add(mapear(rs));
+                    lista.add(mapearConRelaciones(rs));
                 }
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error al listar trabajos pendientes por categoría", e);
         }
 
-        // Cargar relaciones
         for (Trabajo t : lista) {
-            cargarRelaciones(t);
+            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
         }
 
         return lista;
     }
 
     /**
-     * Convierte el ResultSet actual en un objeto Trabajo.
-     * IMPORTANTE: No cierra el ResultSet ni ejecuta consultas anidadas sobre la
-     * misma conexión
-     * si eso implica cerrar el ResultSet padre.
+     * Mapea un ResultSet del SELECT simple (sin JOINs) en un objeto Trabajo.
+     * Usado solo por insertar() y actualizar() donde no necesitamos relaciones.
      */
     private Trabajo mapear(ResultSet rs) throws SQLException {
         Trabajo t = new Trabajo();
-        t.setId(rs.getInt("id"));
+        // Con la SQL_CON_RELACIONES usamos alias t_id para evitar ambigüedades
+        try {
+            t.setId(rs.getInt("t_id"));
+        } catch (SQLException e) {
+            // Fallback para queries simples sin alias
+            t.setId(rs.getInt("id"));
+        }
         t.setTitulo(rs.getString("titulo"));
         t.setDescripcion(rs.getString("descripcion"));
         t.setDireccion(rs.getString("direccion"));
         t.setValoracion(rs.getInt("valoracion"));
         t.setComentarioCliente(rs.getString("comentario_cliente"));
 
-        // Mapeo Enum Categoria
         try {
             t.setCategoria(CategoriaServicio.valueOf(rs.getString("categoria")));
         } catch (IllegalArgumentException e) {
             t.setCategoria(CategoriaServicio.OTROS);
         }
-
-        // Mapeo Enum Estado
         try {
             t.setEstado(EstadoTrabajo.valueOf(rs.getString("estado")));
         } catch (IllegalArgumentException e) {
@@ -343,59 +349,66 @@ public class TrabajoDAOImpl implements TrabajoDAO {
         }
 
         Timestamp tsCrea = rs.getTimestamp("fecha_creacion");
-        if (tsCrea != null)
-            t.setFechaCreacion(tsCrea.toLocalDateTime());
+        if (tsCrea != null) t.setFechaCreacion(tsCrea.toLocalDateTime());
 
         Timestamp tsFin = rs.getTimestamp("fecha_finalizacion");
-        if (tsFin != null)
-            t.setFechaFinalizacion(tsFin.toLocalDateTime());
+        if (tsFin != null) t.setFechaFinalizacion(tsFin.toLocalDateTime());
 
         double lat = rs.getDouble("ubicacion_lat");
         double lon = rs.getDouble("ubicacion_lon");
-        if (!rs.wasNull()) {
-            t.setUbicacion(new Ubicacion(lat, lon));
-        }
+        if (!rs.wasNull()) t.setUbicacion(new Ubicacion(lat, lon));
 
         return t;
     }
 
-    // Método auxiliar para cargar relaciones DESPUÉS de haber leído el ResultSet
-    // principal
-    // para evitar conflictos de "Operation not allowed after ResultSet closed".
-    private void cargarRelaciones(Trabajo t) {
-        String sql = "SELECT id_cliente, id_operario FROM trabajo WHERE id = ?";
-        try (Connection conn = ConexionDB.getConnection(); // Abrimos conexión (o reusamos del pool)
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+    /**
+     * Mapea un ResultSet del SQL_CON_RELACIONES (con LEFT JOINs) en un Trabajo
+     * con su Cliente y Operario ya hidratados. Elimina el problema N+1:
+     * en lugar de una query extra por cada trabajo, los datos vienen en el JOIN.
+     */
+    private Trabajo mapearConRelaciones(ResultSet rs) throws SQLException {
+        // 1. Mapear los campos del propio trabajo
+        Trabajo t = mapear(rs);
 
-            stmt.setInt(1, t.getId());
-            ResultSet rs = stmt.executeQuery();
-
-            // Usamos try-finally para asegurar cierre de RS local
-            try {
-                if (rs.next()) {
-                    int idCliente = rs.getInt("id_cliente");
-                    if (idCliente > 0)
-                        // Pasamos la conn actual para que NO la cierren
-                        t.setCliente(usuarioDAO.obtenerPorId(idCliente, conn));
-
-                    int idOperario = rs.getInt("id_operario");
-                    if (idOperario > 0)
-                        t.setOperarioAsignado(operarioDAO.obtenerPorId(idOperario, conn));
-                }
-            } finally {
-                if (rs != null)
-                    rs.close();
-            }
-
-            // Cargar fotos (Podemos dejar que use su propia lógica o actualizar FotoDAO
-            // también,
-            // pero las fotos suelen ser menos críticas en transacciones anidadas de lectura
-            // simple).
-            t.setFotos(fotoDAO.obtenerPorTrabajo(t.getId()));
-
-        } catch (SQLException | DataAccessException e) {
-            System.err.println("Advertencia: Fallo al cargar dependencias del trabajo " + t.getId());
-            e.printStackTrace(); // Ver traza completa si falla
+        // 2. Hidratar Cliente desde las columnas prefijadas con 'cli_'
+        int cliId = rs.getInt("cli_id");
+        if (cliId > 0) {
+            com.fixfinder.modelos.Cliente cli = new com.fixfinder.modelos.Cliente();
+            cli.setId(cliId);
+            cli.setNombreCompleto(rs.getString("cli_nombre"));
+            cli.setEmail(rs.getString("cli_email"));
+            cli.setTelefono(rs.getString("cli_telefono"));
+            cli.setDireccion(rs.getString("cli_direccion"));
+            cli.setUrlFoto(rs.getString("cli_url_foto"));
+            cli.setDni(rs.getString("cli_dni"));
+            cli.setRol(com.fixfinder.modelos.enums.Rol.CLIENTE);
+            t.setCliente(cli);
         }
+
+        // 3. Hidratar Operario desde las columnas prefijadas con 'op_'
+        int opId = rs.getInt("op_id");
+        if (opId > 0) {
+            Operario op = new Operario();
+            op.setId(opId);
+            op.setNombreCompleto(rs.getString("op_nombre"));
+            op.setEmail(rs.getString("op_email"));
+            op.setTelefono(rs.getString("op_telefono"));
+            op.setUrlFoto(rs.getString("op_url_foto"));
+            op.setDni(rs.getString("op_dni"));
+            try {
+                op.setRol(com.fixfinder.modelos.enums.Rol.valueOf(rs.getString("op_rol")));
+            } catch (IllegalArgumentException e) {
+                op.setRol(com.fixfinder.modelos.enums.Rol.OPERARIO);
+            }
+            op.setIdEmpresa(rs.getInt("op_id_empresa"));
+            try {
+                op.setEspecialidad(CategoriaServicio.valueOf(rs.getString("op_especialidad")));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                op.setEspecialidad(CategoriaServicio.OTROS);
+            }
+            t.setOperarioAsignado(op);
+        }
+
+        return t;
     }
 }

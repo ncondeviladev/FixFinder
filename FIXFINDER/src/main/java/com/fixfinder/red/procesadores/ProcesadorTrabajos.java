@@ -192,7 +192,8 @@ public class ProcesadorTrabajos {
             }
             return visibles;
         } catch (Exception e) {
-            System.err.println("Error filtrando para gerente: " + e.getMessage());
+            System.err.println("[ERROR-GERENTE] Error filtrando para gerente ID " + idGerente + ": " + e.getMessage());
+            e.printStackTrace();
             return Collections.emptyList();
         }
     }

@@ -99,11 +99,11 @@ task runDashboard(type: JavaExec) {
     ]
 }
 
-task runTestPanel(type: JavaExec) {
+task runPanelPrototipo(type: JavaExec) {
     group = 'application'
     description = 'Arranca el Panel de Pruebas Independiente'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.LanzadorTestPanel'
+    mainClass = 'com.fixfinder.LanzadorPanelPrototipo'
 }
 
 jar {
