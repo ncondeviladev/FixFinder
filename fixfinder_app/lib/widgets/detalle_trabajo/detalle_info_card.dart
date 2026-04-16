@@ -8,6 +8,7 @@ import '../comunes/dato_fila.dart';
 import '../comunes/estado_badge.dart';
 import '../trabajos/tarjeta_contacto.dart';
 import '../trabajos/galeria_fotos.dart';
+import '../../services/external_launcher_service.dart';
 
 /// Tarjeta informativa que agrupa los datos básicos de una incidencia.
 /// Muestra título, descripción, ubicación y contactos relevantes según el rol.
@@ -39,7 +40,17 @@ class DetalleInfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             DatoFila(etiqueta: 'Categoría', valor: trabajo.categoria.name),
-            DatoFila(etiqueta: 'Dirección', valor: trabajo.direccion),
+            Row(
+              children: [
+                const Text('Dirección: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(child: Text(trabajo.direccion, overflow: TextOverflow.ellipsis)),
+                IconButton(
+                  icon: const Icon(Icons.map, size: 20, color: Colors.blue),
+                  onPressed: () => ExternalLauncherService.abrirMapa(trabajo.direccion),
+                  tooltip: 'Ver en mapa',
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             const Text('Descripción:',
                 style: TextStyle(fontWeight: FontWeight.bold)),

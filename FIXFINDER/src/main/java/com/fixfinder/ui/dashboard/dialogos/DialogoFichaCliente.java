@@ -103,9 +103,9 @@ public class DialogoFichaCliente {
         // Datos Personales
         VBox datos = new VBox(15);
         datos.getChildren().addAll(
-                fila("Teléfono", t.getClienteTelefono().isBlank() ? "No proporcionado" : t.getClienteTelefono()),
-                fila("Email", t.getClienteEmail().isBlank() ? "No proporcionado" : t.getClienteEmail()),
-                fila("Dirección de la Incidencia", t.getDireccion().isBlank() ? "No especificada" : t.getDireccion()));
+                fila(t, "Teléfono", t.getClienteTelefono().isBlank() ? "No proporcionado" : t.getClienteTelefono()),
+                fila(t, "Email", t.getClienteEmail().isBlank() ? "No proporcionado" : t.getClienteEmail()),
+                fila(t, "Dirección de la Incidencia", t.getDireccion().isBlank() ? "No especificada" : t.getDireccion()));
 
         content.getChildren().addAll(header, datos);
         dialog.getDialogPane().setContent(content);
@@ -118,7 +118,7 @@ public class DialogoFichaCliente {
         dialog.showAndWait();
     }
 
-    private HBox fila(String etiqueta, String valor) {
+    private HBox fila(TrabajoFX t, String etiqueta, String valor) {
         HBox f = new HBox(10);
         Label lbl = new Label(etiqueta + ":");
         lbl.getStyleClass().add("modal-label");
@@ -126,6 +126,21 @@ public class DialogoFichaCliente {
         Label val = new Label(valor);
         val.getStyleClass().add("modal-value");
         val.setWrapText(true);
+
+        // Si es dirección, lo hacemos interactivo para abrir mapas
+        if (etiqueta.contains("Dirección")) {
+            val.setStyle("-fx-text-fill: #3B82F6; -fx-cursor: hand; -fx-underline: true;");
+            val.setOnMouseClicked(e -> {
+                try {
+                    String query = valor.replace(" ", "+");
+                    String url = "https://www.google.com/maps/search/?api=1&query=" + query;
+                    Runtime.getRuntime().exec("cmd /c start " + url.replace("&", "^&"));
+                } catch (Exception ex) {
+                    System.err.println("Error al abrir mapas: " + ex.getMessage());
+                }
+            });
+        }
+
         f.getChildren().addAll(lbl, val);
         return f;
     }

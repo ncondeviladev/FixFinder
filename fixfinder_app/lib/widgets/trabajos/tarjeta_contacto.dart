@@ -2,6 +2,7 @@
 // Usualmente expone los datos de un operario a su cliente, o de un cliente al operario.
 import 'package:flutter/material.dart';
 import '../../models/usuario.dart';
+import '../../services/external_launcher_service.dart';
 
 /// Tarjeta informativa para mostrar los datos de perfil y contacto de un usuario.
 /// Se utiliza para facilitar la comunicación entre clientes y operarios asignados.
@@ -46,19 +47,15 @@ class TarjetaContacto extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (usuario.telefono != null) Text('Tel: ${usuario.telefono}'),
+              if (usuario.telefono != null)
+                Text('Tel: ${usuario.telefono}'),
               if (usuario.email.isNotEmpty) Text('Email: ${usuario.email}'),
             ],
           ),
           trailing: usuario.telefono != null
               ? IconButton(
                   icon: const Icon(Icons.phone, color: Colors.green),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Llamando a ${usuario.telefono}...')),
-                    );
-                  },
+                  onPressed: () => ExternalLauncherService.llamarTelefono(usuario.telefono),
                 )
               : null,
         ),

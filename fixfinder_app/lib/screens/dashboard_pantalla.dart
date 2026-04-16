@@ -40,7 +40,16 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
   @override
   Widget build(BuildContext context) {
     final usuario = AuthService().usuarioActual;
-    final esCliente = usuario?.rol == Rol.CLIENTE;
+    
+    // Si la sesión se ha cerrado (ej: por token expirado), volvemos al login
+    if (usuario == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/login');
+      });
+      return const SizedBox.shrink(); 
+    }
+
+    final esCliente = usuario.rol == Rol.CLIENTE;
 
     return Scaffold(
       appBar: AppBar(

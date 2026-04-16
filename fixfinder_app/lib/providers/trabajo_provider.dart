@@ -109,6 +109,11 @@ class TrabajoProvider with ChangeNotifier {
       _ordenarTrabajosPorPrioridad();
     } catch (e) {
       debugPrint('Error obteniendo trabajos: $e');
+      if (e.toString().contains('SESSION_EXPIRED')) {
+        await _auth.logout();
+        // Notificamos para que la UI sepa que el usuario es null y reditija
+        notifyListeners();
+      }
     } finally {
       _estaCargando = false;
       notifyListeners();

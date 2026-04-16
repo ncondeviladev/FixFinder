@@ -12,16 +12,18 @@ import java.util.Optional;
 
 /**
  * Centro de Gestión de Incidencias (Diálogo Unificado).
- * Esta clase modular reemplaza a los antiguos diálogos de Detalle, Asignación y Gestión.
+ * Esta clase modular reemplaza a los antiguos diálogos de Detalle, Asignación y
+ * Gestión.
  * Adapta su contenido dinámicamente según el estado del trabajo y los permisos.
  */
 public class DialogoGestionIncidencia {
 
     /**
-     * Resultado polimórfico del diálogo. 
+     * Resultado polimórfico del diálogo.
      * Puede contener datos de presupuesto o un ID de operario para asignación.
      */
-    public record Resultado(Double monto, String notas, Integer idOperario) {}
+    public record Resultado(Double monto, String notas, Integer idOperario) {
+    }
 
     private final TrabajoFX trabajo;
     private final String cssPath;
@@ -29,8 +31,8 @@ public class DialogoGestionIncidencia {
     private final List<OperarioFX> operariosDisponibles;
     private final boolean permitirPresupuestar;
 
-    public DialogoGestionIncidencia(TrabajoFX trabajo, String cssPath, int idEmpresaLogueada, 
-                                   List<OperarioFX> operarios, boolean permitirPresupuestar) {
+    public DialogoGestionIncidencia(TrabajoFX trabajo, String cssPath, int idEmpresaLogueada,
+            List<OperarioFX> operarios, boolean permitirPresupuestar) {
         this.trabajo = trabajo;
         this.cssPath = cssPath;
         this.idEmpresaLogueada = idEmpresaLogueada;
@@ -41,7 +43,7 @@ public class DialogoGestionIncidencia {
     public Optional<Resultado> mostrar() {
         Dialog<Resultado> dialog = new Dialog<>();
         String estado = trabajo.getEstado();
-        
+
         // Título dinámico
         dialog.setTitle("Gestión de Incidencia — #" + trabajo.getId());
         dialog.setHeaderText(trabajo.getTitulo());
@@ -57,13 +59,16 @@ public class DialogoGestionIncidencia {
 
         // --- SECCIÓN 1: INFORMACIÓN BÁSICA ---
         GridPane grid = new GridPane();
-        grid.setHgap(30); grid.setVgap(10);
-        ColumnConstraints col = new ColumnConstraints(); col.setPercentWidth(50);
+        grid.setHgap(30);
+        grid.setVgap(10);
+        ColumnConstraints col = new ColumnConstraints();
+        col.setPercentWidth(50);
         grid.getColumnConstraints().addAll(col, col);
 
         grid.add(crearFilaInfo("Cliente", trabajo.getCliente()), 0, 0);
         grid.add(crearFilaInfo("Categoría", trabajo.getCategoria()), 0, 1);
-        grid.add(crearFilaInfo("Dirección", trabajo.getDireccion().isBlank() ? "Ver mapa en App" : trabajo.getDireccion()), 0, 2);
+        grid.add(crearFilaInfo("Dirección",
+                trabajo.getDireccion().isBlank() ? "Ver mapa en App" : trabajo.getDireccion()), 0, 2);
 
         grid.add(crearFilaInfo("Fecha Creación", trabajo.getFecha()), 1, 0);
         grid.add(crearFilaInfo("Estado Actual", estado), 1, 1);
@@ -77,10 +82,11 @@ public class DialogoGestionIncidencia {
         Label lblDesc = new Label("Descripción de la avería:");
         lblDesc.getStyleClass().add("modal-label");
         TextArea areaDesc = new TextArea(trabajo.getDescripcion());
-        areaDesc.setWrapText(true); 
+        areaDesc.setWrapText(true);
         areaDesc.setPrefHeight(200); // Altura ampliada solicitada
         areaDesc.setMinHeight(200);
-        areaDesc.getStyleClass().add("modal-input"); areaDesc.setEditable(false);
+        areaDesc.getStyleClass().add("modal-input");
+        areaDesc.setEditable(false);
         descBox.getChildren().addAll(lblDesc, areaDesc);
         mainBox.getChildren().add(descBox);
 
@@ -89,17 +95,23 @@ public class DialogoGestionIncidencia {
             for (String url : trabajo.getUrlsFotos()) {
                 try {
                     ImageView iv = new ImageView(new Image(url, 100, 100, true, true, true));
-                    iv.setFitWidth(100); iv.setFitHeight(100); iv.setCursor(Cursor.HAND);
+                    iv.setFitWidth(100);
+                    iv.setFitHeight(100);
+                    iv.setCursor(Cursor.HAND);
                     iv.getStyleClass().add("photo-mini");
-                    Rectangle clip = new Rectangle(100, 100); clip.setArcWidth(12); clip.setArcHeight(12);
+                    Rectangle clip = new Rectangle(100, 100);
+                    clip.setArcWidth(12);
+                    clip.setArcHeight(12);
                     iv.setClip(clip);
                     iv.setOnMouseClicked(e -> mostrarFotoGrande(url));
                     hboxFotos.getChildren().add(iv);
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             if (!hboxFotos.getChildren().isEmpty()) {
                 ScrollPane scrollFotos = new ScrollPane(hboxFotos);
-                scrollFotos.getStyleClass().add("transparent-scroll"); scrollFotos.setPrefHeight(120);
+                scrollFotos.getStyleClass().add("transparent-scroll");
+                scrollFotos.setPrefHeight(120);
                 mainBox.getChildren().add(new VBox(6, new Label("Evidencias visuales:"), scrollFotos));
             }
         }
@@ -123,9 +135,10 @@ public class DialogoGestionIncidencia {
             VBox formPpto = new VBox(10);
             Label lblPpto = new Label(miMeta != null ? "Actualizar Oferta (Re-puja):" : "Presentar Presupuesto:");
             lblPpto.getStyleClass().add("modal-label");
-            
+
             areaPropuesta.setPromptText("Notas técnicas sobre la reparación...");
-            areaPropuesta.setWrapText(true); areaPropuesta.setPrefHeight(80);
+            areaPropuesta.setWrapText(true);
+            areaPropuesta.setPrefHeight(80);
             areaPropuesta.getStyleClass().add("modal-input");
 
             // Permitir que el TAB pase al siguiente campo (txtMonto)
@@ -162,7 +175,7 @@ public class DialogoGestionIncidencia {
 
             assignBox.getChildren().addAll(lblAssign, comboOps);
             mainBox.getChildren().add(assignBox);
-            
+
             if ("ASIGNADO".equals(estado)) {
                 Label infoAsig = new Label("Técnico actual: " + trabajo.getOperario());
                 infoAsig.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
@@ -187,10 +200,10 @@ public class DialogoGestionIncidencia {
 
         // --- BOTONES ---
         ButtonType btnOk = new ButtonType(
-            permitirPresupuestar ? "Enviar Propuesta" : 
-            ("ACEPTADO".equals(estado) || "ASIGNADO".equals(estado)) ? "Confirmar Asignación" : "Cerrar", 
-            ButtonBar.ButtonData.OK_DONE);
-        
+                permitirPresupuestar ? "Enviar Propuesta"
+                        : ("ACEPTADO".equals(estado) || "ASIGNADO".equals(estado)) ? "Confirmar Asignación" : "Cerrar",
+                ButtonBar.ButtonData.OK_DONE);
+
         dialog.getDialogPane().getButtonTypes().add(btnOk);
         if (permitirPresupuestar || "ACEPTADO".equals(estado) || "ASIGNADO".equals(estado)) {
             dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
@@ -211,7 +224,9 @@ public class DialogoGestionIncidencia {
                     try {
                         double m = Double.parseDouble(txtMonto.getText().replace(",", "."));
                         return new Resultado(m, areaPropuesta.getText(), null);
-                    } catch (Exception e) { return null; }
+                    } catch (Exception e) {
+                        return null;
+                    }
                 } else if ("ACEPTADO".equals(estado) || "ASIGNADO".equals(estado)) {
                     OperarioFX sel = comboOps.getValue();
                     return new Resultado(null, null, sel != null ? sel.getId() : -1);
@@ -226,7 +241,8 @@ public class DialogoGestionIncidencia {
     private VBox crearCajaPresupuesto(TrabajoFX.MetaPresupuesto meta, String estado) {
         VBox box = new VBox(8);
         box.setPadding(new Insets(12));
-        box.setStyle("-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 10;");
+        box.setStyle(
+                "-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 10;");
 
         boolean esRechazado = "RECHAZADO".equals(meta.estado());
         String ti = switch (estado) {
@@ -237,14 +253,16 @@ public class DialogoGestionIncidencia {
         };
 
         Label lblT = new Label(ti);
-        lblT.setStyle("-fx-text-fill: " + (esRechazado ? "#ef4444" : "#10b981") + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+        lblT.setStyle("-fx-text-fill: " + (esRechazado ? "#ef4444" : "#10b981")
+                + "; -fx-font-weight: bold; -fx-font-size: 11px;");
         Label lblM = new Label(String.format("%.2f €", meta.monto()));
         lblM.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f8fafc;");
 
         box.getChildren().addAll(lblT, lblM);
         if (!meta.notas().isBlank()) {
             Label lblN = new Label(meta.notas());
-            lblN.setWrapText(true); lblN.setStyle("-fx-text-fill: #94a3b8; -fx-font-style: italic;");
+            lblN.setWrapText(true);
+            lblN.setStyle("-fx-text-fill: #94a3b8; -fx-font-style: italic;");
             box.getChildren().add(lblN);
         }
         return box;
@@ -263,30 +281,50 @@ public class DialogoGestionIncidencia {
     }
 
     private VBox crearFilaInfo(String etiqueta, String valor) {
-        Label lbl = new Label(etiqueta); lbl.getStyleClass().add("modal-label");
-        Label val = new Label(valor); val.getStyleClass().add("modal-value"); val.setWrapText(true);
+        Label lbl = new Label(etiqueta);
+        lbl.getStyleClass().add("modal-label");
+        Label val = new Label(valor);
+        val.getStyleClass().add("modal-value");
+        val.setWrapText(true);
+
+        // Si es dirección, le damos estilo de link
+        if (etiqueta.contains("Dirección")) {
+            val.setStyle("-fx-text-fill: #3B82F6; -fx-cursor: hand; -fx-underline: true;");
+            val.setOnMouseClicked(e -> {
+                try {
+                    String query = valor.replace(" ", "+");
+                    String url = "https://www.google.com/maps/search/?api=1&query=" + query;
+                    Runtime.getRuntime().exec("cmd /c start " + url.replace("&", "^&"));
+                } catch (Exception ex) {
+                    System.err.println("Error al abrir mapas: " + ex.getMessage());
+                }
+            });
+        }
+
         return new VBox(2, lbl, val);
     }
 
     private void mostrarFotoGrande(String url) {
         Dialog<Void> imgDialog = new Dialog<>();
         imgDialog.setTitle("Evidencia Visual");
-        
+
         if (cssPath != null) {
             imgDialog.getDialogPane().getStylesheets().add(cssPath);
         }
         imgDialog.getDialogPane().getStyleClass().add("dialog-pane");
 
         ImageView img = new ImageView(new Image(url));
-        img.setFitWidth(800); img.setFitHeight(600); img.setPreserveRatio(true);
+        img.setFitWidth(800);
+        img.setFitHeight(600);
+        img.setPreserveRatio(true);
         imgDialog.getDialogPane().setContent(img);
-        
+
         imgDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         Button closeBtn = (Button) imgDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) {
             closeBtn.getStyleClass().add("btn-secondary");
         }
-        
+
         imgDialog.show();
     }
 }

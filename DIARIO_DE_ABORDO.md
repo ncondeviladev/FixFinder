@@ -838,6 +838,7 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 - [ ] **Tema para Dashboard (CSS):** Centralizar estilos en un archivo `style.css` y eliminar el uso de `setStyle` en el código Java.
 - [ ] **Actualización Real-Time (Broadcaster):** Implementar la escucha de eventos del Broadcaster en el Dashboard para refrescar la tabla de incidencias automáticamente.
 - [x] **Ajuste de UI:** Calibrar el ancho de las columnas (especialmente "Estado") para evitar solapamientos.
+- [ ] **Mejora de Descripción:** Trocear la descripción estructurada en bloques visuales independientes en `DialogoGestionIncidencia.java`.
 - [ ] **Diagrama de Dashboard:** Crear diagrama de componentes específico para la arquitectura JavaFX modularizada.
 
 ## Backend y Deuda Técnica (Java)

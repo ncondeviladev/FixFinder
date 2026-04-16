@@ -26,8 +26,14 @@ class JobApiService {
             .map((json) => Trabajo.fromJson(json))
             .toList();
       }
+      
+      // Si el servidor nos dice que no estamos autorizados (token inválido/caducado)
+      if (respuesta['status'] == 401 || (respuesta['mensaje'] != null && respuesta['mensaje'].toString().contains('no válida'))) {
+        throw Exception('SESSION_EXPIRED');
+      }
     } catch (e) {
       debugPrint('[JobApi] Error listando trabajos: $e');
+      if (e.toString().contains('SESSION_EXPIRED')) rethrow;
     }
     return [];
   }

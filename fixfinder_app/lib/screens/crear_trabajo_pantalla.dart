@@ -184,7 +184,7 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
                 controller: _direccionController,
                 decoration: const InputDecoration(
                   labelText: 'Dirección del servicio (opcional)',
-                  hintText: 'Si se deja vacío, se usa tu dirección registrada',
+                  hintText: 'Ej: Calle Mayor 10, Gandia',
                 ),
                 // Campo opcional: no tiene validador obligatorio
               ),
