@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
+import 'registro_pantalla.dart';
 import 'dart:async';
 
 /// Pantalla de inicio de sesión de la aplicación móvil.
@@ -155,6 +156,15 @@ class _LoginPantallaState extends State<LoginPantalla> {
                 ),
               ),
               const SizedBox(height: 24),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegistroPantalla()),
+                  );
+                },
+                child: const Text('¿No tienes cuenta? Regístrate aquí'),
+              ),
             ],
           ),
         ),

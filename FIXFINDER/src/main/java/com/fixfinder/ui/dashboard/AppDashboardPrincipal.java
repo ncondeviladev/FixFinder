@@ -122,10 +122,17 @@ public class AppDashboardPrincipal extends Application {
         lblConexion.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 11px;");
         lblConexion.setVisible(false);
 
+        Button btnRegistrar = new Button("¿Nueva Empresa? Regístrala aquí");
+        btnRegistrar.setStyle("-fx-background-color: transparent; -fx-text-fill: #3B82F6; -fx-underline: true; -fx-cursor: hand;");
+        btnRegistrar.setMaxWidth(Double.MAX_VALUE);
+        btnRegistrar.setOnAction(e -> {
+            new com.fixfinder.ui.dashboard.dialogos.DialogoRegistroEmpresa(servicioCliente).mostrar();
+        });
+
         formBox.getChildren().addAll(
                 lblEmail, txtEmail,
                 lblPass, txtPass,
-                lblError, btnEntrar, lblConexion);
+                lblError, btnEntrar, btnRegistrar, lblConexion);
 
         root.getChildren().addAll(lblTitulo, lblSub, formBox);
 

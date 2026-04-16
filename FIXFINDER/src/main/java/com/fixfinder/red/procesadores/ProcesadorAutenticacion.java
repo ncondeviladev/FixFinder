@@ -206,6 +206,8 @@ public class ProcesadorAutenticacion {
                             datos.has("telefono") ? datos.get("telefono").asText() : "");
                     nuevoCliente.setDireccion(
                             datos.has("direccion") ? datos.get("direccion").asText() : "");
+                    nuevoCliente.setUrlFoto(
+                            datos.has("url_foto") ? datos.get("url_foto").asText() : "");
 
                     nuevoCliente.setRol(Rol.CLIENTE);
                     usuarioService.registrarUsuario(nuevoCliente);
@@ -215,12 +217,14 @@ public class ProcesadorAutenticacion {
                     respuesta.put("status", 201);
                     respuesta.put("mensaje", "Cliente registrado OK. ID: " + nuevoCliente.getId());
                 } catch (Exception e) {
+                    e.printStackTrace();
                     String errorMsg = e.getMessage();
+                    String causeMsg = e.getCause() != null ? e.getCause().getMessage() : "";
                     respuesta.put("status", 500);
-                    if (errorMsg != null && errorMsg.contains("Duplicate entry")) {
+                    if ((errorMsg != null && errorMsg.contains("Duplicate entry")) || causeMsg.contains("Duplicate entry")) {
                         respuesta.put("mensaje", "El email o DNI ya está registrado");
                     } else {
-                        respuesta.put("mensaje", "Error al registrar cliente: " + errorMsg);
+                        respuesta.put("mensaje", "Error al registrar cliente a nivel base de datos: " + causeMsg);
                     }
                 }
             }

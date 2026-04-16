@@ -182,9 +182,9 @@ class AuthService {
     String? urlFoto,
   }) async {
     try {
-      final respuesta = await _socket.request('REGISTRO_USUARIO', {
-        'esOperario': false,
-        'nombreCompleto': nombre,
+      final respuesta = await _socket.request('REGISTRO', {
+        'tipo': 'CLIENTE',
+        'nombre': nombre,
         'dni': dni,
         'email': email,
         'password': password,

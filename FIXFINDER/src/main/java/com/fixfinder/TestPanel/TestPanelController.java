@@ -343,11 +343,13 @@ public class TestPanelController {
                     txtNombreEmpresa.getText(),
                     txtCif.getText(),
                     txtEmailEmpresa.getText(),
+                    "", // telefonoEmpresa (no existe en el panel de pruebas)
                     txtDireccionEmpresa.getText(),
                     txtNombreGerente.getText(),
                     txtEmailGerente.getText(),
                     txtPassGerente.getText(),
-                    txtDniGerente.getText());
+                    txtDniGerente.getText(),
+                    ""); // telefonoGerente
             log("Enviado REGISTRO EMPRESA");
         } catch (IOException e) {
             log("Error REGISTRO: " + e.getMessage());

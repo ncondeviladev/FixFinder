@@ -54,19 +54,21 @@ public class ServicioCliente {
         enviarJson("LOGIN", datos);
     }
 
-    public void enviarRegistroEmpresa(String nombre, String cif, String email, String direccion,
-            String nombreGerente, String emailGerente, String passGerente, String dniGerente) throws IOException {
+    public void enviarRegistroEmpresa(String nombre, String cif, String email, String telefonoEmpresa, String direccion,
+            String nombreGerente, String emailGerente, String passGerente, String dniGerente, String telefonoGerente) throws IOException {
         ObjectNode datos = mapper.createObjectNode();
         datos.put("tipo", "EMPRESA");
         datos.put("nombreEmpresa", nombre);
         datos.put("cif", cif);
         datos.put("emailEmpresa", email);
+        datos.put("telefono", telefonoEmpresa);
         datos.put("direccion", direccion);
 
         datos.put("nombreGerente", nombreGerente);
         datos.put("emailGerente", emailGerente);
         datos.put("password", passGerente);
         datos.put("dniGerente", dniGerente);
+        datos.put("telefonoGerente", telefonoGerente);
 
         enviarJson("REGISTRO", datos);
     }
