@@ -1,5 +1,6 @@
-// Modelo de datos para Empresa colaboradora.
-// Información pública y de contacto sobre el negocio que presta el servicio.
+/// Modelo para representar una Empresa colaboradora en FixFinder.
+/// 
+/// Contiene la ficha técnica del negocio, contacto y sus áreas de especialización.
 class Empresa {
   final int id;
   final String nombre;
@@ -21,6 +22,10 @@ class Empresa {
     required this.especialidades,
   });
 
+  /// Construye la entidad Empresa a partir de la respuesta del servidor.
+  /// 
+  /// Asegura valores por defecto para campos obligatorios en la UI,
+  /// evitando nulos inesperados durante el renderizado.
   factory Empresa.fromJson(Map<String, dynamic> json) {
     return Empresa(
       id: json['id'],

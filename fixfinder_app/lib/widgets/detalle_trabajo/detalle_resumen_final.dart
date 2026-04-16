@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../comunes/dato_fila.dart';
 
+/// Widget que resume el cierre de un trabajo una vez finalizado.
+/// Muestra detalles como la fecha de fin, el coste pactado y las valoraciones.
 class DetalleResumenFinal extends StatelessWidget {
   final Trabajo trabajo;
 

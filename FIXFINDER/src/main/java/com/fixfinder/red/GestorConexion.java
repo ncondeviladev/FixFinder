@@ -130,7 +130,8 @@ public class GestorConexion implements Runnable {
                                 // VALIDACIÓN DE TOKEN para el resto de acciones
                                 String tokenMsg = nodo.has("token") ? nodo.get("token").asText() : null;
                                 if (SessionManager.esTokenValido(tokenMsg)) {
-                                    System.err.println("🔥 [GESTOR-DEBUG] Acción: " + accion + " | Usuario: " + SessionManager.obtenerUsuario(tokenMsg));
+                                    System.err.println("🔥 [GESTOR-DEBUG] Acción: " + accion + " | Usuario: "
+                                            + SessionManager.obtenerUsuario(tokenMsg));
                                     switch (accion) {
                                         case "CREAR_TRABAJO":
                                             procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
@@ -180,6 +181,10 @@ public class GestorConexion implements Runnable {
                                             procesadorUsuarios.procesarActualizarFotoPerfil(datos, respuesta);
                                             break;
 
+                                        case "MODIFICAR_USUARIO":
+                                            procesadorUsuarios.procesarModificarUsuario(datos, respuesta);
+                                            break;
+
                                         case "CREAR_PRESUPUESTO":
                                             procesadorPresupuestos.procesarCrearPresupuesto(datos, respuesta);
                                             break;
@@ -218,6 +223,7 @@ public class GestorConexion implements Runnable {
                     }
                 } catch (Exception e) {
                     System.err.println("❌ Error procesando solicitud: " + e.getMessage());
+                    e.printStackTrace();
                     respuesta.put("status", 400);
                     respuesta.put("mensaje", "Error procesando solicitud");
                 } finally {

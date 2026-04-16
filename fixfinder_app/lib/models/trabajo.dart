@@ -1,8 +1,8 @@
-// Modelo de datos para Trabajo (Incidencia).
-// Representa la estructura principal de la aplicación con sus estados y categorías.
 import 'usuario.dart';
 import 'presupuesto.dart';
 
+/// Define los posibles estados por los que puede pasar una incidencia.
+/// Controla la lógica de qué acciones puede realizar el usuario sobre el trabajo.
 enum EstadoTrabajo {
   PENDIENTE,
   PRESUPUESTADO,
@@ -14,6 +14,7 @@ enum EstadoTrabajo {
   CANCELADO
 }
 
+/// Categorías de servicios técnicos ofrecidos en la plataforma.
 enum CategoriaServicio {
   ELECTRICIDAD,
   FONTANERIA,
@@ -25,6 +26,7 @@ enum CategoriaServicio {
   OTROS
 }
 
+/// Almacena coordenadas geográficas asociadas a una solicitud de trabajo.
 class Ubicacion {
   final double lat;
   final double lon;
@@ -41,6 +43,10 @@ class Ubicacion {
   Map<String, dynamic> toJson() => {'lat': lat, 'lon': lon};
 }
 
+/// Modelo central del sistema que representa una "Incidencia" o "Trabajo".
+/// 
+/// Vincula al cliente con el servicio solicitado, el estado actual,
+/// los presupuestos recibidos y el operario que finalmente lo realiza.
 class Trabajo {
   final int id;
   final int idCliente;
@@ -49,13 +55,15 @@ class Trabajo {
   final CategoriaServicio categoria;
   final String descripcion;
   final String direccion;
-  final int urgencia;
+  final int urgencia; // Nivel de prioridad (1-5)
   final EstadoTrabajo estado;
   final List<String> urlsFotos;
   final Ubicacion? ubicacion;
-  final int valoracion;
+  final int valoracion; // Estrellas otorgadas por el cliente (0-5)
   final String? comentarioCliente;
   final String? fechaFinalizacion;
+  
+  // Objetos relacionados (hidratados por el servidor en listados detallados)
   final Usuario? cliente;
   final Usuario? operarioAsignado;
   final Presupuesto? presupuesto;
@@ -82,6 +90,8 @@ class Trabajo {
     this.presupuestos = const [],
   });
 
+  /// Mapea el JSON del servidor a una instancia de Trabajo.
+  /// Maneja fallbacks para nombres de campos que varían entre la BD y el JSON de red.
   factory Trabajo.fromJson(Map<String, dynamic> json) {
     return Trabajo(
       id: json['id'],
@@ -120,6 +130,9 @@ class Trabajo {
     );
   }
 
+  /// Convierte el estado representado como String en el backend al Enum de la aplicación.
+  /// 
+  /// Si el valor no coincide con ningún estado conocido, se establece como PENDIENTE por defecto.
   static EstadoTrabajo _parseEstado(String estado) {
     return EstadoTrabajo.values.firstWhere(
       (e) => e.name == estado.toUpperCase(),
@@ -127,6 +140,9 @@ class Trabajo {
     );
   }
 
+  /// Convierte la categoría recibida como String al Enum de la aplicación.
+  /// 
+  /// Garantiza la integridad de los datos incluso si el servidor envía valores inesperados.
   static CategoriaServicio _parseCategoria(String? categoria) {
     if (categoria == null) return CategoriaServicio.OTROS;
     return CategoriaServicio.values.firstWhere(
@@ -135,6 +151,7 @@ class Trabajo {
     );
   }
 
+  /// Serialización para envío o persistencia local.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -144,15 +161,13 @@ class Trabajo {
       'categoria': categoria.name,
       'descripcion': descripcion,
       'direccion': direccion,
-      'urgencia': urgencia,
+      'urgencia': urgencia, 
       'estado': estado.name,
       'urls_fotos': urlsFotos,
       'ubicacion': ubicacion?.toJson(),
       'valoracion': valoracion,
       'comentarioCliente': comentarioCliente,
       'fechaFinalizacion': fechaFinalizacion,
-      // 'cliente': cliente?.toJson(), // Si fuera necesario reenviar
-      // 'operarioAsignado': operarioAsignado?.toJson(),
       'presupuesto': presupuesto?.toJson(),
       'presupuestos': presupuestos.map((p) => p.toJson()).toList(),
     };

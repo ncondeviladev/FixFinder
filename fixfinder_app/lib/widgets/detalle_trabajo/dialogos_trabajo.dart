@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class DialogosTrabajo {
+  /// Muestra un cuadro de confirmación para eliminar una incidencia.
+  /// Retorna true si el usuario confirma la eliminación.
   static Future<bool> mostrarDialogoBorrar(BuildContext context) async {
     final confirmacion = await showDialog<bool>(
       context: context,
@@ -28,6 +30,8 @@ class DialogosTrabajo {
     return confirmacion ?? false;
   }
 
+  /// Despliega el formulario para que el operario informe sobre la finalización del trabajo.
+  /// Permite capturar materiales, horas y fotos del resultado.
   static Future<Map<String, dynamic>?> mostrarDialogoFinalizar(
       BuildContext context) async {
     final materialController = TextEditingController();
@@ -149,6 +153,7 @@ class DialogosTrabajo {
     );
   }
 
+  /// Abre el diálogo de valoración para que el cliente califique el servicio con estrellas y comentario.
   static Future<Map<String, dynamic>?> mostrarDialogoValorar(
       BuildContext context) async {
     final comentarioController = TextEditingController();

@@ -1,5 +1,3 @@
-// Pantalla que incluye el formulario para crear o modificar una nueva incidencia.
-// Permite al cliente llenar titulo, descripción, ubicación y agregar fotos (futuro).
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,8 +7,15 @@ import '../providers/trabajo_provider.dart';
 import '../models/trabajo.dart';
 import '../widgets/trabajos/galeria_fotos.dart';
 
+/// Pantalla para la creación y edición de incidencias de servicio.
+/// 
+/// Proporciona un formulario completo para capturar el título, descripción,
+/// ubicación y evidencias visuales de un problema técnico. Gestiona tanto
+/// el alta de nuevos trabajos como la modificación de borradores existentes.
 class CrearTrabajoPantalla extends StatefulWidget {
+  /// Instancia de trabajo opcional para el modo edición.
   final Trabajo? trabajoAEditar;
+  
   const CrearTrabajoPantalla({super.key, this.trabajoAEditar});
 
   @override
@@ -18,15 +23,31 @@ class CrearTrabajoPantalla extends StatefulWidget {
 }
 
 class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
+  /// Clave global para validación integrada del formulario.
   final _formKey = GlobalKey<FormState>();
+  
+  /// Controlador para el título corto de la incidencia.
   final _tituloController = TextEditingController();
+  
+  /// Controlador para la explicación detallada del problema.
   final _descripcionController = TextEditingController();
+  
+  /// Controlador para la ubicación física del servicio.
   final _direccionController = TextEditingController();
 
+  /// Categoría técnica del servicio solicitado.
   CategoriaServicio _categoriaSeleccionada = CategoriaServicio.OTROS;
-  int _urgenciaSeleccionada = 1; // 1=Normal, 2=Prioridad, 3=Urgente
+  
+  /// Nivel de urgencia percibido (1 a 3).
+  int _urgenciaSeleccionada = 1; 
+  
+  /// Flag de control para bloquear la UI durante el envío.
   bool _enviando = false;
+  
+  /// Estado del proceso de carga de archivos a la nube.
   bool _subiendoFoto = false;
+  
+  /// Lista de enlaces públicos a las imágenes asociadas.
   List<String> _urlsFotos = [];
 
   @override
@@ -42,14 +63,16 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
     }
   }
 
+  /// Gestiona la selección de una imagen desde la galería y su posterior
+  /// persistencia en Firebase Storage para ser asociada al trabajo.
   Future<void> _seleccionarYSubirFoto() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70, // Reducir calidad para optimizar subida
+      imageQuality: 70, // Reducción de peso para optimizar la transferencia
     );
 
-    if (image == null) return; // cancelado por usuario
+    if (image == null) return;
 
     setState(() => _subiendoFoto = true);
 
@@ -79,6 +102,10 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
     }
   }
 
+  /// Valida y persiste los datos del formulario en el servidor.
+  /// 
+  /// Determina si debe realizar una creación (POST) o actualización (PUT)
+  /// basándose en la presencia de [widget.trabajoAEditar].
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -87,7 +114,6 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
     final Map<String, dynamic> datos = {
       'titulo': _tituloController.text,
       'descripcion': _descripcionController.text,
-      // Solo enviamos la dirección si el usuario ha escrito algo
       if (_direccionController.text.trim().isNotEmpty)
         'direccion': _direccionController.text.trim(),
       'categoria': _categoriaSeleccionada.name,

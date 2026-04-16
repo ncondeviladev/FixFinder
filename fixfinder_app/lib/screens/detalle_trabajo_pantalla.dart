@@ -1,5 +1,3 @@
-// Pantalla que muestra el detalle de la incidencia.
-// Permite aprobar presupuestos a clientes o finalizar tareas a operarios.
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,11 +14,17 @@ import '../widgets/detalle_trabajo/detalle_seccion_presupuestos.dart';
 import '../widgets/detalle_trabajo/dialogos_trabajo.dart';
 import 'crear_trabajo_pantalla.dart';
 
+/// Pantalla de visualización detallada de una incidencia.
+/// 
+/// Permite al usuario ver toda la información, gestionar presupuestos 
+/// (si es Cliente) o finalizar el trabajo (si es Operario).
 class DetalleTrabajoPantalla extends StatefulWidget {
   final Trabajo trabajo;
   const DetalleTrabajoPantalla({super.key, required this.trabajo});
 
   @override
+  /// Estado privado que gestiona el ciclo de vida de la vista de detalle.
+  /// Mantiene la lista de presupuestos y controla los estados de carga asíncrona.
   State<DetalleTrabajoPantalla> createState() => _DetalleTrabajoPantallaState();
 }
 
@@ -38,6 +42,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     }
   }
 
+  /// Recupera del servidor la lista de presupuestos recibidos para este trabajo.
   Future<void> _cargarPresupuestos() async {
     setState(() => _cargandoPresupuestos = true);
     final lista = await context
@@ -76,7 +81,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     }
   }
 
-  Future<void> _handleFinalizar(int idTrabajo) async {
+  Future<void> _mostrarDialogoFinalizar(int idTrabajo) async {
     final datos = await DialogosTrabajo.mostrarDialogoFinalizar(context);
     if (datos != null) {
       _finalizarTrabajo(idTrabajo, datos['material']!, datos['horas']!,
@@ -84,7 +89,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     }
   }
 
-  Future<void> _handleBorrar(int idTrabajo) async {
+  Future<void> _confirmarCancelacion(int idTrabajo) async {
     final confirmar = await DialogosTrabajo.mostrarDialogoBorrar(context);
     if (confirmar) {
       setState(() => _procesando = true);
@@ -93,14 +98,14 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
       if (mounted) {
         setState(() => _procesando = false);
         if (exito) {
-          // Pop simple: el .then() del dashboard gestiona la recarga
+          // Volvemos al listado principal tras la cancelación
           Navigator.pop(context);
         }
       }
     }
   }
 
-  Future<void> _handleValorar(int idTrabajo) async {
+  Future<void> _iniciarValoracion(int idTrabajo) async {
     final datos = await DialogosTrabajo.mostrarDialogoValorar(context);
     if (datos != null) {
       setState(() => _procesando = true);
@@ -120,12 +125,14 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
           );
           return;
         }
-        // Éxito: pop al dashboard, el .then() del dashboard recarga
+        // Éxito: volvemos al dashboard
         Navigator.pop(context);
       }
     }
   }
 
+  /// Lógica final de envío al servidor tras completar la tarea.
+  /// Incluye la subida de imágenes a Firebase Storage y el informe escrito.
   Future<void> _finalizarTrabajo(
       int idTrabajo, String material, String horas, List<XFile>? fotos) async {
     setState(() => _procesando = true);
@@ -208,7 +215,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                         ),
                       );
                     } else if (val == 'borrar') {
-                      _handleBorrar(trabajoActual.id);
+                      _confirmarCancelacion(trabajoActual.id);
                     }
                   },
                   itemBuilder: (context) => [
@@ -273,7 +280,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _procesando ? null : () => _handleFinalizar(idTrabajo),
+        onPressed: _procesando ? null : () => _mostrarDialogoFinalizar(idTrabajo),
         icon: const Icon(Icons.check_circle),
         label: const Text('MARCAR COMO FINALIZADO'),
         style: ElevatedButton.styleFrom(
@@ -290,7 +297,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
       margin: const EdgeInsets.only(top: 16),
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _procesando ? null : () => _handleValorar(idTrabajo),
+        onPressed: _procesando ? null : () => _iniciarValoracion(idTrabajo),
         icon: const Icon(Icons.star),
         label: const Text('VALORAR SERVICIO'),
         style: ElevatedButton.styleFrom(

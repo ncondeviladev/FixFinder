@@ -5,11 +5,11 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// Servicio centralizado para la comunicación por Sockets con el servidor Java.
+/// Servicio centralizado para la comunicación bidireccional con el servidor Java.
 /// 
-/// Implementa el protocolo de comunicación basado en cabeceras de 4 bytes 
-/// (Big Endian) que indican la longitud del mensaje JSON siguiente.
-/// Sigue el patrón Singleton para garantizar una única conexión activa.
+/// Implementa un protocolo de bajo nivel basado en cabeceras de 4 bytes que
+/// indican el tamaño del payload JSON. Gestiona la reconexión automática
+/// y el emparejamiento de respuestas mediante un sistema de tickets (IDs).
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
@@ -17,33 +17,32 @@ class SocketService {
 
   Socket? _socket;
 
-  /// Indica si hay una conexión activa con el servidor.
+  /// Determina si el canal de comunicación está abierto actualmente.
   bool get isConectado => _socket != null;
 
-  // Configuración de red (Resuelta dinámicamente)
+  // Configuración de red (Resuelta dinámicamente según el entorno)
   String get _servidor {
     final env = dotenv.get('ENVIRONMENT', fallback: 'NUBE');
     final ip = dotenv.get(
       env == 'NUBE' ? 'SERVER_IP_NUBE' : 'SERVER_IP_LOCAL',
       fallback: '51.48.92.76',
     );
-    debugPrint('[Socket] Usando servidor: $ip ($env)');
     return ip;
   }
   int get _puerto => int.parse(dotenv.get('PORT', fallback: '5000'));
 
   bool _estaConectando = false;
   
-  // Mapa para gestionar el patrón Request-Response (Tickets)
+  // Almacén de promesas pendientes de respuesta por parte del servidor
   final Map<String, Completer<Map<String, dynamic>>> _peticionesPendientes = {};
   
   final StreamController<Map<String, dynamic>> _controladorRespuestas =
       StreamController.broadcast();
 
-  /// Stream de respuestas entrantes desde el servidor (para eventos Push).
+  /// Flujo continuo de mensajes entrantes (eventos de servidor o respuestas).
   Stream<Map<String, dynamic>> get respuestas => _controladorRespuestas.stream;
 
-  /// Envía una petición y espera su respuesta específica mediante un ID único.
+  /// Envía una solicitud asíncrona y espera su respuesta única identificada por ticket.
   Future<Map<String, dynamic>> request(String accion, Map<String, dynamic> datos, {String? token, Duration timeout = const Duration(seconds: 15)}) async {
     final String idTicket = DateTime.now().microsecondsSinceEpoch.toString();
     final Completer<Map<String, dynamic>> completer = Completer();
@@ -56,7 +55,6 @@ class SocketService {
       'datos': datos,
     };
 
-    // Si nos pasan un token, lo ponemos al nivel superior (como pide el GestorConexion de Java)
     if (token != null) {
       peticion['token'] = token;
     }
@@ -70,7 +68,7 @@ class SocketService {
     }
   }
 
-  /// Verifica la conexión con el servidor (Ping)
+  /// Realiza una prueba de conectividad rápida (Ping) al puerto del servidor.
   Future<bool> ping() async {
     try {
       final s = await Socket.connect(_servidor, _puerto,
@@ -82,7 +80,7 @@ class SocketService {
     }
   }
 
-  /// Establece la conexión con el servidor si no existe ya una activa.
+  /// Intenta establecer el socket TCP si no existe una sesión previa.
   Future<bool> connect() async {
     if (_socket != null) return true;
     if (_estaConectando) return false;
@@ -111,30 +109,30 @@ class SocketService {
 
   final List<int> _bufferBytes = [];
 
-  /// Callback para la recepción de fragmentos de datos.
+  /// Receptor primario de fragmentos binarios desde el socket.
   void _onData(Uint8List datos) {
     _bufferBytes.addAll(datos);
     _procesarBuffer();
   }
 
-  /// Procesa el buffer acumulativo para extraer mensajes completos según el protocolo.
+  /// Recompone los mensajes JSON a partir del flujo binario siguiendo el protocolo de longitud.
   void _procesarBuffer() {
     try {
       while (_bufferBytes.length >= 4) {
-        // Leemos la longitud big-endian de 4 bytes
+        // Lectura de la cabecera Big Endian de 4 bytes
         int longitud = (_bufferBytes[0] << 24) |
             (_bufferBytes[1] << 16) |
             (_bufferBytes[2] << 8) |
             _bufferBytes[3];
 
         if (longitud <= 0 || longitud > 10485760) {
-          // Límite de 10MB para seguridad
+          // Protección contra memoria insuficiente (límite 10MB)
           _bufferBytes.clear();
           return;
         }
 
         if (_bufferBytes.length < 4 + longitud) {
-          return; // Esperando más fragmentos
+          return; // El mensaje aún no está completo en el buffer
         }
 
         final mensajeBytes = _bufferBytes.sublist(4, 4 + longitud);
@@ -145,13 +143,13 @@ class SocketService {
               utf8.decode(mensajeBytes, allowMalformed: true);
           final Map<String, dynamic> respuesta = jsonDecode(jsonStr);
           
-          // LÓGICA DE TICKETS: ¿Es respuesta a una petición nuestra?
+          // Resolución de peticiones asíncronas mediante ID de ticket
           final String? idTicket = respuesta['id_peticion']?.toString();
           if (idTicket != null && _peticionesPendientes.containsKey(idTicket)) {
             _peticionesPendientes[idTicket]!.complete(respuesta);
             _peticionesPendientes.remove(idTicket);
           } else {
-            // Si no tiene ID o es un evento PUSH del servidor, va al canal general
+            // Eventos Push e información de sistema
             _controladorRespuestas.add(respuesta);
           }
         } catch (e) {
@@ -159,12 +157,12 @@ class SocketService {
         }
       }
     } catch (e) {
-      debugPrint('[Socket] Error crítico en buffer: $e');
+      debugPrint('[Socket] Error crítico en tratamiento de buffer: $e');
       _bufferBytes.clear();
     }
   }
 
-  /// Envía una petición JSON al servidor.
+  /// Serializa y envía un mapa JSON al servidor precedido de su longitud.
   Future<void> send(Map<String, dynamic> peticion) async {
     if (_socket == null) {
       if (!await connect()) throw Exception('Servidor no disponible');
@@ -202,7 +200,7 @@ class SocketService {
     disconnect();
   }
 
-  /// Cierra la conexión y libera recursos.
+  /// Finaliza la conexión actual y libera los recursos del socket.
   void disconnect() {
     _socket?.destroy();
     _socket = null;

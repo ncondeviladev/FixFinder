@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
+/// Pantalla de bienvenida (Splash) que se muestra al arrancar la App.
+/// 
+/// Realiza dos tareas críticas:
+/// 1. Muestra la identidad visual de FixFinder con una animación de entrada.
+/// 2. Gestiona el "Auto-Login" recuperando la sesión guardada para decidir
+///    si redirigir al Dashboard o a la pantalla de Login.
 class SplashPantalla extends StatefulWidget {
   const SplashPantalla({super.key});
 
@@ -27,20 +33,24 @@ class _SplashPantallaState extends State<SplashPantalla>
     _iniciarApp();
   }
 
+  /// Lógica de inicialización de la aplicación.
+  /// Espera a que la animación termine y verifica si hay una sesión activa.
   Future<void> _iniciarApp() async {
-    // Esperamos un poco para mostrar el logo
+    // Retardo intencionado para dar presencia a la marca y cargar recursos
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
-    // Auto-login
+    // Comprobamos si el usuario ya estaba logueado previamente (token en SharedPreferences)
     final logueado = await AuthService().tryAutoLogin();
 
     if (!mounted) return;
 
     if (logueado) {
+      // Si hay sesión, saltamos directamente al panel principal
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
+      // De lo contrario, toca identificarse
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
@@ -54,7 +64,7 @@ class _SplashPantallaState extends State<SplashPantalla>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Tema oscuro de la app
+      backgroundColor: const Color(0xFF121212), // Fondo oscuro corporativo
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -72,7 +82,7 @@ class _SplashPantallaState extends State<SplashPantalla>
               const Text(
                 'FIXFINDER',
                 style: TextStyle(
-                  color: Color(0xFFFF6D00),
+                  color: Color(0xFFFF6D00), // Naranja característico
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 4,

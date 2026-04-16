@@ -1,10 +1,10 @@
-// Pantalla de registro para nuevos clientes.
-// Permite crear una cuenta de tipo CLIENTE enviando los datos al servidor.
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/image_service.dart';
 
+/// Pantalla de registro para nuevos clientes en FixFinder.
 class RegistroPantalla extends StatefulWidget {
   const RegistroPantalla({super.key});
 
@@ -37,13 +37,15 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  /// Abre el selector de archivos para que el usuario escoja su foto de perfil.
+  Future<void> _seleccionarImagen() async {
     final file = await ImageService().elegirImagen();
     if (file != null) {
       setState(() => _fotoSeleccionada = file);
     }
   }
 
+  /// Ejecuta el proceso de registro enviando los datos y la imagen al servidor.
   Future<void> _registrar() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -97,7 +99,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _seleccionarImagen,
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [

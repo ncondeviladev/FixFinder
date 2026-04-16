@@ -10,6 +10,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
+/// Punto de entrada principal de la aplicación FixFinder.
+/// 
+/// Realiza la inicialización de Firebase, carga el entorno y arranca el MultiProvider.
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint("🚀 Iniciando FixFinder App...");
@@ -44,6 +48,7 @@ void main() async {
   );
 }
 
+/// Clase principal de la aplicación que define la estructura global y el tema visual.
 class FixFinderApp extends StatelessWidget {
   const FixFinderApp({super.key});
 

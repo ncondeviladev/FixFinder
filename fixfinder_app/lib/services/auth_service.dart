@@ -1,5 +1,3 @@
-// Servicio de Autenticación.
-// Gestiona el login, logout y la persistencia de sesión mediante SharedPreferences.
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +5,10 @@ import 'dart:convert';
 import '../models/usuario.dart';
 import 'socket_service.dart';
 
+/// Servicio de Autenticación.
+/// 
+/// Se encarga de gestionar el ciclo de vida de la sesión del usuario:
+/// login, cierre de sesión, registro y persistencia local de datos.
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
@@ -15,8 +17,14 @@ class AuthService {
   final SocketService _socket = SocketService();
 
   Usuario? _usuarioActual;
+  
+  /// El usuario que ha iniciado sesión actualmente. Si es null, no hay sesión activa.
   Usuario? get usuarioActual => _usuarioActual;
 
+  /// Inicia el proceso de autenticación con el servidor.
+  /// 
+  /// Envía las credenciales y, en caso de éxito, persiste el token y los datos
+  /// del usuario en SharedPreferences para futuras sesiones.
   Future<bool> login(String email, String password) async {
     try {
       final respuesta = await _socket.request('LOGIN', {
@@ -60,6 +68,9 @@ class AuthService {
     _socket.disconnect();
   }
 
+  /// Intenta recuperar una sesión previa desde el almacenamiento persistente.
+  /// 
+  /// Devuelve true si el token y los datos básicos son válidos.
   Future<bool> tryAutoLogin() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -72,11 +83,11 @@ class AuthService {
       _usuarioActual = Usuario.fromJson(userData);
       return true;
     } catch (e) {
-      // Ignorar errores de plugin
+      return false;
     }
-    return false;
   }
 
+  /// Actualiza la fotografía de perfil del usuario en el servidor y localmente.
   Future<bool> actualizarFotoPerfil(String urlFoto) async {
     if (_usuarioActual == null) return false;
 
@@ -106,6 +117,61 @@ class AuthService {
     }
   }
 
+  /// Modifica los datos personales del perfil del usuario.
+  /// 
+  /// Refresca el estado en memoria si el servidor confirma los cambios.
+  Future<bool> actualizarPerfil({
+    required String nombre,
+    required String email,
+    required String telefono,
+    required String direccion,
+  }) async {
+    if (_usuarioActual == null) return false;
+
+    try {
+      final respuesta = await _socket.request(
+        'MODIFICAR_USUARIO',
+        {
+          'id': _usuarioActual!.id,
+          'nombre': nombre,
+          'email': email,
+          'telefono': telefono,
+          'direccion': direccion,
+        },
+        token: _usuarioActual!.token,
+      );
+
+      if (respuesta['status'] == 200) {
+        // Creamos una nueva instancia para respetar la inmutabilidad (campos final)
+        _usuarioActual = Usuario(
+          id: _usuarioActual!.id,
+          email: email,
+          nombreCompleto: nombre,
+          rol: _usuarioActual!.rol,
+          token: _usuarioActual!.token,
+          telefono: telefono,
+          direccion: direccion,
+          dni: _usuarioActual!.dni,
+          urlFoto: _usuarioActual!.urlFoto,
+          fechaRegistro: _usuarioActual!.fechaRegistro,
+        );
+
+        // Persistimos los cambios localmente
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+              'userData', jsonEncode(_usuarioActual!.toJson()));
+        } catch (_) {}
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[AuthService] Error actualizando perfil: $e');
+      return false;
+    }
+  }
+
+  /// Registra un nuevo cliente en el sistema FixFinder.
   Future<Map<String, dynamic>> registrar({
     required String nombre,
     required String dni,

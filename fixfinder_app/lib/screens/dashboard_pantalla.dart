@@ -1,5 +1,3 @@
-// Pantalla principal (Dashboard) que muestra la lista de trabajos del usuario.
-// Su interfaz se adapta dependiendo de si es Cliente (puede crear) u Operario.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/trabajo_provider.dart';
@@ -10,6 +8,10 @@ import 'crear_trabajo_pantalla.dart';
 import 'detalle_trabajo_pantalla.dart';
 import '../widgets/trabajos/tarjeta_trabajo.dart';
 
+/// Pantalla principal (Dashboard) que muestra la lista de trabajos del usuario.
+/// 
+/// Esta vista es dinámica y se adapta al rol del usuario (Cliente u Operario).
+/// Centraliza el acceso al listado de incidencias y perfil.
 class DashboardPantalla extends StatefulWidget {
   const DashboardPantalla({super.key});
 
@@ -194,6 +196,7 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
     }
   }
 
+  /// Muestra un cuadro de diálogo para que el cliente confirme la cancelación.
   void _confirmarCancelacion(BuildContext context, int idTrabajo) {
     showDialog(
       context: context,
@@ -216,6 +219,9 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
     );
   }
 
+  /// Mapea la categoría del servicio a un icono representativo de la interfaz.
+  /// 
+  /// Permite una rápida identificación visual del tipo de avería en el listado.
   Icon _obtenerIconoCategoria(CategoriaServicio cat) {
     switch (cat) {
       case CategoriaServicio.ELECTRICIDAD:

@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../../models/presupuesto.dart';
 
+/// Sección que gestiona y visualiza la lista de presupuestos recibidos para una incidencia.
+/// Permite al cliente comparar ofertas y tomar decisiones de aceptación o rechazo.
 class DetalleSeccionPresupuestos extends StatelessWidget {
   final List<Presupuesto> presupuestos;
   final bool cargando;

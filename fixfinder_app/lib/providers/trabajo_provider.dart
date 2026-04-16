@@ -6,11 +6,11 @@ import '../services/auth_service.dart';
 import '../services/job_api_service.dart';
 import '../models/presupuesto.dart';
 
-/// Proveedor de estado (Provider) para la gestión del ciclo de vida de los Trabajos.
+/// Gestor de estado para todo lo relacionado con los Trabajos (Incidencias).
 /// 
-/// Orquestra el estado de la lista de incidencias para el usuario activo,
-/// gestiona el refresco automático (polling) y delega las operaciones de red
-/// al JobApiService.
+/// Esta clase es el "cerebro" de la UI: centraliza la lista de trabajos,
+/// controla los estados de carga, maneja el refresco automático (polling)
+/// y reacciona a eventos en tiempo real mediante Sockets.
 class TrabajoProvider with ChangeNotifier {
   final JobApiService _api = JobApiService();
   final SocketService _socket = SocketService();
@@ -21,14 +21,20 @@ class TrabajoProvider with ChangeNotifier {
   Timer? _pollingTimer;
 
   // --- Getters ---
+  
+  /// Lista de trabajos filtrada del usuario actual.
   List<Trabajo> get trabajos => _trabajos;
+  
+  /// Flag para mostrar spinners de carga en la UI.
   bool get estaCargando => _estaCargando;
 
+  /// Constructor que inicia la escucha de eventos en tiempo real.
   TrabajoProvider() {
     _inicializarEscuchaSockets();
   }
 
-  /// Configura la escucha de eventos en tiempo real.
+  /// Suscribe el provider a eventos del socket para reaccionar a cambios externos
+  /// (ej: cuando un gerente asigna un operario a un trabajo).
   void _inicializarEscuchaSockets() {
     _socket.respuestas.listen((respuesta) {
       if (respuesta['event'] == 'NEW_JOB_ASSIGNED') {
@@ -37,9 +43,10 @@ class TrabajoProvider with ChangeNotifier {
     });
   }
 
-  // --- Gestión de Polling ---
+  // --- Gestión de Refresco (Polling) ---
 
-  /// Inicia el ciclo de refresco automático.
+  /// Activa un temporizador para refrescar la lista periódicamente.
+  /// Útil para capturar cambios si el socket llegara a fallar silenciosamente.
   void startPolling({int intervaloSegundos = 15}) {
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(
@@ -71,6 +78,7 @@ class TrabajoProvider with ChangeNotifier {
     }
   }
 
+  /// Compara la lista nueva con la actual para evitar renders innecesarios.
   bool _detectarCambiosRelevantes(List<Trabajo> nuevaLista) {
     if (nuevaLista.length != _trabajos.length) return true;
     for (int i = 0; i < nuevaLista.length; i++) {
@@ -83,9 +91,9 @@ class TrabajoProvider with ChangeNotifier {
     return false;
   }
 
-  // --- Operaciones de Negocio ---
+  // --- Operaciones con el Servidor ---
 
-  /// Carga completa de trabajos con indicador de carga.
+  /// Carga principal de trabajos. Activa el spinner global de carga.
   Future<void> obtenerTrabajos() async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return;
@@ -95,6 +103,7 @@ class TrabajoProvider with ChangeNotifier {
 
     try {
       final lista = await _api.fetchTrabajos(usuario);
+      // Filtramos los cancelados para mantener la vista limpia
       _trabajos =
           lista.where((t) => t.estado != EstadoTrabajo.CANCELADO).toList();
       _ordenarTrabajosPorPrioridad();
@@ -106,17 +115,21 @@ class TrabajoProvider with ChangeNotifier {
     }
   }
 
+  /// Organiza la lista para que los trabajos más urgentes o recientes aparezcan arriba.
   void _ordenarTrabajosPorPrioridad() {
     _trabajos
         .sort((a, b) => _obtenerPesoEstado(a).compareTo(_obtenerPesoEstado(b)));
   }
 
+  /// Crea una nueva solicitud de trabajo.
   Future<bool> crearTrabajo(Map<String, dynamic> datosTrabajo) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
     return await _api.createTrabajo(usuario, datosTrabajo);
   }
 
+  /// Marca un trabajo como finalizado. 
+  /// Permite adjuntar fotos del resultado y un informe técnico.
   Future<bool> actualizarEstadoTrabajo(int id, EstadoTrabajo nuevoEstado,
       {String? informe, List<String>? fotos}) async {
     final usuario = _auth.usuarioActual;
@@ -129,6 +142,7 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  /// Cancela una incidencia de forma lógica.
   Future<bool> cancelarTrabajo(int idTrabajo) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
@@ -139,6 +153,7 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  /// Modifica los metadatos de un trabajo (título, descripción, etc).
   Future<bool> modificarTrabajo(
       int idTrabajo, Map<String, dynamic> datosTrabajo) async {
     final usuario = _auth.usuarioActual;
@@ -149,12 +164,14 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  /// Obtiene la lista de presupuestos asociados a un trabajo.
   Future<List<Presupuesto>> obtenerPresupuestos(int idTrabajo) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return [];
     return await _api.fetchPresupuestos(usuario, idTrabajo);
   }
 
+  /// Acepta el presupuesto seleccionado y cierra la fase de puja.
   Future<bool> aceptarPresupuesto(int idPresupuesto) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
@@ -164,6 +181,8 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  /// Rechaza un presupuesto recibido para una incidencia.
+  /// Notifica al servidor para liberar la oferta y actualizar el listado.
   Future<bool> rechazarPresupuesto(int idPresupuesto) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
@@ -173,6 +192,7 @@ class TrabajoProvider with ChangeNotifier {
     return exito;
   }
 
+  /// Envía la reseña final del cliente.
   Future<bool> valorarTrabajo(
       int idTrabajo, int valoracion, String comentario) async {
     final usuario = _auth.usuarioActual;
@@ -181,8 +201,9 @@ class TrabajoProvider with ChangeNotifier {
         usuario, idTrabajo, valoracion, comentario);
   }
 
-  // --- Utilidades ---
+  // --- Lógica de Ordenación ---
 
+  /// Calcula la importancia visual de un trabajo según su estado actual.
   int _obtenerPesoEstado(Trabajo trabajo) {
     if (trabajo.estado == EstadoTrabajo.FINALIZADO && trabajo.valoracion == 0) {
       return 0; // Máxima prioridad: pendiente de valorar

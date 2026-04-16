@@ -2,6 +2,8 @@
 // Permite ampliar cualquier foto seleccionada dentro de un modal emergente.
 import 'package:flutter/material.dart';
 
+/// Componente para visualizar una colección de imágenes asociadas a un trabajo.
+/// Permite navegar por las fotos y verlas en detalle a pantalla completa.
 class GaleriaFotos extends StatelessWidget {
   final List<String> urls;
 

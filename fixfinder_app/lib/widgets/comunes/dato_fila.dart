@@ -2,6 +2,8 @@
 // Usado intensivamente en pantallas de detalle para mostrar información ordenada.
 import 'package:flutter/material.dart';
 
+/// Representación minimalista de un par clave-valor en formato fila.
+/// Se utiliza para visualizar datos técnicos y metadatos de forma estructurada.
 class DatoFila extends StatelessWidget {
   final String etiqueta;
   final String valor;

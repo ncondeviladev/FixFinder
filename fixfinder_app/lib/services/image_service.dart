@@ -4,15 +4,28 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 
 /// Servicio central para la gestión de imágenes (Selección y Subida a Firebase).
+/// 
+/// Administra la interacción con el selector de archivos del sistema y la transferencia
+/// de datos binarios hacia el almacenamiento en la nube para evidencias de trabajos.
 class ImageService {
+  /// Singleton para acceso global al servicio de imágenes.
   static final ImageService _instance = ImageService._internal();
+  
+  /// Constructor alternativo (tipo Factory).
   factory ImageService() => _instance;
+  
+  /// Constructor privado para el patrón Singleton.
   ImageService._internal();
 
+  /// Controlador para la interacción con la galería/cámara del dispositivo.
   final ImagePicker _picker = ImagePicker();
+  
+  /// Instancia de acceso al almacenamiento en la nube de Firebase.
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  /// Abre la galería para seleccionar una imagen.
+  /// Inicia el selector de imágenes del sistema (Galería o Cámara).
+  /// 
+  /// Aplica una pre-optimización de tamaño y calidad para reducir el consumo de red.
   Future<File?> elegirImagen({ImageSource source = ImageSource.gallery}) async {
     try {
       final XFile? pick = await _picker.pickImage(
@@ -29,11 +42,13 @@ class ImageService {
     }
   }
 
-  /// Sube un archivo a Firebase Storage y devuelve la URL descargable.
+  /// Transfiere un archivo local a un bucket de Firebase Storage.
   /// 
-  /// @param archivo El archivo File local.
-  /// @param carpeta Carpeta destino en Storage (ej: 'perfiles').
-  /// @param nombreArchivo Nombre único del archivo.
+  /// @param archivo Instancia del archivo File local a subir.
+  /// @param carpeta Ruta virtual en el almacenamiento (ej: 'trabajos/id_1').
+  /// @param nombreArchivo Identificador único para el archivo en la nube.
+  /// 
+  /// Devuelve la URL pública de acceso si la transferencia es exitosa.
   Future<String?> subirImagen(File archivo, String carpeta, String nombreArchivo) async {
     try {
       final String extension = archivo.path.split('.').last;

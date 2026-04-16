@@ -9,6 +9,8 @@ import '../comunes/estado_badge.dart';
 import '../trabajos/tarjeta_contacto.dart';
 import '../trabajos/galeria_fotos.dart';
 
+/// Tarjeta informativa que agrupa los datos básicos de una incidencia.
+/// Muestra título, descripción, ubicación y contactos relevantes según el rol.
 class DetalleInfoCard extends StatelessWidget {
   final Trabajo trabajo;
 

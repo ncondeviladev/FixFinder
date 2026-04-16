@@ -1,18 +1,10 @@
-// Componente principal de lista usado en la pantalla Dashboard.
-// Representa físicamente el estado actual y meta-datos de una incidencia como un bloque interactivo.
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../comunes/estado_badge.dart';
 
+/// Bloque interactivo que representa una incidencia en el Dashboard.
+/// Visualiza el estado, la urgencia y los datos principales del trabajo.
 class TarjetaTrabajo extends StatefulWidget {
-  final Trabajo trabajo;
-  final bool esCliente;
-  final bool accionPendiente;
-  final VoidCallback onTap;
-  final VoidCallback onCancelar;
-  final VoidCallback onModificar;
-  final Icon Function(CategoriaServicio) obtenerIconoCategoria;
-
   const TarjetaTrabajo({
     super.key,
     required this.trabajo,
@@ -23,6 +15,27 @@ class TarjetaTrabajo extends StatefulWidget {
     required this.onModificar,
     required this.obtenerIconoCategoria,
   });
+
+  /// Instancia de la incidencia a mostrar.
+  final Trabajo trabajo;
+  
+  /// Indica si la vista es desde la perspectiva del cliente o del operario.
+  final bool esCliente;
+  
+  /// Flag para indicar si hay una notificación activa sobre esta tarjeta.
+  final bool accionPendiente;
+  
+  /// Callback disparado al pulsar sobre la tarjeta.
+  final VoidCallback onTap;
+  
+  /// Acción para solicitar la anulación definitiva del trabajo.
+  final VoidCallback onCancelar;
+  
+  /// Acción para abrir el formulario de edición de la incidencia.
+  final VoidCallback onModificar;
+  
+  /// Función inyectada para resolver el icono visual de la categoría.
+  final Icon Function(CategoriaServicio) obtenerIconoCategoria;
 
   @override
   State<TarjetaTrabajo> createState() => _TarjetaTrabajoState();
@@ -64,6 +77,7 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
     super.dispose();
   }
 
+  /// Calcula y retorna el texto descriptivo del aviso según el estado.
   String _textoBadge() {
     if (widget.esCliente) {
       if (widget.trabajo.estado == EstadoTrabajo.PRESUPUESTADO) {

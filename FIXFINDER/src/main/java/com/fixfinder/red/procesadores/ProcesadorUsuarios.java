@@ -18,6 +18,8 @@ import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.service.interfaz.OperarioService;
+import com.fixfinder.service.interfaz.UsuarioService;
+import com.fixfinder.service.impl.UsuarioServiceImpl;
 import com.fixfinder.utilidades.ServiceException;
 
 import java.sql.Connection;
@@ -31,12 +33,14 @@ import java.util.Map;
 public class ProcesadorUsuarios {
 
     private final OperarioService operarioService;
+    private final UsuarioService usuarioService;
     private final EmpresaDAO empresaDAO;
     private final OperarioDAO operarioDAO;
     private final ObjectMapper mapper;
 
     public ProcesadorUsuarios(OperarioService operarioService) {
         this.operarioService = operarioService;
+        this.usuarioService = new UsuarioServiceImpl();
         this.empresaDAO = new EmpresaDAOImpl();
         this.operarioDAO = new OperarioDAOImpl();
         this.mapper = new ObjectMapper();
@@ -149,18 +153,21 @@ public class ProcesadorUsuarios {
                         System.err.println("Error buscando foto de gerente: " + ex_g.getMessage());
                     }
 
-                    // Obtener valoraciones reales de trabajos FINALIZADOS mediante consulta optimizada
+                    // Obtener valoraciones reales de trabajos FINALIZADOS mediante consulta
+                    // optimizada
                     try {
                         TrabajoDAO trabajoDAO = new TrabajoDAOImpl();
                         List<Trabajo> trabajosConValoracion = trabajoDAO.obtenerValoracionesPorEmpresa(id);
                         List<Map<String, Object>> valoraciones = new ArrayList<>();
-                        
+
                         for (Trabajo t : trabajosConValoracion) {
                             Map<String, Object> v = new HashMap<>();
-                            v.put("cliente", t.getCliente() != null ? t.getCliente().getNombreCompleto() : "Cliente Anónimo");
+                            v.put("cliente",
+                                    t.getCliente() != null ? t.getCliente().getNombreCompleto() : "Cliente Anónimo");
                             v.put("puntos", t.getValoracion());
                             v.put("comentario", t.getComentarioCliente());
-                            v.put("fecha", t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString() : "Reciente");
+                            v.put("fecha", t.getFechaFinalizacion() != null ? t.getFechaFinalizacion().toString()
+                                    : "Reciente");
                             valoraciones.add(v);
                         }
                         m.put("valoraciones", valoraciones);
@@ -188,11 +195,15 @@ public class ProcesadorUsuarios {
                 int id = datos.has("id") ? datos.get("id").asInt() : datos.get("idUsuario").asInt();
 
                 Operario op = operarioDAO.obtenerPorId(id);
-                if (op == null) throw new ServiceException("Operario no existe");
+                if (op == null)
+                    throw new ServiceException("Operario no existe");
 
-                if (datos.has("nombre"))    op.setNombreCompleto(datos.get("nombre").asText());
-                if (datos.has("dni"))       op.setDni(datos.get("dni").asText());
-                if (datos.has("email"))     op.setEmail(datos.get("email").asText());
+                if (datos.has("nombre"))
+                    op.setNombreCompleto(datos.get("nombre").asText());
+                if (datos.has("dni"))
+                    op.setDni(datos.get("dni").asText());
+                if (datos.has("email"))
+                    op.setEmail(datos.get("email").asText());
                 if (datos.has("telefono")) {
                     String tel = datos.get("telefono").asText().replaceAll("[^0-9]", "");
                     op.setTelefono(tel);
@@ -200,9 +211,11 @@ public class ProcesadorUsuarios {
                 if (datos.has("especialidad")) {
                     try {
                         op.setEspecialidad(CategoriaServicio.valueOf(datos.get("especialidad").asText()));
-                    } catch (Exception ignored) { }
+                    } catch (Exception ignored) {
+                    }
                 }
-                if (datos.has("estaActivo")) op.setEstaActivo(datos.get("estaActivo").asBoolean());
+                if (datos.has("estaActivo"))
+                    op.setEstaActivo(datos.get("estaActivo").asBoolean());
 
                 operarioService.modificarOperario(op);
 
@@ -231,7 +244,8 @@ public class ProcesadorUsuarios {
                 UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
                 Usuario u = usuarioDAO.obtenerPorId(idUsuario);
 
-                if (u == null) throw new Exception("Usuario no encontrado");
+                if (u == null)
+                    throw new Exception("Usuario no encontrado");
 
                 u.setUrlFoto(urlFoto);
                 usuarioDAO.actualizar(u);
@@ -246,6 +260,41 @@ public class ProcesadorUsuarios {
         } else {
             respuesta.put("status", 400);
             respuesta.put("mensaje", "Datos incompletos para actualizar foto");
+        }
+    }
+
+    public void procesarModificarUsuario(JsonNode datos, ObjectNode respuesta) {
+        if (datos != null && datos.has("id")) {
+            try {
+                int id = datos.get("id").asInt();
+                Usuario u = usuarioService.obtenerPorId(id);
+
+                if (datos.has("nombre"))
+                    u.setNombreCompleto(datos.get("nombre").asText());
+                if (datos.has("email"))
+                    u.setEmail(datos.get("email").asText());
+                if (datos.has("telefono"))
+                    u.setTelefono(datos.get("telefono").asText());
+                if (datos.has("direccion"))
+                    u.setDireccion(datos.get("direccion").asText());
+                if (datos.has("url_foto"))
+                    u.setUrlFoto(datos.get("url_foto").asText());
+
+                usuarioService.modificarUsuario(u);
+
+                respuesta.put("status", 200);
+                respuesta.put("mensaje", "Datos actualizados correctamente");
+            } catch (ServiceException e) {
+                respuesta.put("status", 400);
+                respuesta.put("mensaje", e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                respuesta.put("status", 500);
+                respuesta.put("mensaje", "Error interno al actualizar perfil");
+            }
+        } else {
+            respuesta.put("status", 400);
+            respuesta.put("mensaje", "Falta ID de usuario");
         }
     }
 }

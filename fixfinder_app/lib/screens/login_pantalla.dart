@@ -1,11 +1,13 @@
-// Pantalla de inicio de sesión de la aplicación móvil.
-// Recibe las credenciales y las valida mediante el AuthService.
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
 import 'dart:async';
 
+/// Pantalla de inicio de sesión de la aplicación móvil.
+/// 
+/// Recibe las credenciales del usuario y gestiona el flujo de acceso
+/// interactuando con el [AuthService].
 class LoginPantalla extends StatefulWidget {
   const LoginPantalla({super.key});
 
@@ -32,6 +34,7 @@ class _LoginPantallaState extends State<LoginPantalla> {
     });
   }
 
+  /// Verifica el estado de conexión con el servidor Socket.
   Future<void> _checkStatus() async {
     final status = await SocketService().ping();
     if (mounted) {
@@ -51,6 +54,10 @@ class _LoginPantallaState extends State<LoginPantalla> {
     super.dispose();
   }
 
+  /// Evalúa el resultado del intento de autenticación.
+  /// 
+  /// Si la validación es exitosa, redirige al Dashboard y establece la
+  /// persistencia de la sesión. En caso contrario, muestra el error capturado.
   Future<void> _login() async {
     setState(() {
       _cargando = true;

@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../../models/usuario.dart';
 
+/// Tarjeta informativa para mostrar los datos de perfil y contacto de un usuario.
+/// Se utiliza para facilitar la comunicación entre clientes y operarios asignados.
 class TarjetaContacto extends StatelessWidget {
   final String titulo;
   final Usuario usuario;

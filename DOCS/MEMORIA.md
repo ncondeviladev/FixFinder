@@ -381,11 +381,11 @@ Para el diseño de las interfaces me he decantado por un tema **oscuro y elegant
 
 ## 4.4. Otros diagramas y descripciones
 
-#### Diagrama de Secuencia — Comunicación por Sockets
+#### Diagrama de Secuencia y Flujo de Hilos
 
-> _Diagrama de secuencia que ilustra el protocolo de comunicación TCP/JSON entre los clientes (App y Dashboard) y el servidor, incluyendo el handshake de conexión, el formato de los mensajes (cabecera de 4 bytes + JSON) y el ciclo de petición-respuesta._
+> _Diagrama de secuencia avanzado que detalla la interacción multihilo entre todos los componentes del sistema. Muestra el ciclo de vida completo de una incidencia: desde la gestión de fotos en Firebase, el protocolo binario de red (cabecera de 4 bytes), hasta la recepción asíncrona mediante el "Lector Avaro" en el Dashboard y el Event Loop en Flutter, garantizando una interfaz fluida sin bloqueos de red._
 
-![Diagrama de Secuencia de Sockets](diagramas/diagrama_secuencia_sockets.png)
+![Diagrama de Secuencia de Sockets](diagramas/diagrama_flujo_hilos.png)
 
 ---
 

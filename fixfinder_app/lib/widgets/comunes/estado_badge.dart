@@ -1,8 +1,8 @@
-// Widget que muestra el estado de un trabajo mediante una etiqueta coloreada.
-// Los colores cambian dinámicamente según el estado actual de la incidencia.
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 
+/// Etiqueta visual que representa el estado evolutivo de un trabajo.
+/// Utiliza una paleta de colores semánticos para indicar la fase actual de la incidencia.
 class EstadoBadge extends StatelessWidget {
   final EstadoTrabajo estado;
 
