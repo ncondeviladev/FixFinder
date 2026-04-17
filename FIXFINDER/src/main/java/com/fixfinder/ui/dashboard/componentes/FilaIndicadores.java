@@ -18,7 +18,7 @@ public class FilaIndicadores extends HBox {
         getChildren().addAll(
                 crearKpi("Incidencias Activas", lblActivos, "▲", "kpi-icon-orange", "#F97316"),
                 crearKpi("Por Ofertar", lblPendientes, "!", "kpi-icon-amber", "#F59E0B"),
-                crearKpi("Pujas Enviadas", lblPresupuestados, "»", "kpi-icon-teal", "#14B8A6"),
+                crearKpi("Pujas Enviadas", lblPresupuestados, "$", "kpi-icon-teal", "#14B8A6"),
                 crearKpi("Completadas", lblCompletados, "✓", "kpi-icon-green", "#22C55E"));
     }
 

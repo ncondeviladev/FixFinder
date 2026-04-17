@@ -36,7 +36,7 @@ public class CeldaEstadoBadge extends TableCell<TrabajoFX, String> {
         } 
         // 2. Si tengo un presupuesto ACTIVO (Pendiente/Aceptado)
         else if (trabajo.haPresupuestado(idEmpresaLogueada)) {
-            textoEstado = "» " + estado;
+            textoEstado = estado;
         }
 
         Label badge = new Label(textoEstado);

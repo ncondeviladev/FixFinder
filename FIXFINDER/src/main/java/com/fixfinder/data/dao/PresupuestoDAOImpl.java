@@ -19,8 +19,8 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     private static final String SQL_CON_RELACIONES = 
         "SELECT p.*, " +
-        " e.nombre AS emp_nombre, e.cif AS emp_cif, e.email AS emp_email, e.telefono AS emp_telefono, " +
-        " e.direccion AS emp_direccion, e.logo_url AS emp_logo_url, e.id_gerente AS emp_id_gerente " +
+        " e.nombre AS emp_nombre, e.cif AS emp_cif, e.email_contacto AS emp_email, e.telefono AS emp_telefono, " +
+        " e.direccion AS emp_direccion, e.url_foto AS emp_logo_url " +
         "FROM presupuesto p " +
         "LEFT JOIN empresa e ON p.id_empresa = e.id";
 

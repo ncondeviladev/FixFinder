@@ -42,14 +42,23 @@ public class DbClean {
                         SchemaUpdater.actualizarEsquema();
 
                         // 2. Limpiar datos viejos residuales (SEGURIDAD ACTIVA)
+                        java.util.Scanner sc = new java.util.Scanner(System.in);
                         if (GlobalConfig.MODO_NUBE) {
-                            System.err.println("¡ATENCIÓN! Modo NUBE detectado. ¿Deseas formatear AWS RDS? (escribe 'confirmar')");
-                            if (!new java.util.Scanner(System.in).nextLine().equals("confirmar")) {
+                            System.err.println("⚠️ MODO NUBE: ¿Formatear AWS RDS? (escribe 'confirmar')");
+                            if (!sc.nextLine().equalsIgnoreCase("confirmar")) {
                                 System.out.println("Abortado para proteger la nube.");
+                                sc.close();
                                 return;
                             }
+                        }
+                        
+                        // Preguntar por Firebase Storage por separado (siempre es nube)
+                        System.out.println("🔥 ¿Deseas limpiar también todas las imágenes en Firebase Storage? (si/no)");
+                        if (sc.nextLine().equalsIgnoreCase("si")) {
                             limpiarFirebaseStorage();
                         }
+                        sc.close();
+
                         limpiarBaseDeDatos();
 
                         // 3. Inicializar DAOs
@@ -274,9 +283,19 @@ public class DbClean {
         private static void limpiarFirebaseStorage() {
                 try {
                         InputStream serviceAccount = DbClean.class.getResourceAsStream("/firebase-service-account.json");
+                        
+                        // Fallback: Buscar en la raíz del proyecto si no está en recursos
                         if (serviceAccount == null) {
-                                System.err.println("⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en /src/main/resources/. Omitiendo vaciado de nube...");
-                                return;
+                            java.io.File fileRaiz = new java.io.File("firebase-service-account.json");
+                            if (fileRaiz.exists()) {
+                                serviceAccount = new java.io.FileInputStream(fileRaiz);
+                            }
+                        }
+
+                        if (serviceAccount == null) {
+                            System.err.println("⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en la raíz o en /resources/.");
+                            System.err.println("   Para limpiar Firebase, debes descargar la clave JSON desde: Console -> Ajustes -> Cuentas de servicio.");
+                            return;
                         }
 
                         if (FirebaseApp.getApps().isEmpty()) {

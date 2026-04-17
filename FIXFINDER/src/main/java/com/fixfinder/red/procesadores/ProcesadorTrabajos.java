@@ -123,9 +123,20 @@ public class ProcesadorTrabajos {
             }
 
             int idEmpresaConsulta = -1;
-            if ("GERENTE".equals(rol)) {
-                Usuario u = usuarioService.obtenerPorId(idUsuario);
-                idEmpresaConsulta = (u instanceof Operario) ? ((Operario) u).getIdEmpresa() : -1;
+            if ("GERENTE".equals(rol) || "OPERARIO".equals(rol)) {
+                try {
+                    Usuario u = usuarioService.obtenerPorId(idUsuario);
+                    if (u instanceof Operario) {
+                        idEmpresaConsulta = ((Operario) u).getIdEmpresa();
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ [LISTAR] Error cargando perfil de empresa para usuario " + idUsuario);
+                }
+            }
+
+            // Fallback: Si no lo hemos encontrado pero viene en el payload (prevención)
+            if (idEmpresaConsulta == -1 && datos.has("idEmpresa")) {
+                idEmpresaConsulta = datos.get("idEmpresa").asInt();
             }
 
             // Mapeo profesional y enriquecimiento mediante ResponseMapper
@@ -201,6 +212,26 @@ public class ProcesadorTrabajos {
     private void enriquecerPresupuestos(int idTrabajo, Map<String, Object> jobMap, int idEmpresaConsulta) {
         try {
             List<Presupuesto> listap = presupuestoService.listarPorTrabajo(idTrabajo);
+            Object estadoObj = jobMap.get("estado");
+            String estadoReal = (estadoObj != null) ? estadoObj.toString() : "NULL";
+
+            // --- LÓGICA DE PRIVACIDAD: MÁSCARA DE ESTADO ---
+            if ("PRESUPUESTADO".equalsIgnoreCase(estadoReal) && idEmpresaConsulta != -1) {
+                boolean haOfertado = false;
+                if (listap != null) {
+                    for (Presupuesto p : listap) {
+                        int idEmpresaPresu = (p.getEmpresa() != null) ? p.getEmpresa().getId() : -2;
+                        if (idEmpresaPresu == idEmpresaConsulta) {
+                            haOfertado = true;
+                        }
+                    }
+                }
+                
+                if (!haOfertado) {
+                    jobMap.put("estado", "PENDIENTE");
+                }
+            } 
+
             if (listap != null && !listap.isEmpty()) {
                 List<ObjectNode> nodosPresus = new ArrayList<>();
                 Presupuesto aceptado = null;
@@ -225,7 +256,9 @@ public class ProcesadorTrabajos {
                     jobMap.put("tienePresupuestoAceptado", false);
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            System.err.println("❌ [ENRIQUECIMIENTO-ERROR] Error procesando presupuestos para trabajo " + idTrabajo);
+            e.printStackTrace();
         }
     }
 
