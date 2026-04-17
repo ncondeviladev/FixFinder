@@ -78,16 +78,23 @@ public class DialogoGestionIncidencia {
         mainBox.getChildren().add(grid);
 
         // --- SECCIÓN 2: DESCRIPCIÓN Y FOTOS ---
-        VBox descBox = new VBox(6);
-        Label lblDesc = new Label("Descripción de la avería:");
+        VBox descBox = new VBox(10);
+        Label lblDesc = new Label("Evolución de la Incidencia / Historial:");
         lblDesc.getStyleClass().add("modal-label");
-        TextArea areaDesc = new TextArea(trabajo.getDescripcion());
-        areaDesc.setWrapText(true);
-        areaDesc.setPrefHeight(200); // Altura ampliada solicitada
-        areaDesc.setMinHeight(200);
-        areaDesc.getStyleClass().add("modal-input");
-        areaDesc.setEditable(false);
-        descBox.getChildren().addAll(lblDesc, areaDesc);
+        
+        VBox contenedorBloques = new VBox(8);
+        contenedorBloques.setPadding(new Insets(10));
+        contenedorBloques.setStyle("-fx-background-color: #2D2D2D; -fx-background-radius: 8;");
+        
+        poblarBloquesDescripcion(contenedorBloques, trabajo.getDescripcion());
+        
+        ScrollPane scrollDesc = new ScrollPane(contenedorBloques);
+        scrollDesc.setFitToWidth(true);
+        scrollDesc.setPrefHeight(250);
+        scrollDesc.setMinHeight(250);
+        scrollDesc.getStyleClass().add("transparent-scroll"); // Clase CSS ya existente para scrollbars oscuros
+        
+        descBox.getChildren().addAll(lblDesc, scrollDesc);
         mainBox.getChildren().add(descBox);
 
         if (trabajo.getUrlsFotos() != null && !trabajo.getUrlsFotos().isEmpty()) {
@@ -302,6 +309,81 @@ public class DialogoGestionIncidencia {
         }
 
         return new VBox(2, lbl, val);
+    }
+
+    /**
+     * Parsea el string de descripción para generar bloques visuales independientes.
+     */
+    private void poblarBloquesDescripcion(VBox contenedor, String descripcion) {
+        if (descripcion == null || descripcion.trim().isEmpty()) return;
+
+        String[] marcadores = {"📝 CLIENTE:", "💰 GERENTE:", "🛠 OPERARIO:"};
+        String descActual = descripcion.replace("==============================", ""); // Limpiar separadores planos
+
+        for (int i = 0; i < marcadores.length; i++) {
+            String marcador = marcadores[i];
+            if (descActual.contains(marcador)) {
+                int inicio = descActual.indexOf(marcador);
+                
+                // Buscar dónde termina este bloque (donde empiece el siguiente marcador)
+                int fin = descActual.length();
+                for (int j = i + 1; j < marcadores.length; j++) {
+                    int posSiguienteMarcador = descActual.indexOf(marcadores[j]);
+                    if (posSiguienteMarcador != -1 && posSiguienteMarcador < fin) {
+                        fin = posSiguienteMarcador;
+                    }
+                }
+
+                String contenidoBloque = descActual.substring(inicio + marcador.length(), fin).trim();
+                if (!contenidoBloque.isEmpty() && !contenidoBloque.contains("(Sin ")) {
+                    contenedor.getChildren().add(crearBloqueVisual(marcador, contenidoBloque));
+                }
+            }
+        }
+        
+        // Fallback estética: si no se detectó ningún marcador oficial, mostrar el texto bruto en un bloque estándar
+        if (contenedor.getChildren().isEmpty() && !descripcion.trim().isEmpty()) {
+            contenedor.getChildren().add(crearBloqueVisual("DESCRIPCIÓN:", descripcion.trim()));
+        }
+    }
+
+    /**
+     * Construye un bloque visual con estilo diferenciado según el rol.
+     */
+    private VBox crearBloqueVisual(String titulo, String contenido) {
+        VBox bloque = new VBox(4);
+        bloque.setPadding(new Insets(10));
+        bloque.setMaxWidth(Double.MAX_VALUE);
+        
+        String colorFondo = "#3A3A3A"; // Gris neutro
+        String colorBorde = "#4A4A4A";
+        
+        if (titulo.contains("CLIENTE")) {
+            colorFondo = "#2E3B4E"; // Acero oscuro (Cliente)
+            colorBorde = "#3E4E6E";
+        } else if (titulo.contains("GERENTE")) {
+            colorFondo = "#3E3B2E"; // Ámbar oscuro (Empresa)
+            colorBorde = "#5E4E3E";
+        } else if (titulo.contains("OPERARIO")) {
+            colorFondo = "#2E3E34"; // Esmeralda frío (Técnico)
+            colorBorde = "#3E5E4A";
+        }
+
+        bloque.setStyle("-fx-background-color: " + colorFondo + "; " +
+                       "-fx-background-radius: 8; " +
+                       "-fx-border-color: " + colorBorde + "; " +
+                       "-fx-border-radius: 8; " +
+                       "-fx-border-width: 1;");
+
+        Label lblTitulo = new Label(titulo);
+        lblTitulo.setStyle("-fx-font-weight: bold; -fx-text-fill: #FF6D00; -fx-font-size: 11px;");
+        
+        Label lblContenido = new Label(contenido);
+        lblContenido.setWrapText(true);
+        lblContenido.setStyle("-fx-text-fill: #EEEEEE; -fx-font-size: 13.5px; -fx-line-spacing: 2;");
+        
+        bloque.getChildren().addAll(lblTitulo, lblContenido);
+        return bloque;
     }
 
     private void mostrarFotoGrande(String url) {

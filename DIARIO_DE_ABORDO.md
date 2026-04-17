@@ -689,29 +689,44 @@ Las siguientes mejoras estructurales y de rendimiento han sido implementadas:
 
 ---
 
+## ✅ SESIÓN 17/04/2026 — Identidad Visual y Estados Reactivos
+
+### Lo que se hizo en esta sesión
+
+#### 🚀 App Móvil: Unificación y Reactividad
+- **Eliminación de Splash duplicado**: Se ha borrado `SplashPantalla.dart` eliminando el molesto "parpadeo" entre el splash del sistema y el de Flutter.
+- **Implementación de AuthWrapper**: Nuevo componente que gestiona el auto-login manteniendo el splash nativo visible hasta que la app está lista.
+- **UsuarioProvider**: Implementación de `ChangeNotifier` para que el perfil (foto, nombre, datos) se actualice en toda la app de forma instantánea al editar.
+- **Native Splash Profesional**: Configuración de `flutter_native_splash` con logo y lema corporativo ajustado para evitar recortes en Android 12+.
+
+#### 📊 Dashboard: Evolución Visual de Incidencias
+- **Bloques Visuales de Seguimiento**: Sustitución del `TextArea` de descripción por un historial por bloques:
+  - **CLIENTE (Azul Acero)**: El problema inicial.
+  - **GERENTE (Ámbar)**: Notas de presupuesto.
+  - **OPERARIO (Verde)**: Informe de cierre.
+- **Limpieza de Nomenclatura**: Estandarización de todo el código nuevo al castellano.
+
+#### 🧹 Mantenimiento
+- **Limpieza de Assets**: Eliminación de imágenes de prueba y archivos de splash huérfanos.
+- **Escalabilidad**: El código del Dashboard ahora permite añadir nuevos tipos de bloques (ej. fotos paso a paso) sin romper el diseño.
+
+---
+
 ## 🎯 PRÓXIMOS PASOS (SIGUIENTE SESIÓN)
 
-### Prioridad 1 — Bugfix pendiente (COMPLETADO 08/04)
-- [x] **Foto de perfil del cliente en la ficha del Dashboard:** ¡Resuelto! Corregida carga asíncrona y mapeo de campo JSON.
-
+### Prioridad 1 — Cierre de UI/UX y Tiempo Real (Broadcaster)
+- [ ] **Broadcaster (Backend)**: Implementar el patrón Observer en el servidor para notificar cambios de estado (Nuevos trabajos, ofertas aceptadas) a todos los clientes conectados.
+- [ ] **Broadcaster (Apps)**: Conectar los widgets de Flutter y las tablas de JavaFX al flujo de eventos push para eliminar el polling de 15s.
+- [ ] Centralizar estilos hardcoded en `app_theme.dart` (Flutter) y `style.css` (Dashboard).
 
 ### Prioridad 2 — Despliegue AWS (Producción)
-- [ ] **Levantar RDS MySQL:** Crear instancia `db.t3.micro`, configurar Security Group (puerto 3306 solo desde EC2).
-- [ ] **Migrar esquema:** ejecutar `SCHEMA.sql` en RDS para crear todas las tablas.
+- [ ] **Levantar RDS MySQL:** Crear instancia `db.t3.micro`, configurar Security Group.
+- [ ] **Migrar esquema:** ejecutar `SCHEMA.sql` en RDS.
 - [ ] **Lanzar EC2:** Instancia `t3.micro` Ubuntu, instalar Docker + Java 21.
-- [ ] **Dockerizar el servidor:** Crear `Dockerfile` para el servidor Java socket y hacer `docker build + run` en EC2.
-- [ ] **Ajustar IPs en el código:**
-  - `socket_service.dart` (Flutter) → IP elástica de EC2.
-  - `ClienteSocket.java` (Dashboard) → IP elástica de EC2.
-  - `application.properties` o config del servidor → endpoint RDS.
-- [ ] **Validación final:** Probar App móvil en dispositivo físico real → EC2 → RDS.
 
 ### Prioridad 3 — Memoria académica
-- [ ] Redactar las secciones de texto de `DOCS/MEMORIA.md` (campos `[Escribe aquí...]`).
-- [ ] Insertar capturas de pantalla reales de la app y dashboard en la sección 5.4.
-- [ ] Completar tabla de requerimientos funcionales/no funcionales (sección 3.1).
-- [ ] Completar tabla de hitos del proyecto (sección 3.2).
-- [ ] Añadir diagrama de Gantt.
+- [ ] Redactar las secciones de texto de `DOCS/MEMORIA.md`.
+- [ ] Insertar capturas de pantalla reales (App con el nuevo Splash y Dashboard con bloques).
 - [ ] Exportar a PDF cuando esté lista.
 
 
