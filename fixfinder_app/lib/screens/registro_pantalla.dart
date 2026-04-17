@@ -20,6 +20,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
   final _emailController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _direccionController = TextEditingController();
+  final _ciudadController = TextEditingController();
   final _passController = TextEditingController();
   
   bool _cargando = false;
@@ -33,6 +34,7 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
     _emailController.dispose();
     _telefonoController.dispose();
     _direccionController.dispose();
+    _ciudadController.dispose();
     _passController.dispose();
     super.dispose();
   }
@@ -65,9 +67,9 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
       dni: _dniController.text.trim(),
       email: _emailController.text.trim(),
       telefono: _telefonoController.text.trim(),
-      direccion: _direccionController.text.trim(),
+      direccion: '${_direccionController.text.trim()}, ${_ciudadController.text.trim()}',
       password: _passController.text,
-      urlFoto: urlFoto, // Añadir este parámetro
+      urlFoto: urlFoto,
     );
 
     if (mounted) {
@@ -172,10 +174,24 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                 TextFormField(
                   controller: _direccionController,
                   decoration: const InputDecoration(
-                    labelText: 'Dirección (Opcional)',
+                    labelText: 'Dirección',
                     prefixIcon: Icon(Icons.location_on),
                     border: OutlineInputBorder(),
+                    hintText: 'Calle, número, piso, puerta',
                   ),
+                  validator: (v) => v!.isEmpty ? 'Campo obligatorio' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _ciudadController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ciudad',
+                    prefixIcon: Icon(Icons.location_city),
+                    border: OutlineInputBorder(),
+                    hintText: 'Ej: Gandia, Valencia...',
+                  ),
+                  validator: (v) => v!.isEmpty ? 'Campo obligatorio' : null,
                 ),
                 const SizedBox(height: 16),
                 

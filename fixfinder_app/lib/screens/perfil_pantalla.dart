@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/usuario.dart';
 import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/usuario_provider.dart';
 
 /// Pantalla de Perfil de Usuario.
 /// Permite visualizar la información personal, cambiar la foto de perfil 
@@ -37,7 +39,7 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   /// Despliega un diálogo para editar la información personal del usuario.
   /// Implementa validación de campos y feedback visual durante el envío.
   void _abrirDialogoGestionPerfil() {
-    final usuario = AuthService().usuarioActual;
+    final usuario = context.read<UsuarioProvider>().usuario;
     if (usuario == null) return;
 
     final formKey = GlobalKey<FormState>();
@@ -96,9 +98,12 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
                     setState(() => _guardandoDatos = false);
                     Navigator.pop(context);
                     if (exito) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Perfil actualizado correctamente'), backgroundColor: Colors.green),
-                      );
+                      if (context.mounted) {
+                        context.read<UsuarioProvider>().refrescar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Perfil actualizado correctamente'), backgroundColor: Colors.green),
+                        );
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Error al actualizar perfil. El servidor rechazó la acción.'), backgroundColor: Colors.red),
@@ -147,7 +152,7 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   /// Abre el selector de imágenes de la galería para actualizar el avatar.
   /// Sube la imagen a Firebase Storage y actualiza la URL en el servidor.
   Future<void> _gestionarFotoPerfil() async {
-    final usuario = AuthService().usuarioActual;
+    final usuario = context.read<UsuarioProvider>().usuario;
     if (usuario == null) return;
 
     final picker = ImagePicker();
@@ -161,7 +166,10 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
       await ref.putFile(File(image.path));
       final url = await ref.getDownloadURL();
       await AuthService().actualizarFotoPerfil(url);
-      if (mounted) setState(() => _subiendoFoto = false);
+      if (mounted) {
+        context.read<UsuarioProvider>().refrescar();
+        setState(() => _subiendoFoto = false);
+      }
     } catch (e) {
       debugPrint("❌ Error al gestionar foto: $e");
       if (mounted) {
@@ -175,7 +183,7 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
 
   @override
   Widget build(BuildContext context) {
-    final usuario = AuthService().usuarioActual;
+    final usuario = context.watch<UsuarioProvider>().usuario;
     if (usuario == null) return const Scaffold(body: Center(child: Text('Sesión no encontrada')));
 
     return Scaffold(

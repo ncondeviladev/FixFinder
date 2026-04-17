@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../../models/usuario.dart';
+import 'package:provider/provider.dart';
+import '../../providers/usuario_provider.dart';
 import '../../services/auth_service.dart';
 import '../comunes/dato_fila.dart';
 import '../comunes/estado_badge.dart';
@@ -60,11 +62,11 @@ class DetalleInfoCard extends StatelessWidget {
               GaleriaFotos(urls: trabajo.urlsFotos),
             ],
             const SizedBox(height: 16),
-            if (AuthService().usuarioActual?.rol == Rol.OPERARIO &&
+            if (context.watch<UsuarioProvider>().usuario?.rol == Rol.OPERARIO &&
                 trabajo.cliente != null)
               TarjetaContacto(
                   titulo: 'Datos del Cliente:', usuario: trabajo.cliente!),
-            if (AuthService().usuarioActual?.rol == Rol.CLIENTE &&
+            if (context.watch<UsuarioProvider>().usuario?.rol == Rol.CLIENTE &&
                 trabajo.operarioAsignado != null)
               TarjetaContacto(
                   titulo: 'Técnico Asignado:',

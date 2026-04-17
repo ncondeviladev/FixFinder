@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
 import 'registro_pantalla.dart';
+import 'package:provider/provider.dart';
+import '../providers/usuario_provider.dart';
 import 'dart:async';
 
 /// Pantalla de inicio de sesión de la aplicación móvil.
@@ -73,6 +75,8 @@ class _LoginPantallaState extends State<LoginPantalla> {
     if (mounted) {
       setState(() => _cargando = false);
       if (exito) {
+        // Actualizamos el estado global del usuario en el provider
+        Provider.of<UsuarioProvider>(context, listen: false).inicializarDesdeAuth();
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         setState(() => _error = 'Credenciales inválidas o error de conexión');

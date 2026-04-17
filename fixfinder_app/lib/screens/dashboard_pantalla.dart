@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/trabajo_provider.dart';
+import '../providers/usuario_provider.dart';
 import '../services/auth_service.dart';
 import '../models/trabajo.dart';
 import '../models/usuario.dart';
@@ -39,7 +40,7 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
 
   @override
   Widget build(BuildContext context) {
-    final usuario = AuthService().usuarioActual;
+    final usuario = context.watch<UsuarioProvider>().usuario;
     
     // Si la sesión se ha cerrado (ej: por token expirado), volvemos al login
     if (usuario == null) {
@@ -76,6 +77,7 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
             icon: const Icon(Icons.logout),
             onPressed: () {
               AuthService().logout();
+              context.read<UsuarioProvider>().limpiar();
               Navigator.pushReplacementNamed(context, '/login');
             },
           ),

@@ -7,6 +7,7 @@ import '../models/trabajo.dart';
 import '../models/usuario.dart';
 import '../models/presupuesto.dart';
 import '../providers/trabajo_provider.dart';
+import '../providers/usuario_provider.dart';
 import '../services/auth_service.dart';
 import '../widgets/detalle_trabajo/detalle_info_card.dart';
 import '../widgets/detalle_trabajo/detalle_resumen_final.dart';
@@ -182,7 +183,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
 
   @override
   Widget build(BuildContext context) {
-    final usuario = AuthService().usuarioActual;
+    final usuario = context.watch<UsuarioProvider>().usuario;
     final esCliente = usuario?.rol == Rol.CLIENTE;
     final esOperario = usuario?.rol == Rol.OPERARIO;
 

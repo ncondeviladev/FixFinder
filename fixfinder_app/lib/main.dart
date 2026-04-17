@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'screens/login_pantalla.dart';
 import 'screens/dashboard_pantalla.dart';
 import 'screens/perfil_pantalla.dart';
-import 'screens/splash_pantalla.dart';
+import 'screens/auth_wrapper.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 import 'providers/trabajo_provider.dart';
+import 'providers/usuario_provider.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,7 +18,8 @@ import 'firebase_options.dart';
 /// Realiza la inicialización de Firebase, carga el entorno y arranca el MultiProvider.
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   debugPrint("🚀 Iniciando FixFinder App...");
 
   // Cargar variables de entorno securizadas
@@ -42,6 +46,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => TrabajoProvider()),
+        ChangeNotifierProvider(create: (_) => UsuarioProvider()),
       ],
       child: const FixFinderApp(),
     ),
@@ -154,9 +159,8 @@ class FixFinderApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      initialRoute: '/splash',
+      home: const AuthWrapper(),
       routes: {
-        '/splash': (context) => const SplashPantalla(),
         '/login': (context) => const LoginPantalla(),
         '/dashboard': (context) => const DashboardPantalla(),
         '/perfil': (context) => const PerfilPantalla(),
@@ -164,3 +168,4 @@ class FixFinderApp extends StatelessWidget {
     );
   }
 }
+

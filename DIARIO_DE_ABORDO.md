@@ -843,7 +843,7 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 
 ## Backend y Deuda Técnica (Java)
 - [ ] **Sistema Broadcaster:** Implementar la lógica en el servidor para notificar eventos en tiempo real a la App y al Dashboard.
-- [ ] **Optimización SQL (Problema N+1):** Refactorizar `cargarRelaciones()` en `TrabajoDAOImpl.java` para usar un único `LEFT JOIN` masivo.
+- [x] **Optimización SQL (Problema N+1):** Refactorizar `cargarRelaciones()` en `TrabajoDAOImpl.java` para usar un único `LEFT JOIN` masivo.
 - [x] **Refactor TablaIncidencias:** Desmontar la "God Class" `TablaIncidencias.java`. Separar factorías de celdas, filtrado y diálogos en clases independientes (SRP).
 - [x] **Micro-refactor Autenticacion:** Trocear `procesarRegistro` en métodos privados segregados por rol.
 - [x] **Gestion de Timeouts:** Asegurar que acciones como `VALORAR` o `CANCELAR` devuelvan siempre la clave `"mensaje"` en el JSON para evitar interrupciones de flujo en la App.
@@ -854,9 +854,9 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 ## Tareas Tras la Revisión del Tutor
 - [ ] **Apaciguar la falta de Providers:** Crear un `usuario_provider.dart` ligero como envoltorio del perfil y documentar en la MEMORIA la desestimación técnica del "EmpresaProvider" por Arquitectura de Dominios.
 - [ ] **Dividir Diagramas en la Memoria:** Sustituir en `MEMORIA.md` el diagrama global kilométrico por versiones troceadas (Flujo de Login, Trabajos, etc.) con sintaxis Mermaid para evitar el "efecto hormiga" en PDF.
-- [ ] **Renombrar Pruebas a Prototipos:** Cambiar la nomenclatura de la carpeta de "tests de UI" a "prototipos" en la memoria si fuese necesario para encajar en el glosario académico.
+- [x] **Renombrar Pruebas a Prototipos:** Cambiar la nomenclatura de la carpeta de "tests de UI" a "prototipos" en la memoria si fuese necesario para encajar en el glosario académico.
 - [ ] **Generar Modelo E-R Visual:** Conectar MySQL Workbench y extraer diagrama Entidad-Relación explícito e incrustarlo en la documentación.
-- [ ] **Incorporar Funciones "Móviles" Nativas:** Integrar `url_launcher` para llamadas telefónicas desde la ficha de operarios y añadir integración de Mapas (GPS locales) para la dirección del trabajo.
+- [x] **Incorporar Funciones "Móviles" Nativas:** Integrar `url_launcher` para llamadas telefónicas desde la ficha de operarios y añadir integración de Mapas (GPS locales) para la dirección del trabajo.
 
 ---
 _Bitácora técnica consolidada. El sistema está preparado para la implementación de la lógica de presupuestos segregados._

@@ -36,10 +36,13 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#121212"
-  image: "assets/images/logo.png"
+  image: "assets/images/fflogosplash.PNG"
+  branding: "assets/images/fftitulosplash.PNG"
+  branding_mode: bottom
   android_12:
-    image: "assets/images/logo.png"
     color: "#121212"
+    image: "assets/images/fflogosplash.PNG"
+    branding: "assets/images/fftitulosplash.PNG"
 
 flutter:
   uses-material-design: true
