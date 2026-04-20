@@ -62,6 +62,7 @@ class Trabajo {
   final int valoracion; // Estrellas otorgadas por el cliente (0-5)
   final String? comentarioCliente;
   final String? fechaFinalizacion;
+  final String? fechaCreacion;
   
   // Objetos relacionados (hidratados por el servidor en listados detallados)
   final Usuario? cliente;
@@ -84,6 +85,7 @@ class Trabajo {
     this.valoracion = 0,
     this.comentarioCliente,
     this.fechaFinalizacion,
+    this.fechaCreacion,
     this.cliente,
     this.operarioAsignado,
     this.presupuesto,
@@ -116,6 +118,7 @@ class Trabajo {
           : (int.tryParse(json['valoracion']?.toString() ?? '0') ?? 0),
       comentarioCliente: json['comentarioCliente']?.toString(),
       fechaFinalizacion: json['fechaFinalizacion']?.toString(),
+      fechaCreacion: (json['fecha'] ?? json['fecha_creacion'])?.toString(),
       cliente:
           json['cliente'] != null ? Usuario.fromJson(json['cliente']) : null,
       operarioAsignado: json['operarioAsignado'] != null
@@ -168,6 +171,7 @@ class Trabajo {
       'valoracion': valoracion,
       'comentarioCliente': comentarioCliente,
       'fechaFinalizacion': fechaFinalizacion,
+      'fechaCreacion': fechaCreacion,
       'presupuesto': presupuesto?.toJson(),
       'presupuestos': presupuestos.map((p) => p.toJson()).toList(),
     };

@@ -21,6 +21,7 @@ import com.fixfinder.service.interfaz.UsuarioService;
 import com.fixfinder.service.interfaz.OperarioService;
 import com.fixfinder.service.impl.OperarioServiceImpl;
 import com.fixfinder.red.procesadores.ProcesadorUsuarios;
+import com.fixfinder.red.procesadores.ProcesadorEmpresa;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -46,6 +47,7 @@ public class GestorConexion implements Runnable {
     private final ProcesadorAutenticacion procesadorAutenticacion;
     private final ProcesadorTrabajos procesadorTrabajos;
     private final ProcesadorUsuarios procesadorUsuarios;
+    private final ProcesadorEmpresa procesadorEmpresa;
     private final ProcesadorPresupuestos procesadorPresupuestos;
     private final ProcesadorFacturas procesadorFacturas;
 
@@ -67,6 +69,7 @@ public class GestorConexion implements Runnable {
         this.procesadorTrabajos = new ProcesadorTrabajos(trabajoService, usuarioService, presupuestoService,
                 facturaService);
         this.procesadorUsuarios = new ProcesadorUsuarios(operarioService);
+        this.procesadorEmpresa = new ProcesadorEmpresa(empresaService);
         this.procesadorPresupuestos = new ProcesadorPresupuestos(presupuestoService);
         this.procesadorFacturas = new ProcesadorFacturas(facturaService);
     }
@@ -170,11 +173,15 @@ public class GestorConexion implements Runnable {
                                             break;
 
                                         case "LISTAR_EMPRESAS":
-                                            procesadorUsuarios.procesarListarEmpresas(datos, respuesta);
+                                            procesadorEmpresa.procesarListarEmpresas(datos, respuesta);
                                             break;
 
                                         case "GET_EMPRESA":
-                                            procesadorUsuarios.procesarObtenerEmpresa(datos, respuesta);
+                                            procesadorEmpresa.procesarObtenerEmpresa(datos, respuesta);
+                                            break;
+
+                                        case "MODIFICAR_EMPRESA":
+                                            procesadorEmpresa.procesarModificarEmpresa(datos, respuesta);
                                             break;
 
                                         case "ACTUALIZAR_FOTO_PERFIL":

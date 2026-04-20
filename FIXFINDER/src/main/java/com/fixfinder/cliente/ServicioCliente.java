@@ -171,6 +171,19 @@ public class ServicioCliente {
         enviarJson("MODIFICAR_OPERARIO", datos);
     }
 
+    public void enviarModificarEmpresa(int id, String nombre, String cif, String email, String tel, String dir,
+            String urlLogo) throws IOException {
+        ObjectNode datos = mapper.createObjectNode();
+        datos.put("id", id);
+        datos.put("nombre", nombre);
+        datos.put("cif", cif);
+        datos.put("email", email);
+        datos.put("telefono", tel);
+        datos.put("direccion", dir);
+        datos.put("url_foto", urlLogo);
+        enviarJson("MODIFICAR_EMPRESA", datos);
+    }
+
     private void enviarJson(String accion, ObjectNode datos) throws IOException {
         socket.enviar(accion, datos, tokenActual);
     }

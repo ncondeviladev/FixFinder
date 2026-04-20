@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
+import javafx.scene.layout.Region;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -27,7 +28,10 @@ public class VistaEmpresa extends VBox {
 
     public VistaEmpresa(Map<String, Object> infoEmpresa,
             String gerenteNombre, String gerenteRol,
-            ObservableList<OperarioFX> operarios, Runnable onCambiarFotoGerente) {
+            ObservableList<OperarioFX> operarios, 
+            Runnable onCambiarFotoGerente, 
+            Runnable onCambiarLogoEmpresa,
+            Runnable onEditarEmpresa) {
         
         getStyleClass().add("area-contenido");
         VBox.setVgrow(this, Priority.ALWAYS);
@@ -48,69 +52,94 @@ public class VistaEmpresa extends VBox {
         Label titulo = new Label("Información de la Empresa");
         titulo.getStyleClass().add("titulo-tarjeta");
 
-        HBox perfilRow = new HBox(20);
-        perfilRow.setAlignment(Pos.CENTER_LEFT);
+        // --- CABECERA DE IDENTIDAD (LOGO + GERENTE) ---
+        HBox cabeceraIdentidad = new HBox(25);
+        cabeceraIdentidad.setAlignment(Pos.CENTER_LEFT);
+        cabeceraIdentidad.setPadding(new Insets(0, 0, 10, 0));
 
-        StackPane imagenPlaceholder = new StackPane();
-        imagenPlaceholder.getStyleClass().add("contenedor-imagen-perfil");
+        // 1. Logo Empresa
+        StackPane logoPlaceholder = new StackPane();
+        logoPlaceholder.getStyleClass().add("contenedor-imagen-perfil");
+        logoPlaceholder.setMinWidth(90); logoPlaceholder.setMaxWidth(90);
+        logoPlaceholder.setMinHeight(90); logoPlaceholder.setMaxHeight(90);
 
-        VBox imgInfo = new VBox(4);
-        Label lblDatos = new Label("Datos Personales del Gerente");
-        lblDatos.getStyleClass().add("etiqueta-modal");
-
-        VBox camposGerente = new VBox(12);
-        camposGerente.getChildren().addAll(
-                fila("Nombre", gerenteNombre),
-                fila("Rol en el sistema", gerenteRol));
-
-        imgInfo.getChildren().addAll(lblDatos, camposGerente);
-
-        Label lIniciales = new Label(iniciales(gerenteNombre));
-        lIniciales.getStyleClass().add("iniciales-perfil");
-
-        String urlFotoGerente = (String) infoEmpresa.get("gerenteUrlFoto");
-        boolean tieneFoto = false;
-        if (urlFotoGerente != null && (urlFotoGerente.startsWith("http://") || urlFotoGerente.startsWith("https://"))) {
+        String logoUrl = (String) infoEmpresa.get("url_foto");
+        boolean tieneLogo = false;
+        if (logoUrl != null && (logoUrl.startsWith("http://") || logoUrl.startsWith("https://"))) {
             try {
-                ImageView iv = new ImageView(new Image(urlFotoGerente, 80, 80, true, true, false));
-                iv.setFitWidth(80);
-                iv.setFitHeight(80);
-                iv.setClip(new Circle(40, 40, 40));
-                imagenPlaceholder.getChildren().add(iv);
-                tieneFoto = true;
+                // backgroundLoading = true para evitar congelamiento de UI
+                Image img = new Image(logoUrl, 120, 120, true, true, true);
+                ImageView ivLogo = new ImageView();
+                ivLogo.setFitWidth(90);
+                ivLogo.setFitHeight(90);
+                ivLogo.setClip(new Circle(45, 45, 45));
+                
+                // Mientras carga, podemos poner un listener o dejar que aparezca sola
+                ivLogo.imageProperty().bind(javafx.beans.binding.Bindings.when(img.progressProperty().isEqualTo(1))
+                        .then(img).otherwise((Image)null));
+                
+                logoPlaceholder.getChildren().add(ivLogo);
+                tieneLogo = true;
             } catch (Exception ignored) {}
         }
+        Button btnCambiarLogo = new Button("📸");
+        btnCambiarLogo.getStyleClass().add("btn-solo-icono");
+        btnCambiarLogo.setOnAction(e -> {
+            if (onCambiarLogoEmpresa != null) onCambiarLogoEmpresa.run();
+        });
+        StackPane.setAlignment(btnCambiarLogo, Pos.BOTTOM_RIGHT);
+        logoPlaceholder.getChildren().add(btnCambiarLogo);
 
-        if (!tieneFoto) {
-            imagenPlaceholder.getChildren().add(lIniciales);
+        if (!tieneLogo) {
+            Label lIniLogo = new Label(iniciales(String.valueOf(infoEmpresa.getOrDefault("nombre", "EF"))));
+            lIniLogo.getStyleClass().add("iniciales-perfil");
+            logoPlaceholder.getChildren().add(lIniLogo);
         }
 
-        Button btnCambiarFoto = new Button("📸");
-        btnCambiarFoto.getStyleClass().add("btn-solo-icono");
-        btnCambiarFoto.setOnAction(e -> {
-            if (onCambiarFotoGerente != null) onCambiarFotoGerente.run();
-        });
-        StackPane.setAlignment(btnCambiarFoto, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(btnCambiarFoto, new Insets(0, -10, -10, 0));
+        // 2. Info Textual
+        VBox infoTextos = new VBox(2);
+        infoTextos.setAlignment(Pos.CENTER_LEFT);
+        
+        Label lblEmpresaNom = new Label(String.valueOf(infoEmpresa.getOrDefault("nombre", "Empresa")));
+        lblEmpresaNom.getStyleClass().add("titulo-cabecera");
+        lblEmpresaNom.setStyle("-fx-font-size: 24px;");
 
-        imagenPlaceholder.getChildren().add(btnCambiarFoto);
-        perfilRow.getChildren().addAll(imagenPlaceholder, imgInfo);
+        Label lblGerenteNom = new Label("Responsable: " + gerenteNombre);
+        lblGerenteNom.getStyleClass().add("texto-tenue");
+        lblGerenteNom.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-        Separator sep1 = sep();
-        Label lblEmp = new Label("Información Legal de Empresa");
+        infoTextos.getChildren().addAll(lblEmpresaNom, lblGerenteNom);
+
+        cabeceraIdentidad.getChildren().addAll(logoPlaceholder, infoTextos);
+
+        Separator sepHeader = sep();
+        
+        HBox headerAdmin = new HBox();
+        headerAdmin.setAlignment(Pos.CENTER_LEFT);
+        Label lblEmp = new Label("Información Corporativa y Legal");
         lblEmp.getStyleClass().add("etiqueta-modal");
+        
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        Button btnEditar = new Button("⚙ Editar Datos");
+        btnEditar.getStyleClass().add("btn-transparente-naranja");
+        btnEditar.setOnAction(e -> {
+            if (onEditarEmpresa != null) onEditarEmpresa.run();
+        });
+        headerAdmin.getChildren().addAll(lblEmp, spacer, btnEditar);
 
         VBox camposEmp = new VBox(12);
         camposEmp.getChildren().addAll(
-                fila("Denominación", String.valueOf(infoEmpresa.getOrDefault("nombre", "Desconocido"))),
-                fila("CIF / NIF", String.valueOf(infoEmpresa.getOrDefault("cif", "No disponible"))),
-                fila("Email Contacto", String.valueOf(infoEmpresa.getOrDefault("email", "No disponible"))),
-                fila("Teléfono", String.valueOf(infoEmpresa.getOrDefault("telefono", "No disponible"))),
+                fila("Denominación Social", String.valueOf(infoEmpresa.getOrDefault("nombre", "Desconocido"))),
+                fila("CIF / Identificación Fiscal", String.valueOf(infoEmpresa.getOrDefault("cif", "No disponible"))),
+                fila("Correo electrónico", String.valueOf(infoEmpresa.getOrDefault("email", "No disponible"))),
+                fila("Teléfono de contacto", String.valueOf(infoEmpresa.getOrDefault("telefono", "No disponible"))),
                 fila("Dirección Física", String.valueOf(infoEmpresa.getOrDefault("direccion", "No disponible"))),
                 fila("Fecha de Alta", String.valueOf(infoEmpresa.getOrDefault("fechaAlta", "No disponible"))),
                 fila("Equipo Total", operarios.size() + " Operarios en plantilla"));
 
-        card.getChildren().addAll(titulo, perfilRow, sep1, lblEmp, camposEmp);
+        card.getChildren().addAll(titulo, cabeceraIdentidad, sepHeader, headerAdmin, camposEmp);
 
         // --- SECCIÓN DE VALORACIONES ---
         Separator sep2 = sep();

@@ -110,7 +110,7 @@
 }
 
 .estado-disponible {
-  -fx-text-fill: -ff-exito;
+  -fx-text-fill: -ff-tenue;
   -fx-font-size: 12px;
   -fx-font-weight: bold;
 }
@@ -969,13 +969,37 @@
 }
 
 .btn-solo-icono {
-  -fx-background-color: transparent;
+  -fx-background-color: #1a1d27;
+  -fx-border-color: rgba(255, 255, 255, 0.1);
+  -fx-border-width: 1;
+  -fx-background-radius: 20;
+  -fx-border-radius: 20;
+  -fx-text-fill: white;
   -fx-cursor: hand;
-  -fx-font-size: 14px;
+  -fx-font-size: 12px;
+  -fx-padding: 4;
 }
 
 .btn-solo-icono:hover {
-  -fx-background-color: rgba(255, 255, 255, 0.05);
+  -fx-background-color: #2d3348;
+  -fx-border-color: -ff-acento;
+}
+
+.btn-transparente-naranja {
+  -fx-background-color: transparent;
+  -fx-text-fill: -ff-acento;
+  -fx-border-color: -ff-acento;
+  -fx-border-width: 1;
+  -fx-border-radius: 8;
+  -fx-background-radius: 8;
+  -fx-padding: 6 12 6 12;
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-cursor: hand;
+}
+
+.btn-transparente-naranja:hover {
+  -fx-background-color: rgba(249, 115, 22, 0.1);
 }
 
 .btn-secundario {

@@ -717,7 +717,7 @@ Las siguientes mejoras estructurales y de rendimiento han sido implementadas:
 ### Prioridad 1 — Cierre de UI/UX y Tiempo Real (Broadcaster)
 - [ ] **Broadcaster (Backend)**: Implementar el patrón Observer en el servidor para notificar cambios de estado (Nuevos trabajos, ofertas aceptadas) a todos los clientes conectados.
 - [ ] **Broadcaster (Apps)**: Conectar los widgets de Flutter y las tablas de JavaFX al flujo de eventos push para eliminar el polling de 15s.
-- [ ] Centralizar estilos hardcoded en `app_theme.dart` (Flutter) y `style.css` (Dashboard).
+- [x] Centralizar estilos hardcoded en `app_theme.dart` (Flutter) y `style.css` (Dashboard).
 
 ### Prioridad 2 — Despliegue AWS (Producción)
 - [ ] **Levantar RDS MySQL:** Crear instancia `db.t3.micro`, configurar Security Group.
@@ -843,14 +843,8 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 - [x] **Registro de Usuarios:** Implementar pantalla y flujo de alta de nuevos clientes desde la App.
 - [ ] **Actualización Real-Time (Broadcaster):** Implementar la escucha de eventos del Broadcaster para refrescar datos automáticamente sin polling.
 - [x] **Refactor de Red:** Migrar los métodos del `TrabajoProvider` al sistema genérico `_socket.request()` para eliminar boilerplate masivo (~200 líneas).
-- [ ] **Tema de Colores:** Extraer todos los colores hardcodeados de `main.dart` a un fichero `lib/theme/app_theme.dart` (ThemeData) para centralizar el estilo de la App.
-- [x] **Documentación Explicativa:** Añadir comentarios didácticos línea a línea en todas las clases (`lib/`), explicando el flujo de datos y la lógica técnica para la defensa del proyecto. **REQUISITO:** Realizarlo con extremo cuidado, asegurando la integridad total de la lógica funcional (no eliminar métodos de soporte como `_sanitizarURL` ni bloques visuales de los `AppBar`).
-
-
-## Dashboard JavaFX
-- [x] **Bug Visual Foto Cliente:** Corregir carga de la foto de perfil en la ficha de detalle del cliente (`DialogoFichaCliente.java`).
-- [x] **Registro de Empresas:** Formulario de alta para nuevas empresas (con su correspondiente operario gerente) desde el lanzador del Dashboard.
-- [ ] **Tema para Dashboard (CSS):** Centralizar estilos en un archivo `style.css` y eliminar el uso de `setStyle` en el código Java.
+- [x] **Tema de Colores:** Extraer todos los colores hardcodeados de `main.dart` a un fichero `lib/theme/app_theme.dart` (ThemeData) para centralizar el estilo de la App.
+- [x] **Tema para Dashboard (CSS):** Centralizar estilos en un archivo `style.css` y eliminar el uso de `setStyle` en el código Java.
 - [ ] **Actualización Real-Time (Broadcaster):** Implementar la escucha de eventos del Broadcaster en el Dashboard para refrescar la tabla de incidencias automáticamente.
 - [x] **Ajuste de UI:** Calibrar el ancho de las columnas (especialmente "Estado") para evitar solapamientos.
 - [ ] **Mejora de Descripción:** Trocear la descripción estructurada en bloques visuales independientes en `DialogoGestionIncidencia.java`.
@@ -864,7 +858,7 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 - [x] **Gestion de Timeouts:** Asegurar que acciones como `VALORAR` o `CANCELAR` devuelvan siempre la clave `"mensaje"` en el JSON para evitar interrupciones de flujo en la App.
 
 ## Pruebas y QA
-- [ ] **Terminar Suite de Tests:** Implementar por completo los tests unitarios y de integración a partir de los esqueletos (stubs) preparados tanto en Java como en Flutter, para asegurar la máxima estabilidad antes de la entrega final.
+- [ ] **Terminar Suite de Tests (Post-Broadcaster):** Implementar por completo los tests unitarios y de integración a partir de los esqueletos preparados. Se pospone a después de la implementación del Broadcaster para asegurar que los tests cubran el flujo de tiempo real.
 
 ## Tareas Tras la Revisión del Tutor
 - [ ] **Apaciguar la falta de Providers:** Crear un `usuario_provider.dart` ligero como envoltorio del perfil y documentar en la MEMORIA la desestimación técnica del "EmpresaProvider" por Arquitectura de Dominios.
@@ -1003,6 +997,26 @@ Se ha establecido una infraestructura de pruebas para garantizar la estabilidad 
   - Preparación de esqueletos (stubs) para la lógica de `AuthService`, `TrabajoProvider`, `Finalización de Trabajo`, `Valoración` y `Broadcaster`.
 
 ### 🏁 Estado Actual
-El sistema es robusto, hilos-seguro y cuenta con una arquitectura de red depurada. La documentación técnica está alineada con los estándares requeridos por la plantilla del proyecto.
+
+---
+
+## ✅ SESIÓN 20/04/2026 — Identidad Corporativa y Optimización UI
+
+### Lo que se hizo en esta sesión
+
+#### 💎 Dashboard: Identidad Corporativa Premium
+- **Rediseño de VistaEmpresa**: Se ha sustituido el bloque independiente del gerente por una cabecera premium que integra:
+    - **Logo Corporativo**: Tamaño 90x90 con carga asíncrona (`backgroundLoading = true`) y binding de progreso para evitar bloqueos de la interfaz de usuario.
+    - **Información Unificada**: Nombre de la empresa destacado y responsable justo debajo, eliminando redundancias visuales y mejorando la jerarquía de información.
+- **Limpieza de Emojis**: Se han corregido glifos invisibles y variantes de selector en el botón de edición ("⚙") que causaban errores de visualización en ciertos sistemas (símbolos rotos).
+- **Estandarización de Botones**: Implementación y aplicación de nuevos estilos CSS (`.btn-transparente-naranja`, `.btn-solo-icono`, `.btn-secundario`) para asegurar una estética coordinada, botones circulares para cámaras y feedback visual en `hover`.
+
+#### ⚡ Sincronización y Robustez de Red
+- **Refresco Automático de Operarios**: Corregido el bug donde los nuevos operarios no aparecían tras el registro exitoso. Se ha actualizado el `ManejadorRespuestas` para disparar una sincronización total (`sincronizarTodo`) al recibir confirmación de acciones críticas: `REGISTRO`, `MODIFICAR_EMPRESA` y `MODIFICAR_USUARIO`.
+- **Estandarización de Protocolo**: Validación de la interpretación de respuestas basada en códigos de estado tipo HTTP (`status < 400`), permitiendo una gestión de éxito genérica y robusta en el flujo de Sockets.
+
+#### 🎨 Refinamiento Visual
+- **Optimización de Estados**: El texto del estado "Disponible" se ha ajustado a un tono gris tenue (`-ff-tenue`) para evitar la fatiga visual, manteniendo el punto verde como indicador principal de actividad.
+- **Consistencia en Diálogos**: El botón "Cancelar" en la configuración de la empresa ahora utiliza correctamente la clase `.btn-secundario`, eliminando estilos nativos del SO.
 
 ---

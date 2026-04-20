@@ -100,8 +100,11 @@ public class ManejadorRespuestas {
                 }
                 break;
 
+            case "REGISTRO":
             case "ASIGNAR_OPERARIO":
             case "MODIFICAR_OPERARIO":
+            case "MODIFICAR_EMPRESA":
+            case "MODIFICAR_USUARIO":
             case "CREAR_PRESUPUESTO":
             case "ACTUALIZAR_FOTO_PERFIL":
                 if (status < 400)

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../comunes/dato_fila.dart';
 import '../../theme/fixfinder_theme.dart';
+import '../../utils/date_format_utils.dart';
 
 /// Widget que resume el cierre de un trabajo una vez finalizado.
 /// Muestra detalles como la fecha de fin, el coste pactado y las valoraciones.
@@ -44,7 +45,7 @@ class DetalleResumenFinal extends StatelessWidget {
             if (trabajo.fechaFinalizacion != null)
               DatoFila(
                   etiqueta: 'Finalizado',
-                  valor: trabajo.fechaFinalizacion!,
+                  valor: DateFormatUtils.formatIsoString(trabajo.fechaFinalizacion),
                   color: Theme.of(context).hintColor),
             if (trabajo.presupuesto != null)
               DatoFila(

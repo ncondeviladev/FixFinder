@@ -70,7 +70,7 @@ public class DialogoGestionIncidencia {
         grid.add(crearFilaInfo("Dirección",
                 trabajo.getDireccion().isBlank() ? "Ver mapa en App" : trabajo.getDireccion()), 0, 2);
 
-        grid.add(crearFilaInfo("Fecha Creación", trabajo.getFecha().replace("T", " ")), 1, 0);
+        grid.add(crearFilaInfo("Fecha Creación", formatFecha(trabajo.getFecha())), 1, 0);
         grid.add(crearFilaInfo("Estado Actual", estado), 1, 1);
         if (!trabajo.getClienteTelefono().isBlank()) {
             grid.add(crearFilaInfo("Contacto Cliente", trabajo.getClienteTelefono()), 1, 2);
@@ -81,19 +81,19 @@ public class DialogoGestionIncidencia {
         VBox descBox = new VBox(10);
         Label lblDesc = new Label("Evolución de la Incidencia / Historial:");
         lblDesc.getStyleClass().add("etiqueta-modal");
-        
+
         VBox contenedorBloques = new VBox(8);
         contenedorBloques.setPadding(new Insets(10));
         contenedorBloques.getStyleClass().add("contenedor-descripcion-modal");
-        
+
         poblarBloquesDescripcion(contenedorBloques, trabajo.getDescripcion());
-        
+
         ScrollPane scrollDesc = new ScrollPane(contenedorBloques);
         scrollDesc.setFitToWidth(true);
         scrollDesc.setPrefHeight(250);
         scrollDesc.setMinHeight(250);
         scrollDesc.getStyleClass().add("scroll-transparente"); // Clase CSS ya existente para scrollbars oscuros
-        
+
         descBox.getChildren().addAll(lblDesc, scrollDesc);
         mainBox.getChildren().add(descBox);
 
@@ -248,7 +248,8 @@ public class DialogoGestionIncidencia {
         VBox box = new VBox(8);
         box.setPadding(new Insets(12));
         box.getStyleClass().add("caja-ppto-modal");
-        box.setStyle("-fx-background-radius: 10; -fx-border-radius: 10;"); // Mantener radios para consistencia visual inmediata
+        box.setStyle("-fx-background-radius: 10; -fx-border-radius: 10;"); // Mantener radios para consistencia visual
+                                                                           // inmediata
 
         boolean esRechazado = "RECHAZADO".equals(meta.estado());
         String ti = switch (estado) {
@@ -259,8 +260,9 @@ public class DialogoGestionIncidencia {
         };
 
         Label lblT = new Label(ti);
-        lblT.getStyleClass().addAll("estado-ppto-modal", esRechazado ? "estado-ppto-modal-error" : "estado-ppto-modal-ok");
-        
+        lblT.getStyleClass().addAll("estado-ppto-modal",
+                esRechazado ? "estado-ppto-modal-error" : "estado-ppto-modal-ok");
+
         Label lblM = new Label(String.format("%.2f €", meta.monto()));
         lblM.getStyleClass().add("monto-ppto-modal");
 
@@ -314,16 +316,17 @@ public class DialogoGestionIncidencia {
      * Parsea el string de descripción para generar bloques visuales independientes.
      */
     private void poblarBloquesDescripcion(VBox contenedor, String descripcion) {
-        if (descripcion == null || descripcion.trim().isEmpty()) return;
+        if (descripcion == null || descripcion.trim().isEmpty())
+            return;
 
-        String[] marcadores = {"📝 CLIENTE:", "💰 GERENTE:", "🛠 OPERARIO:"};
+        String[] marcadores = { "📝 CLIENTE:", "💰 GERENTE:", "🛠 OPERARIO:" };
         String descActual = descripcion.replace("==============================", ""); // Limpiar separadores planos
 
         for (int i = 0; i < marcadores.length; i++) {
             String marcador = marcadores[i];
             if (descActual.contains(marcador)) {
                 int inicio = descActual.indexOf(marcador);
-                
+
                 // Buscar dónde termina este bloque (donde empiece el siguiente marcador)
                 int fin = descActual.length();
                 for (int j = i + 1; j < marcadores.length; j++) {
@@ -339,8 +342,9 @@ public class DialogoGestionIncidencia {
                 }
             }
         }
-        
-        // Fallback estética: si no se detectó ningún marcador oficial, mostrar el texto bruto en un bloque estándar
+
+        // Fallback estética: si no se detectó ningún marcador oficial, mostrar el texto
+        // bruto en un bloque estándar
         if (contenedor.getChildren().isEmpty() && !descripcion.trim().isEmpty()) {
             contenedor.getChildren().add(crearBloqueVisual("DESCRIPCIÓN:", descripcion.trim()));
         }
@@ -353,9 +357,9 @@ public class DialogoGestionIncidencia {
         VBox bloque = new VBox(4);
         bloque.setPadding(new Insets(10));
         bloque.setMaxWidth(Double.MAX_VALUE);
-        
+
         String extraClass = "bloque-desc-defecto";
-        
+
         if (titulo.contains("CLIENTE")) {
             extraClass = "bloque-desc-cliente";
         } else if (titulo.contains("GERENTE")) {
@@ -368,11 +372,11 @@ public class DialogoGestionIncidencia {
 
         Label lblTitulo = new Label(titulo);
         lblTitulo.getStyleClass().add("bloque-desc-titulo");
-        
+
         Label lblContenido = new Label(contenido);
         lblContenido.setWrapText(true);
         lblContenido.getStyleClass().add("bloque-desc-contenido");
-        
+
         bloque.getChildren().addAll(lblTitulo, lblContenido);
         return bloque;
     }
@@ -399,5 +403,24 @@ public class DialogoGestionIncidencia {
         }
 
         imgDialog.show();
+    }
+
+    private String formatFecha(String fechaRaw) {
+        if (fechaRaw == null || fechaRaw.isBlank())
+            return "Fecha no disp.";
+        try {
+            // 2026-04-17T12:04:16 -> 17/04/2026 12:04
+            String[] partes = fechaRaw.split("T");
+            String fecha = partes[0];
+            String hora = partes.length > 1 ? partes[1].substring(0, 5) : "";
+
+            String[] ymd = fecha.split("-");
+            if (ymd.length == 3) {
+                return String.format("%s/%s/%s %s", ymd[2], ymd[1], ymd[0], hora).trim();
+            }
+        } catch (Exception e) {
+            return fechaRaw.replace("T", " ");
+        }
+        return fechaRaw.replace("T", " ");
     }
 }

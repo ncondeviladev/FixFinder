@@ -213,6 +213,52 @@ public class DashboardPrincipalController {
         }
     }
 
+    public void iniciarCambioLogoEmpresa() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Seleccionar Logo Corporativo");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+        File file = chooser.showOpenDialog(rootPane.getScene().getWindow());
+
+        if (file != null) {
+            String path = "logos/" + idEmpresa + "_logo_" + System.currentTimeMillis() + file.getName();
+            backgroundService.subirImagen(file, path,
+                    url -> {
+                        try {
+                            // Usamos el comando atómico enviando la nueva URL y el resto de info actual
+                            servicioCliente.enviarModificarEmpresa(
+                                idEmpresa,
+                                (String) infoEmpresaActual.getOrDefault("nombre", ""),
+                                (String) infoEmpresaActual.getOrDefault("cif", ""),
+                                (String) infoEmpresaActual.getOrDefault("email", ""),
+                                (String) infoEmpresaActual.getOrDefault("telefono", ""),
+                                (String) infoEmpresaActual.getOrDefault("direccion", ""),
+                                url
+                            );
+                            registrarActividad("🏢 Logo corporativo actualizado");
+                        } catch (IOException e) { logError("logo empresa", e); }
+                    },
+                    err -> logError("subida logo", (Exception) err));
+        }
+    }
+
+    public void abrirDialogoGestionEmpresa() {
+        DialogoGestionEmpresa diag = new DialogoGestionEmpresa(infoEmpresaActual, cssUrl);
+        diag.mostrar().ifPresent(res -> {
+            try {
+                servicioCliente.enviarModificarEmpresa(
+                    idEmpresa,
+                    res.nombre(),
+                    res.cif(),
+                    res.email(),
+                    res.telefono(),
+                    res.direccion(),
+                    (String) infoEmpresaActual.getOrDefault("url_foto", "")
+                );
+                registrarActividad("⚙️ Solicitada actualización de datos de empresa");
+            } catch (IOException e) { logError("edición empresa", e); }
+        });
+    }
+
     // --- PROCESAMIENTO DE RESPUESTAS (Delegado) ---
 
     private void procesarRespuesta(String json) {

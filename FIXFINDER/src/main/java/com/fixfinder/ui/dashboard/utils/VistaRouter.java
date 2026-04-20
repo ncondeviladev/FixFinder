@@ -84,9 +84,11 @@ public class VistaRouter {
         if (infoEmpresa.isEmpty() && idEmpresa > 0) {
             controller.sincronizarTodo();
         }
-        return new VistaEmpresa(infoEmpresa, usuarioNombre, usuarioRol, operarios, () -> {
-            // Lógica de cambio de foto de gerente delegada al controlador
-            controller.iniciarCambioFotoGerente();
-        });
+        return new VistaEmpresa(
+            infoEmpresa, usuarioNombre, usuarioRol, operarios, 
+            () -> controller.iniciarCambioFotoGerente(),
+            () -> controller.iniciarCambioLogoEmpresa(),
+            () -> controller.abrirDialogoGestionEmpresa()
+        );
     }
 }
