@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../theme/fixfinder_theme.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../providers/trabajo_provider.dart';
 import '../models/trabajo.dart';
@@ -96,7 +97,7 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Error al subir foto: $e'),
-              backgroundColor: Colors.red),
+              backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }
@@ -144,7 +145,8 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
               : (esEdicion
                   ? 'Error al modificar. ¿Se puede editar solo en PENDIENTE o ASIGNADO?'
                   : 'Error al enviar la incidencia.')),
-          backgroundColor: exito ? Colors.green : Colors.red,
+          backgroundColor:
+              exito ? FixFinderTheme.successColor : Theme.of(context).colorScheme.error,
         ),
       );
       if (exito) Navigator.pop(context);
@@ -220,10 +222,10 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,9 +233,9 @@ class _CrearTrabajoPantallaState extends State<CrearTrabajoPantalla> {
                     const Text('Imágenes y Fotos',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    const Text(
-                        'Añade fotos para que el operario vea el problema.',
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text('Añade fotos para que el operario vea el problema.',
+                        style: TextStyle(
+                            fontSize: 12, color: Theme.of(context).hintColor)),
                     const SizedBox(height: 12),
                     if (_urlsFotos.isNotEmpty)
                       Padding(

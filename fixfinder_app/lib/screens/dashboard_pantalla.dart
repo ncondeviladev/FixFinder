@@ -101,10 +101,12 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.inbox, size: 60, color: Colors.grey),
+                          Icon(Icons.inbox,
+                              size: 60, color: Theme.of(context).disabledColor),
                           const SizedBox(height: 16),
-                          const Text('No hay trabajos disponibles.',
-                              style: TextStyle(color: Colors.grey)),
+                          Text('No hay trabajos disponibles.',
+                              style: TextStyle(
+                                  color: Theme.of(context).disabledColor)),
                           const SizedBox(height: 16),
                           TextButton.icon(
                             onPressed: () => context
@@ -222,8 +224,8 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
               context.read<TrabajoProvider>().cancelarTrabajo(idTrabajo);
               Navigator.pop(ctx);
             },
-            child:
-                const Text('SÍ, CANCELAR', style: TextStyle(color: Colors.red)),
+            child: Text('SÍ, CANCELAR',
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),

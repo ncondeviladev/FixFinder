@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../theme/fixfinder_theme.dart';
 
 class DialogosTrabajo {
   /// Muestra un cuadro de confirmación para eliminar una incidencia.
@@ -21,8 +22,10 @@ class DialogosTrabajo {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('BORRAR', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
+            child: Text('BORRAR',
+                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
           ),
         ],
       ),
@@ -88,8 +91,9 @@ class DialogosTrabajo {
                                 right: -10,
                                 top: -10,
                                 child: IconButton(
-                                  icon: const Icon(Icons.cancel,
-                                      color: Colors.red, size: 20),
+                                  icon: Icon(Icons.cancel,
+                                      color: Theme.of(context).colorScheme.error,
+                                      size: 20),
                                   onPressed: () {
                                     setDialogState(() {
                                       fotosSeleccionadas.remove(foto);
@@ -116,12 +120,12 @@ class DialogosTrabajo {
                           width: 70,
                           height: 70,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Theme.of(context).dividerColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[400]!),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                           ),
-                          child:
-                              const Icon(Icons.add_a_photo, color: Colors.grey),
+                          child: Icon(Icons.add_a_photo,
+                              color: Theme.of(context).hintColor),
                         ),
                       ),
                     ],
@@ -142,9 +146,11 @@ class DialogosTrabajo {
                     'fotos': fotosSeleccionadas,
                   });
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                child: const Text('FINALIZAR',
-                    style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: FixFinderTheme.successColor),
+                child: Text('FINALIZAR',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary)),
               ),
             ],
           );
@@ -217,9 +223,11 @@ class DialogosTrabajo {
                       'comentario': comentarioController.text,
                     });
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  child: const Text('ENVIAR',
-                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.tertiary),
+                  child: Text('ENVIAR',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary)),
                 ),
               ],
             );

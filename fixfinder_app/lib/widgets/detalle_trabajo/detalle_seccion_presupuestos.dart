@@ -2,6 +2,7 @@
 // Permite al cliente listar, ver detalles y aceptar los presupuestos recibidos.
 import 'package:flutter/material.dart';
 import '../../models/presupuesto.dart';
+import '../../theme/fixfinder_theme.dart';
 
 /// Sección que gestiona y visualiza la lista de presupuestos recibidos para una incidencia.
 /// Permite al cliente comparar ofertas y tomar decisiones de aceptación o rechazo.
@@ -111,10 +112,12 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
         if (cargando)
           const Center(child: CircularProgressIndicator())
         else if (presupuestos.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text('Aún no hay presupuestos para esta incidencia.',
-                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                style: TextStyle(
+                    color: Theme.of(context).disabledColor,
+                    fontStyle: FontStyle.italic)),
           )
         else
           ...presupuestos
@@ -136,9 +139,10 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
         children: [
           // Cabecera de la tarjeta: Empresa y Precio
           ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.business, color: Colors.white),
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              child: Icon(Icons.business,
+                  color: Theme.of(context).colorScheme.onSecondary),
             ),
             title: Text(
               p.nombreEmpresa ?? "Empresa",
@@ -147,10 +151,10 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
             subtitle: Text('ID Oferta: #${p.id}'),
             trailing: Text(
               '${p.monto.toStringAsFixed(2)}€',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green),
+                  color: FixFinderTheme.successColor),
             ),
           ),
 
@@ -162,18 +166,19 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.indigo.withOpacity(0.05),
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.indigo.withOpacity(0.1)),
+                  border: Border.all(
+                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.1)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Propuesta técnica:',
+                    Text('Propuesta técnica:',
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey)),
+                            color: Theme.of(context).hintColor)),
                     const SizedBox(height: 4),
                     Text(p.notas!,
                         style: const TextStyle(fontSize: 14, height: 1.3)),
@@ -198,8 +203,9 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   OutlinedButton(
                     onPressed: procesando ? null : () => onRechazar(p.id),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                      side:
+                          BorderSide(color: Theme.of(context).colorScheme.error),
                     ),
                     child: const Text('RECHAZAR'),
                   ),
@@ -207,8 +213,8 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   ElevatedButton(
                     onPressed: procesando ? null : () => onAceptar(p.id),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                     child: const Text('ACEPTAR'),
                   ),
@@ -216,8 +222,8 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   Chip(
                     label: Text(p.estado),
                     backgroundColor: p.estado == 'ACEPTADO'
-                        ? Colors.green[100]
-                        : Colors.grey[200],
+                        ? FixFinderTheme.successColor.withOpacity(0.2)
+                        : Theme.of(context).disabledColor.withOpacity(0.2),
                   ),
               ],
             ),

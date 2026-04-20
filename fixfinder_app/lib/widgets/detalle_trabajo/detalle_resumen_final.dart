@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../comunes/dato_fila.dart';
+import '../../theme/fixfinder_theme.dart';
 
 /// Widget que resume el cierre de un trabajo una vez finalizado.
 /// Muestra detalles como la fecha de fin, el coste pactado y las valoraciones.
@@ -14,11 +15,11 @@ class DetalleResumenFinal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.green.shade50,
+      color: FixFinderTheme.successColor.withOpacity(0.12),
       margin: const EdgeInsets.only(top: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.green.shade200),
+        side: BorderSide(color: FixFinderTheme.successColor.withOpacity(0.4)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -27,14 +28,14 @@ class DetalleResumenFinal extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green.shade700),
+                Icon(Icons.check_circle, color: FixFinderTheme.successColor),
                 const SizedBox(width: 8),
                 Text(
                   'Trabajo Completado',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
+                    color: FixFinderTheme.successColor,
                   ),
                 ),
               ],
@@ -44,12 +45,12 @@ class DetalleResumenFinal extends StatelessWidget {
               DatoFila(
                   etiqueta: 'Finalizado',
                   valor: trabajo.fechaFinalizacion!,
-                  color: Colors.grey[700]),
+                  color: Theme.of(context).hintColor),
             if (trabajo.presupuesto != null)
               DatoFila(
                   etiqueta: 'Precio final',
                   valor: '${trabajo.presupuesto!.monto.toStringAsFixed(2)} €',
-                  color: Colors.green.shade800),
+                  color: FixFinderTheme.successColor),
             if (trabajo.valoracion > 0) ...[
               const SizedBox(height: 8),
               const Text('Valoración:',
@@ -69,8 +70,9 @@ class DetalleResumenFinal extends StatelessWidget {
                 trabajo.comentarioCliente!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text('"${trabajo.comentarioCliente}"',
-                  style: const TextStyle(
-                      fontStyle: FontStyle.italic, color: Colors.grey)),
+                  style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Theme.of(context).hintColor)),
             ],
           ],
         ),

@@ -56,7 +56,7 @@ class GaleriaFotos extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
                         width: 120,
-                        color: Colors.grey.shade300,
+                        color: Theme.of(context).dividerColor,
                         child: const Icon(Icons.broken_image),
                       ),
                     ),

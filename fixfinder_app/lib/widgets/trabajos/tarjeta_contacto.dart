@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../models/usuario.dart';
 import '../../services/external_launcher_service.dart';
+import '../../theme/fixfinder_theme.dart';
 
 /// Tarjeta informativa para mostrar los datos de perfil y contacto de un usuario.
 /// Se utiliza para facilitar la comunicación entre clientes y operarios asignados.
@@ -35,12 +36,16 @@ class TarjetaContacto extends StatelessWidget {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: CircleAvatar(
-            backgroundColor: esOperario ? Colors.blue.shade100 : null,
+            backgroundColor: esOperario
+                ? Theme.of(context).colorScheme.tertiary.withOpacity(0.2)
+                : null,
             backgroundImage:
                 usuario.urlFoto != null ? NetworkImage(usuario.urlFoto!) : null,
             child: usuario.urlFoto == null
                 ? Icon(esOperario ? Icons.engineering : Icons.person,
-                    color: esOperario ? Colors.blue : null)
+                    color: esOperario
+                        ? Theme.of(context).colorScheme.tertiary
+                        : null)
                 : null,
           ),
           title: Text(usuario.nombreCompleto),
@@ -54,8 +59,9 @@ class TarjetaContacto extends StatelessWidget {
           ),
           trailing: usuario.telefono != null
               ? IconButton(
-                  icon: const Icon(Icons.phone, color: Colors.green),
-                  onPressed: () => ExternalLauncherService.llamarTelefono(usuario.telefono),
+                  icon: Icon(Icons.phone, color: FixFinderTheme.successColor),
+                  onPressed: () =>
+                      ExternalLauncherService.llamarTelefono(usuario.telefono),
                 )
               : null,
         ),

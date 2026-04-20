@@ -77,9 +77,9 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
       
       if (resultado['status'] == 200 || resultado['status'] == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Registro completado! Ya puedes iniciar sesión.'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('¡Registro completado! Ya puedes iniciar sesión.'),
+            backgroundColor: Theme.of(context).colorScheme.primary, // Usamos primario (naranja) o éxito
           ),
         );
         Navigator.pop(context); // Volver al login
@@ -107,22 +107,27 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: Colors.grey[800],
-                        backgroundImage: _fotoSeleccionada != null ? FileImage(_fotoSeleccionada!) : null,
-                        child: _fotoSeleccionada == null 
-                          ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                          : null,
+                        backgroundColor: Theme.of(context).dividerColor,
+                        backgroundImage: _fotoSeleccionada != null
+                            ? FileImage(_fotoSeleccionada!)
+                            : null,
+                        child: _fotoSeleccionada == null
+                            ? Icon(Icons.person,
+                                size: 50, color: Theme.of(context).hintColor)
+                            : null,
                       ),
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 18,
-                        backgroundColor: Colors.orange,
-                        child: Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Icon(Icons.camera_alt,
+                            size: 18, color: Theme.of(context).colorScheme.onPrimary),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Foto de perfil', style: TextStyle(color: Colors.grey)),
+                Text('Foto de perfil',
+                    style: TextStyle(color: Theme.of(context).hintColor)),
                 const SizedBox(height: 32),
                 
                 TextFormField(
@@ -209,7 +214,8 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
-                    child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                    child: Text(_error!,
+                        style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ),
                   
                 const SizedBox(height: 32),
@@ -219,9 +225,10 @@ class _RegistroPantallaState extends State<RegistroPantalla> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _cargando ? null : _registrar,
-                    child: _cargando 
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('REGISTRARSE'),
+                    child: _cargando
+                        ? CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary)
+                        : const Text('REGISTRARSE'),
                   ),
                 ),
               ],

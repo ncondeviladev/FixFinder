@@ -6,6 +6,7 @@ import '../models/usuario.dart';
 import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/usuario_provider.dart';
+import '../theme/fixfinder_theme.dart';
 
 /// Pantalla de Perfil de Usuario.
 /// Permite visualizar la información personal, cambiar la foto de perfil 
@@ -26,13 +27,13 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   Color _obtenerColorRol(Rol rol) {
     switch (rol) {
       case Rol.CLIENTE:
-        return Colors.blue;
+        return Theme.of(context).colorScheme.tertiary;
       case Rol.OPERARIO:
-        return Colors.green;
+        return FixFinderTheme.successColor;
       case Rol.GERENTE:
-        return Colors.orange;
+        return Theme.of(context).colorScheme.primary;
       case Rol.ADMIN:
-        return Colors.purple;
+        return FixFinderTheme.adminColor;
     }
   }
 
@@ -101,12 +102,18 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
                       if (context.mounted) {
                         context.read<UsuarioProvider>().refrescar();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Perfil actualizado correctamente'), backgroundColor: Colors.green),
+                          SnackBar(
+                              content:
+                                  const Text('Perfil actualizado correctamente'),
+                              backgroundColor: FixFinderTheme.successColor),
                         );
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Error al actualizar perfil. El servidor rechazó la acción.'), backgroundColor: Colors.red),
+                        SnackBar(
+                            content: const Text(
+                                'Error al actualizar perfil. El servidor rechazó la acción.'),
+                            backgroundColor: Theme.of(context).colorScheme.error),
                       );
                     }
                   }
@@ -175,7 +182,9 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
       if (mounted) {
         setState(() => _subiendoFoto = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al subir imagen: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Error al subir imagen: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }
@@ -298,16 +307,20 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        icon: const Icon(Icons.logout, color: Colors.red),
-        label: const Text('CERRAR SESIÓN', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        icon: Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
+        label: Text('CERRAR SESIÓN',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.bold)),
         onPressed: () {
           AuthService().logout();
           Navigator.pushReplacementNamed(context, '/login');
         },
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.red),
+          side: BorderSide(color: Theme.of(context).colorScheme.error),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
     );

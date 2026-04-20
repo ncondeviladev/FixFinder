@@ -10,6 +10,7 @@ import '../comunes/dato_fila.dart';
 import '../comunes/estado_badge.dart';
 import '../trabajos/tarjeta_contacto.dart';
 import '../trabajos/galeria_fotos.dart';
+import 'bloques_descripcion.dart';
 import '../../services/external_launcher_service.dart';
 
 /// Tarjeta informativa que agrupa los datos básicos de una incidencia.
@@ -47,16 +48,17 @@ class DetalleInfoCard extends StatelessWidget {
                 const Text('Dirección: ', style: TextStyle(fontWeight: FontWeight.bold)),
                 Expanded(child: Text(trabajo.direccion, overflow: TextOverflow.ellipsis)),
                 IconButton(
-                  icon: const Icon(Icons.map, size: 20, color: Colors.blue),
-                  onPressed: () => ExternalLauncherService.abrirMapa(trabajo.direccion),
+                  icon: Icon(Icons.map,
+                      size: 20, color: Theme.of(context).colorScheme.tertiary),
+                  onPressed: () =>
+                      ExternalLauncherService.abrirMapa(trabajo.direccion),
                   tooltip: 'Ver en mapa',
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text('Descripción:',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(trabajo.descripcion),
+            const SizedBox(height: 8),
+            BloquesDescripcion(descripcion: trabajo.descripcion),
             const SizedBox(height: 16),
             if (trabajo.urlsFotos.isNotEmpty) ...[
               GaleriaFotos(urls: trabajo.urlsFotos),

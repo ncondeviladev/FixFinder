@@ -145,8 +145,10 @@ class _LoginPantallaState extends State<LoginPantalla> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
-                  child:
-                      Text(_error!, style: const TextStyle(color: Colors.red)),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               const SizedBox(height: 32),
               SizedBox(
@@ -159,12 +161,12 @@ class _LoginPantallaState extends State<LoginPantalla> {
                       : const Text('ACCEDER'),
                 ),
               ),
-              const SizedBox(height: 24),
               TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RegistroPantalla()),
+                    MaterialPageRoute(
+                        builder: (context) => const RegistroPantalla()),
                   );
                 },
                 child: const Text('¿No tienes cuenta? Regístrate aquí'),
@@ -186,10 +188,12 @@ class _ConnectionStatusDot extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color;
     if (isConectado == null || !isConectado!) {
-      color = Colors.grey;
+      color = Theme.of(context).disabledColor;
     } else {
       final isNube = dotenv.get('ENVIRONMENT', fallback: 'LOCAL') == 'NUBE';
-      color = isNube ? Colors.green : Colors.blue;
+      color = isNube
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.tertiary;
     }
 
     return Container(

@@ -8,6 +8,7 @@ import '../models/usuario.dart';
 import '../models/presupuesto.dart';
 import '../providers/trabajo_provider.dart';
 import '../providers/usuario_provider.dart';
+import '../theme/fixfinder_theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/detalle_trabajo/detalle_info_card.dart';
 import '../widgets/detalle_trabajo/detalle_resumen_final.dart';
@@ -118,10 +119,10 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
         if (!exito) {
           // Si falla mostramos mensaje de error antes de salir
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('Error al enviar la valoración. Inténtalo de nuevo.'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text(
+                  'Error al enviar la valoración. Inténtalo de nuevo.'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
           return;
@@ -225,10 +226,11 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                       child: Text('Modificar Incidencia'),
                     ),
                     if (esCliente)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'borrar',
                         child: Text('Borrar Incidencia',
-                            style: TextStyle(color: Colors.red)),
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error)),
                       ),
                   ],
                 )
@@ -285,7 +287,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
         icon: const Icon(Icons.check_circle),
         label: const Text('MARCAR COMO FINALIZADO'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
+          backgroundColor: FixFinderTheme.successColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
@@ -302,7 +304,7 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
         icon: const Icon(Icons.star),
         label: const Text('VALORAR SERVICIO'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),

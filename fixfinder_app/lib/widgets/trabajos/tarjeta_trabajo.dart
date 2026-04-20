@@ -104,7 +104,8 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: widget.accionPendiente
           ? RoundedRectangleBorder(
-              side: BorderSide(color: Colors.orange.shade400, width: 1.8),
+              side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary, width: 1.8),
               borderRadius: BorderRadius.circular(12),
             )
           : null,
@@ -130,12 +131,12 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
                                 horizontal: 6, vertical: 2),
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.error,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('URGENTE',
+                            child: Text('URGENTE',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onPrimary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold)),
                           ),
@@ -155,9 +156,9 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
                   if (widget.accionPendiente)
                     ScaleTransition(
                       scale: _pulseAnimation,
-                      child: const Icon(
+                      child: Icon(
                         Icons.notifications_active,
-                        color: Colors.orange,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 22,
                       ),
                     ),
@@ -193,20 +194,28 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.12),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.orange.shade300, width: 1),
+                    border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.4),
+                        width: 1),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.touch_app,
-                          size: 14, color: Colors.orange),
+                      Icon(Icons.touch_app,
+                          size: 14, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 6),
                       Text(
                         _textoBadge(),
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.orange.shade800,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -217,22 +226,22 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
 
               const SizedBox(height: 8),
               Text(
-                trabajo.descripcion,
+                _formatearDescripcionCorta(trabajo.descripcion),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(color: Theme.of(context).hintColor),
               ),
               const SizedBox(height: 12),
 
               // ── Fila inferior: ubicación + chip de estado ──
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  Icon(Icons.location_on, size: 16, color: Theme.of(context).hintColor),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       trabajo.direccion,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -245,5 +254,25 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
         ),
       ),
     );
+  }
+
+  String _formatearDescripcionCorta(String desc) {
+    if (desc.isEmpty) return "";
+    String limpia = desc.replaceAll('==============================', '');
+
+    const marcador = '📝 CLIENTE:';
+    if (limpia.contains(marcador)) {
+      int inicio = limpia.indexOf(marcador) + marcador.length;
+      int fin = limpia.length;
+      final finGerente = limpia.indexOf('💰 GERENTE:');
+      final finOperario = limpia.indexOf('🛠 OPERARIO:');
+
+      if (finGerente != -1 && finGerente < fin && finGerente > inicio) fin = finGerente;
+      if (finOperario != -1 && finOperario < fin && finOperario > inicio) fin = finOperario;
+
+      return limpia.substring(inicio, fin).trim();
+    }
+
+    return limpia.trim();
   }
 }

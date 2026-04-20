@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
+import '../../theme/fixfinder_theme.dart';
 
 /// Etiqueta visual que representa el estado evolutivo de un trabajo.
 /// Utiliza una paleta de colores semánticos para indicar la fase actual de la incidencia.
@@ -8,30 +9,30 @@ class EstadoBadge extends StatelessWidget {
 
   const EstadoBadge({super.key, required this.estado});
 
-  Color _obtenerColor(EstadoTrabajo e) {
+  Color _obtenerColor(BuildContext context, EstadoTrabajo e) {
     switch (e) {
       case EstadoTrabajo.PENDIENTE:
-        return Colors.orange;
+        return Theme.of(context).colorScheme.primary;
       case EstadoTrabajo.PRESUPUESTADO:
-        return Colors.purple;
+        return FixFinderTheme.adminColor;
       case EstadoTrabajo.ACEPTADO:
-        return Colors.teal;
+        return FixFinderTheme.infoColor;
       case EstadoTrabajo.ASIGNADO:
-        return Colors.blue;
+        return Theme.of(context).colorScheme.tertiary;
       case EstadoTrabajo.REALIZADO:
-        return Colors.green;
+        return FixFinderTheme.successColor;
       case EstadoTrabajo.FINALIZADO:
-        return Colors.grey;
+        return Theme.of(context).disabledColor;
       case EstadoTrabajo.PAGADO:
-        return Colors.indigo;
+        return Theme.of(context).colorScheme.secondary;
       case EstadoTrabajo.CANCELADO:
-        return Colors.red;
+        return Theme.of(context).colorScheme.error;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = _obtenerColor(estado);
+    final color = _obtenerColor(context, estado);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
