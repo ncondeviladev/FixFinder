@@ -39,7 +39,7 @@ public class DialogoFichaCliente {
         if (cssUrl != null) {
             dialog.getDialogPane().getStylesheets().add(cssUrl);
         }
-        dialog.getDialogPane().getStyleClass().add("dialog-pane");
+        dialog.getDialogPane().getStyleClass().add("panel-dialogo");
 
         VBox content = new VBox(20);
         content.setPadding(new Insets(12, 10, 10, 10));
@@ -51,12 +51,8 @@ public class DialogoFichaCliente {
         StackPane avatar = new StackPane();
         avatar.setMinSize(64, 64);
         avatar.setMaxSize(64, 64);
-        avatar.setStyle(
-                "-fx-background-color: rgba(249,115,22,0.15);" +
-                        "-fx-background-radius: 32;" +
-                        "-fx-border-color: rgba(249,115,22,0.4);" +
-                        "-fx-border-radius: 32;" +
-                        "-fx-border-width: 2;");
+        avatar.getStyleClass().add("contenedor-mini-avatar");
+        avatar.setStyle("-fx-background-radius: 32; -fx-border-color: rgba(249,115,22,0.4); -fx-border-radius: 32; -fx-border-width: 2;");
 
         String fotoUrl = t.getClienteUrlFoto();
         if (fotoUrl != null && !fotoUrl.isBlank() && !fotoUrl.equals("null")) {
@@ -93,9 +89,9 @@ public class DialogoFichaCliente {
 
         VBox titulos = new VBox(2);
         Label lblNombre = new Label(t.getCliente());
-        lblNombre.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+        lblNombre.getStyleClass().add("titulo-modal");
         Label lblRol = new Label("Cliente de FixFinder");
-        lblRol.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
+        lblRol.getStyleClass().add("texto-sin-asignar");
         titulos.getChildren().addAll(lblNombre, lblRol);
 
         header.getChildren().addAll(avatar, titulos);
@@ -113,7 +109,7 @@ public class DialogoFichaCliente {
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         Button btnClose = (Button) dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
         btnClose.setText("Cerrar Ficha");
-        btnClose.getStyleClass().add("btn-secondary");
+        btnClose.getStyleClass().add("btn-secundario");
 
         dialog.showAndWait();
     }
@@ -121,15 +117,15 @@ public class DialogoFichaCliente {
     private HBox fila(TrabajoFX t, String etiqueta, String valor) {
         HBox f = new HBox(10);
         Label lbl = new Label(etiqueta + ":");
-        lbl.getStyleClass().add("modal-label");
+        lbl.getStyleClass().add("etiqueta-modal");
         lbl.setMinWidth(160);
         Label val = new Label(valor);
-        val.getStyleClass().add("modal-value");
+        val.getStyleClass().add("valor-modal");
         val.setWrapText(true);
 
         // Si es dirección, lo hacemos interactivo para abrir mapas
         if (etiqueta.contains("Dirección")) {
-            val.setStyle("-fx-text-fill: #3B82F6; -fx-cursor: hand; -fx-underline: true;");
+            val.getStyleClass().add("enlace-mapa-modal");
             val.setOnMouseClicked(e -> {
                 try {
                     String query = valor.replace(" ", "+");

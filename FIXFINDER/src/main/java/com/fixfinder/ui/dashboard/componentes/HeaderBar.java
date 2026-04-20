@@ -34,7 +34,7 @@ public class HeaderBar extends HBox {
         // Configuración básica del contenedor (HBox)
         setSpacing(12);
         setAlignment(Pos.CENTER_LEFT);
-        getStyleClass().add("header-bar");
+        getStyleClass().add("barra-cabecera");
         setMinHeight(64);
         setPrefHeight(64);
 
@@ -60,14 +60,14 @@ public class HeaderBar extends HBox {
             logoContainer.getChildren().add(logoView);
         } catch (Exception e) {
             // Fallback elegante si la imagen no carga
-            logoContainer.setStyle("-fx-background-color: #F97316; -fx-background-radius: 8;");
+            logoContainer.getStyleClass().add("caja-logo-cabecera");
             Label letra = new Label("F");
-            letra.setStyle("-fx-text-fill: white; -fx-font-weight: 800; -fx-font-size: 18px;");
+            letra.getStyleClass().add("letra-logo-cabecera");
             logoContainer.getChildren().add(letra);
         }
         
         Label lblLogoText = new Label("FixFinder");
-        lblLogoText.setStyle("-fx-font-weight: 900; -fx-font-size: 22px; -fx-text-fill: white; -fx-letter-spacing: 1px;");
+        lblLogoText.getStyleClass().add("nombre-logo-cabecera");
         
         branding.getChildren().addAll(logoContainer, lblLogoText);
 
@@ -79,7 +79,7 @@ public class HeaderBar extends HBox {
 
         // Título de la sección actual (ej: "Dashboard", "Incidencias")
         Label lblTitulo = new Label(titulo);
-        lblTitulo.getStyleClass().add("header-title");
+        lblTitulo.getStyleClass().add("titulo-cabecera");
         lblTitulo.setOpacity(0.6);
 
         // Espaciador flexible para empujar el botón a la derecha
@@ -88,7 +88,7 @@ public class HeaderBar extends HBox {
 
         // Botón de actualización (↻)
         Button btnActualizar = new Button("↻ Actualizar");
-        btnActualizar.getStyleClass().add("header-btn");
+        btnActualizar.getStyleClass().add("btn-cabecera");
         
         btnActualizar.setOnAction(e -> {
             // Animación de rotación simple para feedback visual

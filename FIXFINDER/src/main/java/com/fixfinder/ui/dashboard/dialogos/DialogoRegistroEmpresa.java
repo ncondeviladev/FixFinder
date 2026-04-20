@@ -33,13 +33,13 @@ public class DialogoRegistroEmpresa {
 
         VBox root = new VBox(20);
         root.setPadding(new Insets(20));
-        root.setStyle("-fx-background-color: #0F1117;");
+        root.getStyleClass().add("panel-dialogo"); // Clase base para fondo oscuro
 
         Label lblTitulo = new Label("Registro de Empresa y Gerente");
-        lblTitulo.setStyle("-fx-text-fill: #F8FAFC; -fx-font-size: 20px; -fx-font-weight: bold;");
+        lblTitulo.getStyleClass().add("titulo-modal");
         
         Label lblSubtitulo = new Label("Estos datos crearán la ficha de tu empresa y el primer usuario (Gerente).");
-        lblSubtitulo.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 13px;");
+        lblSubtitulo.getStyleClass().add("texto-sin-asignar");
 
         GridPane grid = new GridPane();
         grid.setHgap(15);
@@ -47,7 +47,7 @@ public class DialogoRegistroEmpresa {
 
         // --- DATOS EMPRESA ---
         Label lblEmpresa = new Label("1. DATOS DE LA EMPRESA");
-        lblEmpresa.setStyle("-fx-text-fill: #F97316; -fx-font-weight: bold;");
+        lblEmpresa.getStyleClass().add("titulo-seccion-modal-naranja");
         grid.add(lblEmpresa, 0, 0, 2, 1);
 
         TextField txtNombreEmpresa = crearCampo("Nombre Comercial");
@@ -72,7 +72,7 @@ public class DialogoRegistroEmpresa {
 
         // --- DATOS GERENTE ---
         Label lblGerente = new Label("2. DATOS DEL GERENTE");
-        lblGerente.setStyle("-fx-text-fill: #22C55E; -fx-font-weight: bold;");
+        lblGerente.getStyleClass().add("titulo-seccion-modal-verde");
         grid.add(lblGerente, 0, 6, 2, 1);
 
         TextField txtNombreGerente = crearCampo("Nombre Completo");
@@ -97,13 +97,13 @@ public class DialogoRegistroEmpresa {
         grid.add(txtPass, 1, 11);
 
         Label lblFeedback = new Label("");
-        lblFeedback.setStyle("-fx-text-fill: #EF4444; -fx-font-size: 13px;");
+        lblFeedback.getStyleClass().add("estado-ppto-modal-error");
 
         Button btnRegistrar = new Button("Crear Empresa");
-        btnRegistrar.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20;");
+        btnRegistrar.getStyleClass().add("btn-primario");
         
         Button btnCancelar = new Button("Cancelar");
-        btnCancelar.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8;");
+        btnCancelar.getStyleClass().add("btn-secundario");
         btnCancelar.setOnAction(e -> dialog.close());
 
         HBox btnBox = new HBox(15, btnCancelar, btnRegistrar);
@@ -116,7 +116,7 @@ public class DialogoRegistroEmpresa {
                 return;
             }
 
-            lblFeedback.setStyle("-fx-text-fill: #F8FAFC;");
+            lblFeedback.getStyleClass().setAll("estado-ppto-modal-ok");
             lblFeedback.setText("Conectando y registrando...");
             btnRegistrar.setDisable(true);
 
@@ -138,12 +138,12 @@ public class DialogoRegistroEmpresa {
                                     exito.showAndWait();
                                     dialog.close();
                                 } else {
-                                    lblFeedback.setStyle("-fx-text-fill: #EF4444;");
+                                    lblFeedback.getStyleClass().setAll("estado-ppto-modal-error");
                                     lblFeedback.setText(res.getMensaje());
                                     btnRegistrar.setDisable(false);
                                 }
                             } catch (ClienteException ex) {
-                                lblFeedback.setStyle("-fx-text-fill: #EF4444;");
+                                lblFeedback.getStyleClass().setAll("estado-ppto-modal-error");
                                 lblFeedback.setText("Error al procesar la respuesta.");
                                 btnRegistrar.setDisable(false);
                             }
@@ -164,7 +164,7 @@ public class DialogoRegistroEmpresa {
                     );
                 } catch (IOException ex) {
                     Platform.runLater(() -> {
-                        lblFeedback.setStyle("-fx-text-fill: #EF4444;");
+                        lblFeedback.getStyleClass().setAll("estado-ppto-modal-error");
                         lblFeedback.setText("Error de red: No se pudo contactar con el Servidor.");
                         btnRegistrar.setDisable(false);
                     });
@@ -175,19 +175,22 @@ public class DialogoRegistroEmpresa {
         root.getChildren().addAll(lblTitulo, lblSubtitulo, grid, lblFeedback, btnBox);
 
         Scene scene = new Scene(root, 480, 660);
+        String css = getClass().getResource("/com/fixfinder/ui/dashboard/dashboard-principal.css").toExternalForm();
+        scene.getStylesheets().add(css);
         dialog.setScene(scene);
         dialog.showAndWait();
     }
 
     private Label crearEtiqueta(String texto) {
         Label lbl = new Label(texto);
-        lbl.setStyle("-fx-text-fill: #94A3B8; -fx-font-weight: bold;");
+        lbl.getStyleClass().add("etiqueta-modal");
         return lbl;
     }
 
     private TextField crearCampo(String prompt) {
         TextField txt = new TextField();
         txt.setPromptText(prompt);
+        txt.getStyleClass().add("entrada-modal");
         return txt;
     }
 }

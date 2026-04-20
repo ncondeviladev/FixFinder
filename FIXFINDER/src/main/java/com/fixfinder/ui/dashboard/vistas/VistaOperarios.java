@@ -38,25 +38,25 @@ public class VistaOperarios extends VBox {
     private final TableView<OperarioFX> tabla;
 
     public VistaOperarios(ObservableList<OperarioFX> operarios, AccionesOperarioCallback callback) {
-        getStyleClass().add("content-area");
+        getStyleClass().add("area-contenido");
         VBox.setVgrow(this, Priority.ALWAYS);
 
         tabla = construirTabla(operarios, callback);
 
         VBox card = new VBox();
-        card.getStyleClass().add("table-card");
+        card.getStyleClass().add("tarjeta-tabla");
         VBox.setVgrow(card, Priority.ALWAYS);
 
         HBox cardHeader = new HBox(12);
-        cardHeader.getStyleClass().add("card-header");
+        cardHeader.getStyleClass().add("cabecera-tarjeta");
         cardHeader.setAlignment(Pos.CENTER_LEFT);
 
         Label titulo = new Label("Equipo Técnico");
-        titulo.getStyleClass().add("card-title");
+        titulo.getStyleClass().add("titulo-tarjeta");
         HBox.setHgrow(titulo, Priority.ALWAYS);
 
         Button btnNuevo = new Button("＋ Nuevo Operario");
-        btnNuevo.getStyleClass().add("btn-primary");
+        btnNuevo.getStyleClass().add("btn-primario");
         btnNuevo.setOnAction(e -> callback.onCrearOperario());
 
         cardHeader.getChildren().addAll(titulo, btnNuevo);
@@ -95,10 +95,10 @@ public class VistaOperarios extends VBox {
                 StackPane av = miniAvatar(v, op.getUrlFoto(), 32);
                 Label lbl = new Label(v);
                 if (!op.isActivo()) {
-                    lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px; -fx-font-weight: bold; -fx-strikethrough: true;");
+                    lbl.getStyleClass().add("texto-tabla-inactivo");
                     av.setOpacity(0.4);
                 } else {
-                    lbl.setStyle("-fx-text-fill: #F8FAFC; -fx-font-size: 13px; -fx-font-weight: bold;");
+                    lbl.getStyleClass().add("texto-tabla-activo");
                     av.setOpacity(1.0);
                 }
                 box.getChildren().addAll(av, lbl);
@@ -115,7 +115,7 @@ public class VistaOperarios extends VBox {
                 super.updateItem(v, empty);
                 if (empty || v == null) { setGraphic(null); return; }
                 Label l = new Label(v.isBlank() ? "General" : v.charAt(0) + v.substring(1).toLowerCase());
-                l.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px;");
+                l.getStyleClass().add("texto-tenue");
                 setGraphic(l);
                 setText(null);
             }
@@ -135,13 +135,13 @@ public class VistaOperarios extends VBox {
                 if (!op.isActivo()) {
                     Circle dot = new Circle(5, Color.web("#64748B"));
                     Label lbl = new Label("De Baja");
-                    lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
+                    lbl.getStyleClass().add("etiqueta-estado-inactivo");
                     box.getChildren().addAll(dot, lbl);
                 } else {
                     Circle dot = new Circle(5);
                     dot.setFill("Disponible".equals(v) ? Color.web("#22C55E") : Color.web("#F59E0B"));
                     Label lbl = new Label(v);
-                    lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: " + ("Disponible".equals(v) ? "#22C55E" : "#F59E0B") + ";");
+                    lbl.getStyleClass().add("Disponible".equals(v) ? "estado-available" : "estado-ocupado");
                     box.getChildren().addAll(dot, lbl);
                 }
                 setGraphic(box);
@@ -173,8 +173,9 @@ public class VistaOperarios extends VBox {
                 Button btnFoto = actionBtn("📸", "Cambiar foto");
                 btnFoto.setOnAction(e -> callback.onCambiarFotoOperario(op));
 
-                HBox box = new HBox(8);
-                box.setAlignment(Pos.CENTER);
+                HBox box = new HBox(14);
+                box.setAlignment(Pos.CENTER_LEFT);
+                box.setPadding(new Insets(0, 0, 0, 15));
                 box.getChildren().addAll(btnEditar, btnFoto, btnEstado);
                 setGraphic(box);
             }
@@ -188,9 +189,7 @@ public class VistaOperarios extends VBox {
 
     private Button actionBtn(String txt, String tooltip) {
         Button b = new Button(txt);
-        b.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand; -fx-font-size: 14px;");
-        b.setOnMouseEntered(e -> b.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px;"));
-        b.setOnMouseExited(e -> b.setStyle("-fx-background-color: transparent; -fx-text-fill: #94A3B8; -fx-cursor: hand; -fx-font-size: 14px;"));
+        b.getStyleClass().add("btn-accion-tabla");
         Tooltip.install(b, new Tooltip(tooltip));
         return b;
     }
@@ -199,7 +198,8 @@ public class VistaOperarios extends VBox {
         StackPane av = new StackPane();
         av.setMinSize(size, size);
         av.setMaxSize(size, size);
-        av.setStyle("-fx-background-color: rgba(249,115,22,0.2); -fx-background-radius: " + (size / 2) + ";");
+        av.getStyleClass().add("contenedor-mini-avatar");
+        av.setStyle("-fx-background-radius: " + (size / 2) + ";");
 
         if (urlFoto != null && (urlFoto.startsWith("http://") || urlFoto.startsWith("https://"))) {
             try {
@@ -236,7 +236,8 @@ public class VistaOperarios extends VBox {
         String ini = p.length >= 2 ? ("" + p[0].charAt(0) + p[1].charAt(0)).toUpperCase()
                 : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
         Label l = new Label(ini);
-        l.setStyle("-fx-text-fill: #F97316; -fx-font-size: " + (size / 3) + "px; -fx-font-weight: bold;");
+        l.getStyleClass().add("iniciales-avatar");
+        l.setStyle("-fx-font-size: " + (size / 3) + "px;");
         av.getChildren().add(l);
     }
 }

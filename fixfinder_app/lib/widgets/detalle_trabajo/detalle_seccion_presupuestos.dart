@@ -213,7 +213,7 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   ElevatedButton(
                     onPressed: procesando ? null : () => onAceptar(p.id),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.tertiary,
+                      backgroundColor: FixFinderTheme.successColor,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                     child: const Text('ACEPTAR'),

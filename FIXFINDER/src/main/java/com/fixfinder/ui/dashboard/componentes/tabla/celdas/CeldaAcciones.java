@@ -96,8 +96,7 @@ public class CeldaAcciones extends TableCell<TrabajoFX, Void> {
 
     private Button crearBotonAccion(String texto, String tooltipTxt) {
         Button btn = new Button(texto);
-        btn.getStyleClass().add("action-btn");
-        btn.setStyle("-fx-font-size: 13px;");
+        btn.getStyleClass().add("btn-accion");
         btn.setTooltip(new Tooltip(tooltipTxt));
         return btn;
     }

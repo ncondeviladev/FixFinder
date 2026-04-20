@@ -46,12 +46,10 @@ public class AppDashboardPrincipal extends Application {
 
     private void mostrarPantallaLogin(Stage stage, Circle dot) {
         StackPane mainStack = new StackPane();
-        mainStack.setStyle("-fx-background-color: #0F1117;");
+        mainStack.getStyleClass().add("pila-principal-login");
 
         VBox root = new VBox(20);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(48));
-        root.setStyle("-fx-background-color: transparent;");
+        root.getStyleClass().add("raiz-login");
 
         ImageView logoImg = new ImageView();
         try {
@@ -69,11 +67,9 @@ public class AppDashboardPrincipal extends Application {
         } catch (Exception e) {
             // Fallback
             StackPane logoBox = new StackPane();
-            logoBox.setMinSize(56, 56);
-            logoBox.setMaxSize(56, 56);
-            logoBox.setStyle("-fx-background-color: #F97316; -fx-background-radius: 14;");
+            logoBox.getStyleClass().add("caja-logo-login");
             Label letraLogo = new Label("F");
-            letraLogo.setStyle("-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;");
+            letraLogo.getStyleClass().add("letra-logo-login");
             logoBox.getChildren().add(letraLogo);
             root.getChildren().add(logoBox);
         }
@@ -83,48 +79,45 @@ public class AppDashboardPrincipal extends Application {
         }
 
         Label lblTitulo = new Label("FixFinder");
-        lblTitulo.setStyle("-fx-text-fill: #F8FAFC; -fx-font-size: 26px; -fx-font-weight: bold;");
+        lblTitulo.getStyleClass().add("titulo-login");
 
         Label lblSub = new Label("Panel de Gestión — Acceso Gerentes");
-        lblSub.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 13px;");
+        lblSub.getStyleClass().add("subtitulo-login");
 
         VBox formBox = new VBox(12);
         formBox.setMaxWidth(360);
-        formBox.setPadding(new Insets(28));
-        formBox.setStyle("-fx-background-color: #1A1D27; -fx-background-radius: 14; "
-                + "-fx-border-color: #2D3348; -fx-border-radius: 14; -fx-border-width: 1;");
+        formBox.getStyleClass().add("tarjeta-login");
 
         Label lblEmail = new Label("Correo electrónico");
-        lblEmail.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px; -fx-font-weight: bold;");
+        lblEmail.getStyleClass().add("etiqueta-login");
 
         TextField txtEmail = new TextField();
         txtEmail.setPromptText("gerente@empresa.com");
-        txtEmail.getStyleClass().add("modal-input");
+        txtEmail.getStyleClass().add("entrada-modal");
         txtEmail.setMaxWidth(Double.MAX_VALUE);
 
         Label lblPass = new Label("Contraseña");
-        lblPass.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px; -fx-font-weight: bold;");
+        lblPass.getStyleClass().add("etiqueta-login");
 
         PasswordField txtPass = new PasswordField();
         txtPass.setPromptText("Contraseña");
-        txtPass.getStyleClass().add("modal-input");
+        txtPass.getStyleClass().add("entrada-modal");
         txtPass.setMaxWidth(Double.MAX_VALUE);
 
         Label lblError = new Label("");
-        lblError.setStyle("-fx-text-fill: #EF4444; -fx-font-size: 12px;");
+        lblError.getStyleClass().add("error-login");
         lblError.setWrapText(true);
 
         Button btnEntrar = new Button("Entrar al Panel");
-        btnEntrar.getStyleClass().add("btn-primary");
+        btnEntrar.getStyleClass().add("btn-primario");
         btnEntrar.setMaxWidth(Double.MAX_VALUE);
 
         Label lblConexion = new Label("Conectando al servidor...");
-        lblConexion.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 11px;");
+        lblConexion.getStyleClass().add("subtitulo-login");
         lblConexion.setVisible(false);
 
         Button btnRegistrar = new Button("¿Nueva Empresa? Regístrala aquí");
-        btnRegistrar.setStyle(
-                "-fx-background-color: transparent; -fx-text-fill: #e04700ff; -fx-underline: true; -fx-cursor: hand;");
+        btnRegistrar.getStyleClass().add("enlace-login");
         btnRegistrar.setMaxWidth(Double.MAX_VALUE);
         btnRegistrar.setOnAction(e -> {
             new com.fixfinder.ui.dashboard.dialogos.DialogoRegistroEmpresa(servicioCliente).mostrar();

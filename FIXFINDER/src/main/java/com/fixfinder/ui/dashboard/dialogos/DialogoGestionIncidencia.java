@@ -51,7 +51,7 @@ public class DialogoGestionIncidencia {
         if (cssPath != null) {
             dialog.getDialogPane().getStylesheets().add(cssPath);
         }
-        dialog.getDialogPane().getStyleClass().add("dialog-pane");
+        dialog.getDialogPane().getStyleClass().add("panel-dialogo");
 
         VBox mainBox = new VBox(15);
         mainBox.setPadding(new Insets(10, 0, 10, 0));
@@ -70,7 +70,7 @@ public class DialogoGestionIncidencia {
         grid.add(crearFilaInfo("Dirección",
                 trabajo.getDireccion().isBlank() ? "Ver mapa en App" : trabajo.getDireccion()), 0, 2);
 
-        grid.add(crearFilaInfo("Fecha Creación", trabajo.getFecha()), 1, 0);
+        grid.add(crearFilaInfo("Fecha Creación", trabajo.getFecha().replace("T", " ")), 1, 0);
         grid.add(crearFilaInfo("Estado Actual", estado), 1, 1);
         if (!trabajo.getClienteTelefono().isBlank()) {
             grid.add(crearFilaInfo("Contacto Cliente", trabajo.getClienteTelefono()), 1, 2);
@@ -80,11 +80,11 @@ public class DialogoGestionIncidencia {
         // --- SECCIÓN 2: DESCRIPCIÓN Y FOTOS ---
         VBox descBox = new VBox(10);
         Label lblDesc = new Label("Evolución de la Incidencia / Historial:");
-        lblDesc.getStyleClass().add("modal-label");
+        lblDesc.getStyleClass().add("etiqueta-modal");
         
         VBox contenedorBloques = new VBox(8);
         contenedorBloques.setPadding(new Insets(10));
-        contenedorBloques.setStyle("-fx-background-color: #2D2D2D; -fx-background-radius: 8;");
+        contenedorBloques.getStyleClass().add("contenedor-descripcion-modal");
         
         poblarBloquesDescripcion(contenedorBloques, trabajo.getDescripcion());
         
@@ -92,7 +92,7 @@ public class DialogoGestionIncidencia {
         scrollDesc.setFitToWidth(true);
         scrollDesc.setPrefHeight(250);
         scrollDesc.setMinHeight(250);
-        scrollDesc.getStyleClass().add("transparent-scroll"); // Clase CSS ya existente para scrollbars oscuros
+        scrollDesc.getStyleClass().add("scroll-transparente"); // Clase CSS ya existente para scrollbars oscuros
         
         descBox.getChildren().addAll(lblDesc, scrollDesc);
         mainBox.getChildren().add(descBox);
@@ -105,7 +105,7 @@ public class DialogoGestionIncidencia {
                     iv.setFitWidth(100);
                     iv.setFitHeight(100);
                     iv.setCursor(Cursor.HAND);
-                    iv.getStyleClass().add("photo-mini");
+                    iv.getStyleClass().add("foto-mini");
                     Rectangle clip = new Rectangle(100, 100);
                     clip.setArcWidth(12);
                     clip.setArcHeight(12);
@@ -117,7 +117,7 @@ public class DialogoGestionIncidencia {
             }
             if (!hboxFotos.getChildren().isEmpty()) {
                 ScrollPane scrollFotos = new ScrollPane(hboxFotos);
-                scrollFotos.getStyleClass().add("transparent-scroll");
+                scrollFotos.getStyleClass().add("scroll-transparente");
                 scrollFotos.setPrefHeight(120);
                 mainBox.getChildren().add(new VBox(6, new Label("Evidencias visuales:"), scrollFotos));
             }
@@ -141,12 +141,12 @@ public class DialogoGestionIncidencia {
             // Formulario para ofertar (Si es PENDIENTE o RECHAZADO)
             VBox formPpto = new VBox(10);
             Label lblPpto = new Label(miMeta != null ? "Actualizar Oferta (Re-puja):" : "Presentar Presupuesto:");
-            lblPpto.getStyleClass().add("modal-label");
+            lblPpto.getStyleClass().add("etiqueta-modal");
 
             areaPropuesta.setPromptText("Notas técnicas sobre la reparación...");
             areaPropuesta.setWrapText(true);
             areaPropuesta.setPrefHeight(80);
-            areaPropuesta.getStyleClass().add("modal-input");
+            areaPropuesta.getStyleClass().add("entrada-modal");
 
             // Permitir que el TAB pase al siguiente campo (txtMonto)
             areaPropuesta.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
@@ -157,7 +157,7 @@ public class DialogoGestionIncidencia {
             });
 
             txtMonto.setPromptText("Importe en €");
-            txtMonto.getStyleClass().add("modal-input");
+            txtMonto.getStyleClass().add("entrada-modal");
 
             formPpto.getChildren().addAll(lblPpto, areaPropuesta, txtMonto);
             mainBox.getChildren().add(formPpto);
@@ -166,11 +166,11 @@ public class DialogoGestionIncidencia {
             // Panel de Asignación de Técnico
             VBox assignBox = new VBox(10);
             Label lblAssign = new Label("Asignación de Técnico Responsable:");
-            lblAssign.getStyleClass().add("modal-label");
+            lblAssign.getStyleClass().add("etiqueta-modal");
 
             comboOps.setPromptText("Seleccionar operario...");
             comboOps.getItems().addAll(operariosDisponibles.stream().filter(OperarioFX::isActivo).toList());
-            comboOps.getStyleClass().add("modal-combo");
+            comboOps.getStyleClass().add("combo-modal");
             comboOps.setMaxWidth(Double.MAX_VALUE);
 
             if (trabajo.getIdOperario() > 0) {
@@ -185,7 +185,7 @@ public class DialogoGestionIncidencia {
 
             if ("ASIGNADO".equals(estado)) {
                 Label infoAsig = new Label("Técnico actual: " + trabajo.getOperario());
-                infoAsig.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
+                infoAsig.getStyleClass().add("estado-disponible");
                 assignBox.getChildren().add(0, infoAsig);
             }
         }
@@ -200,8 +200,7 @@ public class DialogoGestionIncidencia {
         ScrollPane scrollPane = new ScrollPane(mainBox);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(650); // Altura máxima recomendada
-        scrollPane.getStyleClass().add("transparent-scroll"); // Reutilizar clase si existe
-        scrollPane.setStyle("-fx-background-color:transparent; -fx-background:transparent;");
+        scrollPane.getStyleClass().add("scroll-transparente"); // Reutilizar clase si existe
 
         dialog.getDialogPane().setContent(scrollPane);
 
@@ -217,11 +216,11 @@ public class DialogoGestionIncidencia {
         }
 
         Button okBtn = (Button) dialog.getDialogPane().lookupButton(btnOk);
-        okBtn.getStyleClass().add("btn-primary");
+        okBtn.getStyleClass().add("btn-primario");
 
         Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
         if (cancelBtn != null) {
-            cancelBtn.getStyleClass().add("btn-secondary");
+            cancelBtn.getStyleClass().add("btn-secundario");
         }
 
         // Convertidor de resultados
@@ -248,8 +247,8 @@ public class DialogoGestionIncidencia {
     private VBox crearCajaPresupuesto(TrabajoFX.MetaPresupuesto meta, String estado) {
         VBox box = new VBox(8);
         box.setPadding(new Insets(12));
-        box.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 10;");
+        box.getStyleClass().add("caja-ppto-modal");
+        box.setStyle("-fx-background-radius: 10; -fx-border-radius: 10;"); // Mantener radios para consistencia visual inmediata
 
         boolean esRechazado = "RECHAZADO".equals(meta.estado());
         String ti = switch (estado) {
@@ -260,16 +259,16 @@ public class DialogoGestionIncidencia {
         };
 
         Label lblT = new Label(ti);
-        lblT.setStyle("-fx-text-fill: " + (esRechazado ? "#ef4444" : "#10b981")
-                + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+        lblT.getStyleClass().addAll("estado-ppto-modal", esRechazado ? "estado-ppto-modal-error" : "estado-ppto-modal-ok");
+        
         Label lblM = new Label(String.format("%.2f €", meta.monto()));
-        lblM.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f8fafc;");
+        lblM.getStyleClass().add("monto-ppto-modal");
 
         box.getChildren().addAll(lblT, lblM);
         if (!meta.notas().isBlank()) {
             Label lblN = new Label(meta.notas());
             lblN.setWrapText(true);
-            lblN.setStyle("-fx-text-fill: #94a3b8; -fx-font-style: italic;");
+            lblN.getStyleClass().add("texto-sin-asignar"); // Reutilizamos estilo cursiva tenue
             box.getChildren().add(lblN);
         }
         return box;
@@ -279,9 +278,9 @@ public class DialogoGestionIncidencia {
         VBox box = new VBox(5);
         String stars = "★".repeat(trabajo.getValoracion()) + "☆".repeat(5 - trabajo.getValoracion());
         Label lblS = new Label(stars);
-        lblS.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 20px;");
+        lblS.getStyleClass().add("estrellas-modal");
         Label lblC = new Label("\"" + trabajo.getComentarioCliente() + "\"");
-        lblC.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic;");
+        lblC.getStyleClass().add("texto-sin-asignar");
         lblC.setWrapText(true);
         box.getChildren().addAll(new Label("Valoración del cliente:"), lblS, lblC);
         return box;
@@ -289,14 +288,14 @@ public class DialogoGestionIncidencia {
 
     private VBox crearFilaInfo(String etiqueta, String valor) {
         Label lbl = new Label(etiqueta);
-        lbl.getStyleClass().add("modal-label");
+        lbl.getStyleClass().add("etiqueta-modal");
         Label val = new Label(valor);
-        val.getStyleClass().add("modal-value");
+        val.getStyleClass().add("valor-modal");
         val.setWrapText(true);
 
         // Si es dirección, le damos estilo de link
         if (etiqueta.contains("Dirección")) {
-            val.setStyle("-fx-text-fill: #3B82F6; -fx-cursor: hand; -fx-underline: true;");
+            val.getStyleClass().add("enlace-mapa-modal");
             val.setOnMouseClicked(e -> {
                 try {
                     String query = valor.replace(" ", "+");
@@ -355,32 +354,24 @@ public class DialogoGestionIncidencia {
         bloque.setPadding(new Insets(10));
         bloque.setMaxWidth(Double.MAX_VALUE);
         
-        String colorFondo = "#3A3A3A"; // Gris neutro
-        String colorBorde = "#4A4A4A";
+        String extraClass = "bloque-desc-defecto";
         
         if (titulo.contains("CLIENTE")) {
-            colorFondo = "#2E3B4E"; // Acero oscuro (Cliente)
-            colorBorde = "#3E4E6E";
+            extraClass = "bloque-desc-cliente";
         } else if (titulo.contains("GERENTE")) {
-            colorFondo = "#3E3B2E"; // Ámbar oscuro (Empresa)
-            colorBorde = "#5E4E3E";
+            extraClass = "bloque-desc-gerente";
         } else if (titulo.contains("OPERARIO")) {
-            colorFondo = "#2E3E34"; // Esmeralda frío (Técnico)
-            colorBorde = "#3E5E4A";
+            extraClass = "bloque-desc-operario";
         }
 
-        bloque.setStyle("-fx-background-color: " + colorFondo + "; " +
-                       "-fx-background-radius: 8; " +
-                       "-fx-border-color: " + colorBorde + "; " +
-                       "-fx-border-radius: 8; " +
-                       "-fx-border-width: 1;");
+        bloque.getStyleClass().addAll("bloque-desc", extraClass);
 
         Label lblTitulo = new Label(titulo);
-        lblTitulo.setStyle("-fx-font-weight: bold; -fx-text-fill: #FF6D00; -fx-font-size: 11px;");
+        lblTitulo.getStyleClass().add("bloque-desc-titulo");
         
         Label lblContenido = new Label(contenido);
         lblContenido.setWrapText(true);
-        lblContenido.setStyle("-fx-text-fill: #EEEEEE; -fx-font-size: 13.5px; -fx-line-spacing: 2;");
+        lblContenido.getStyleClass().add("bloque-desc-contenido");
         
         bloque.getChildren().addAll(lblTitulo, lblContenido);
         return bloque;
@@ -393,7 +384,7 @@ public class DialogoGestionIncidencia {
         if (cssPath != null) {
             imgDialog.getDialogPane().getStylesheets().add(cssPath);
         }
-        imgDialog.getDialogPane().getStyleClass().add("dialog-pane");
+        imgDialog.getDialogPane().getStyleClass().add("panel-dialogo");
 
         ImageView img = new ImageView(new Image(url));
         img.setFitWidth(800);
@@ -404,7 +395,7 @@ public class DialogoGestionIncidencia {
         imgDialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         Button closeBtn = (Button) imgDialog.getDialogPane().lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) {
-            closeBtn.getStyleClass().add("btn-secondary");
+            closeBtn.getStyleClass().add("btn-secundario");
         }
 
         imgDialog.show();

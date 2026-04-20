@@ -28,7 +28,7 @@ public class VistaDashboard extends VBox {
             String cssUrl,
             int idEmpresa) {
         
-        getStyleClass().add("dashboard-view");
+        getStyleClass().add("vista-dashboard");
         
         this.filaIndicadores = new FilaIndicadores();
         this.panelLateral = new PanelLateral();
@@ -46,7 +46,7 @@ public class VistaDashboard extends VBox {
         body.getChildren().addAll(filaIndicadores, mainZone);
 
         ScrollPane scroll = new ScrollPane(body);
-        scroll.getStyleClass().add("transparent-scroll");
+        scroll.getStyleClass().add("scroll-transparente");
         scroll.setFitToWidth(true);
         scroll.setFitToHeight(true);
         VBox.setVgrow(scroll, Priority.ALWAYS);

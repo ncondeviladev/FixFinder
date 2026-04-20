@@ -19,7 +19,7 @@ public class VistaIncidencias extends VBox {
             TablaIncidencias.AccionesCallback callback,
             String cssUrl,
             int idEmpresa) {
-        getStyleClass().add("content-area");
+        getStyleClass().add("area-contenido");
         VBox.setVgrow(this, Priority.ALWAYS);
 
         TablaIncidencias tabla = new TablaIncidencias(trabajos, operarios, callback, cssUrl, idEmpresa);

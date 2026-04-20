@@ -42,7 +42,7 @@ public class TablaIncidencias extends VBox {
         this.cssUrl = cssUrl;
         this.idEmpresa = idEmpresa;
 
-        getStyleClass().add("table-card");
+        getStyleClass().add("tarjeta-tabla");
         VBox.setVgrow(this, Priority.ALWAYS);
 
         inicializarComponentes();
@@ -98,7 +98,7 @@ public class TablaIncidencias extends VBox {
                     return;
                 }
                 Label l = new Label(String.valueOf(v.intValue()));
-                l.getStyleClass().add("cell-id");
+                l.getStyleClass().add("celda-id");
                 setGraphic(l);
                 setText(null);
             }

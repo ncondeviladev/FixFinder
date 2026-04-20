@@ -27,12 +27,12 @@ public class CeldaEstadoBadge extends TableCell<TrabajoFX, String> {
 
         TrabajoFX trabajo = getTableView().getItems().get(getIndex());
         String textoEstado = estado;
-        String extraClass = "badge-" + estado.toLowerCase();
+        String extraClass = "insignia-" + estado.toLowerCase();
 
         // 1. Prioridad: Si mi presupuesto fue RECHAZADO
         if (trabajo.fueRechazado(idEmpresaLogueada)) {
             textoEstado = "✘ RECHAZADO";
-            extraClass = "badge-cancelado"; // Usar el estilo rojo
+            extraClass = "insignia-cancelado"; // Usar el estilo rojo
         } 
         // 2. Si tengo un presupuesto ACTIVO (Pendiente/Aceptado)
         else if (trabajo.haPresupuestado(idEmpresaLogueada)) {
@@ -40,7 +40,7 @@ public class CeldaEstadoBadge extends TableCell<TrabajoFX, String> {
         }
 
         Label badge = new Label(textoEstado);
-        badge.getStyleClass().addAll("badge", extraClass);
+        badge.getStyleClass().addAll("insignia", extraClass);
 
         setGraphic(badge);
         setText(null);

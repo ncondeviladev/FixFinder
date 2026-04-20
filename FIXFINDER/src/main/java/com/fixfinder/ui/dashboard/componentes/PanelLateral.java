@@ -19,23 +19,23 @@ public class PanelLateral extends VBox {
 
     public PanelLateral() {
         setSpacing(16);
-        getStyleClass().add("right-panel");
+        getStyleClass().add("panel-derecho");
         getChildren().addAll(construirCardActividad());
     }
 
     private VBox construirCardActividad() {
         VBox card = new VBox();
-        card.getStyleClass().add("side-card");
+        card.getStyleClass().add("tarjeta-lateral");
 
         Label titulo = new Label("Últimas Actualizaciones");
-        titulo.getStyleClass().add("side-card-title");
+        titulo.getStyleClass().add("titulo-tarjeta-lateral");
 
         listaActividadBox = new VBox(8);
         listaActividadBox.setPadding(new Insets(10, 16, 12, 16));
         listaActividadBox.getChildren().add(placeholder("Sin actividad reciente"));
 
         ScrollPane scroll = new ScrollPane(listaActividadBox);
-        scroll.getStyleClass().add("transparent-scroll");
+        scroll.getStyleClass().add("scroll-transparente");
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(180);
         scroll.setMaxHeight(180);
@@ -54,14 +54,14 @@ public class PanelLateral extends VBox {
         fila.setAlignment(Pos.TOP_LEFT);
 
         Label icono = new Label("●");
-        icono.setStyle("-fx-text-fill: #F97316; -fx-font-size: 10px;");
+        icono.getStyleClass().add("punto-actividad");
 
         VBox textos = new VBox(2);
         Label txt = new Label(mensaje);
-        txt.getStyleClass().add("activity-text");
+        txt.getStyleClass().add("texto-actividad");
         txt.setWrapText(true);
         Label hora = new Label(LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
-        hora.getStyleClass().add("activity-time");
+        hora.getStyleClass().add("hora-actividad");
         textos.getChildren().addAll(txt, hora);
 
         fila.getChildren().addAll(icono, textos);
@@ -73,7 +73,7 @@ public class PanelLateral extends VBox {
 
     private Label placeholder(String texto) {
         Label l = new Label(texto);
-        l.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px; -fx-padding: 8 16 8 16;");
+        l.getStyleClass().add("marcador-vacio-lateral");
         return l;
     }
 }

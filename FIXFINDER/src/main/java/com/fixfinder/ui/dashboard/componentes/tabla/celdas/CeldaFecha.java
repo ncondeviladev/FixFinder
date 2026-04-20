@@ -29,7 +29,7 @@ public class CeldaFecha extends TableCell<TrabajoFX, String> {
             LocalDateTime fecha = LocalDateTime.parse(fechaIso, FORMATO_ENTRADA);
             String fechaFormateada = fecha.format(FORMATO_SALIDA);
             setText(fechaFormateada);
-            setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 11.5px;"); // Un poco más pequeño y tenue
+            getStyleClass().add("texto-tenue-pequeno");
         } catch (Exception e) {
             // Si el formato no es ISO o falla, mostramos el texto original
             setText(fechaIso);

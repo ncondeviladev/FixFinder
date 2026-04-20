@@ -43,6 +43,7 @@ class FixFinderTheme {
         surface: surfaceDark,
         onSurface: textMain,
         error: errorColor,
+        tertiary: Color(0xFF6366F1),
         surfaceContainerHighest: Color(0xFF242424),
       ),
 

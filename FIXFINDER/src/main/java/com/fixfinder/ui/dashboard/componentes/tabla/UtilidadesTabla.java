@@ -24,7 +24,8 @@ public class UtilidadesTabla {
         avatar.setMinSize(24, 24);
         avatar.setMaxSize(24, 24);
         // Naranja corporativo suave con bordes redondeados
-        avatar.setStyle("-fx-background-color: rgba(249,115,22,0.2); -fx-background-radius: 12;");
+        avatar.getStyleClass().add("contenedor-mini-avatar");
+        avatar.setStyle("-fx-background-radius: 12;"); // El radio depende del tamaño fijo aquí
         
         String[] partes = nombre.trim().split("\\s+");
         String iniciales = partes.length >= 2 
@@ -32,7 +33,8 @@ public class UtilidadesTabla {
             : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
             
         Label lblIniciales = new Label(iniciales);
-        lblIniciales.setStyle("-fx-text-fill: #F97316; -fx-font-size: 9px; -fx-font-weight: bold;");
+        lblIniciales.getStyleClass().add("iniciales-avatar");
+        lblIniciales.setStyle("-fx-font-size: 9px;"); // Tamaño específico para mini avatar de tabla
         
         avatar.getChildren().add(lblIniciales);
         return avatar;
@@ -69,7 +71,8 @@ public class UtilidadesTabla {
      */
     public static Label crearEtiquetaEstilizada(String texto, String colorHex, double tamanio) {
         Label etiqueta = new Label(texto);
-        etiqueta.setStyle("-fx-text-fill: " + colorHex + "; -fx-font-size: " + tamanio + "px;");
+        etiqueta.getStyleClass().add("texto-tenue");
+        if (tamanio > 0) etiqueta.setStyle("-fx-font-size: " + tamanio + "px;");
         return etiqueta;
     }
 }

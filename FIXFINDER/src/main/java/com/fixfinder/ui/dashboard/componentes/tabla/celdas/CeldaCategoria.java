@@ -27,11 +27,12 @@ public class CeldaCategoria extends TableCell<TrabajoFX, String> {
         
         // Icono (Emoji)
         Label lblIcono = new Label(UtilidadesTabla.obtenerIconoCategoria(categoria));
-        lblIcono.setStyle("-fx-text-fill: #94A3B8;");
+        lblIcono.getStyleClass().add("texto-tenue");
         
         // Texto con la primera letra en mayúscula
         String texto = categoria.charAt(0) + categoria.substring(1).toLowerCase();
-        Label lblTexto = UtilidadesTabla.crearEtiquetaEstilizada(texto, "#94A3B8", 12);
+        Label lblTexto = new Label(texto);
+        lblTexto.getStyleClass().add("etiqueta-categoria");
         
         contenedor.getChildren().addAll(lblIcono, lblTexto);
         setGraphic(contenedor);

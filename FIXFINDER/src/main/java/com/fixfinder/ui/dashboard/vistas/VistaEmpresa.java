@@ -29,11 +29,11 @@ public class VistaEmpresa extends VBox {
             String gerenteNombre, String gerenteRol,
             ObservableList<OperarioFX> operarios, Runnable onCambiarFotoGerente) {
         
-        getStyleClass().add("content-area");
+        getStyleClass().add("area-contenido");
         VBox.setVgrow(this, Priority.ALWAYS);
 
         ScrollPane scroll = new ScrollPane();
-        scroll.getStyleClass().add("transparent-scroll");
+        scroll.getStyleClass().add("scroll-transparente");
         scroll.setFitToWidth(true);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
@@ -41,29 +41,22 @@ public class VistaEmpresa extends VBox {
         body.setPadding(new Insets(24));
 
         VBox card = new VBox(20);
-        card.getStyleClass().add("table-card");
+        card.getStyleClass().add("tarjeta-tabla");
         card.setPadding(new Insets(28));
         card.setMaxWidth(640);
 
         Label titulo = new Label("Información de la Empresa");
-        titulo.getStyleClass().add("card-title");
+        titulo.getStyleClass().add("titulo-tarjeta");
 
         HBox perfilRow = new HBox(20);
         perfilRow.setAlignment(Pos.CENTER_LEFT);
 
         StackPane imagenPlaceholder = new StackPane();
-        imagenPlaceholder.setMinSize(80, 80);
-        imagenPlaceholder.setMaxSize(80, 80);
-        imagenPlaceholder.setStyle(
-                "-fx-background-color: rgba(249,115,22,0.12);" +
-                "-fx-background-radius: 40;" +
-                "-fx-border-color: rgba(249,115,22,0.3);" +
-                "-fx-border-radius: 40;" +
-                "-fx-border-width: 2;");
+        imagenPlaceholder.getStyleClass().add("contenedor-imagen-perfil");
 
         VBox imgInfo = new VBox(4);
         Label lblDatos = new Label("Datos Personales del Gerente");
-        lblDatos.getStyleClass().add("modal-label");
+        lblDatos.getStyleClass().add("etiqueta-modal");
 
         VBox camposGerente = new VBox(12);
         camposGerente.getChildren().addAll(
@@ -73,7 +66,7 @@ public class VistaEmpresa extends VBox {
         imgInfo.getChildren().addAll(lblDatos, camposGerente);
 
         Label lIniciales = new Label(iniciales(gerenteNombre));
-        lIniciales.setStyle("-fx-text-fill: #F97316; -fx-font-size: 28px; -fx-font-weight: bold;");
+        lIniciales.getStyleClass().add("iniciales-perfil");
 
         String urlFotoGerente = (String) infoEmpresa.get("gerenteUrlFoto");
         boolean tieneFoto = false;
@@ -93,7 +86,7 @@ public class VistaEmpresa extends VBox {
         }
 
         Button btnCambiarFoto = new Button("📸");
-        btnCambiarFoto.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 14px;");
+        btnCambiarFoto.getStyleClass().add("btn-solo-icono");
         btnCambiarFoto.setOnAction(e -> {
             if (onCambiarFotoGerente != null) onCambiarFotoGerente.run();
         });
@@ -105,7 +98,7 @@ public class VistaEmpresa extends VBox {
 
         Separator sep1 = sep();
         Label lblEmp = new Label("Información Legal de Empresa");
-        lblEmp.getStyleClass().add("modal-label");
+        lblEmp.getStyleClass().add("etiqueta-modal");
 
         VBox camposEmp = new VBox(12);
         camposEmp.getChildren().addAll(
@@ -122,7 +115,7 @@ public class VistaEmpresa extends VBox {
         // --- SECCIÓN DE VALORACIONES ---
         Separator sep2 = sep();
         Label lblVal = new Label("Últimas Valoraciones de Clientes");
-        lblVal.getStyleClass().add("modal-label");
+        lblVal.getStyleClass().add("etiqueta-modal");
         VBox boxValoraciones = new VBox(12);
 
         // Detección exhaustiva de la clave que viene del servidor
@@ -159,7 +152,7 @@ public class VistaEmpresa extends VBox {
 
         if (boxValoraciones.getChildren().isEmpty()) {
             Label noVal = new Label("Aún no se han recibido valoraciones para esta empresa.");
-            noVal.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-padding: 10;");
+            noVal.getStyleClass().add("texto-tenue-cursiva");
             boxValoraciones.getChildren().add(noVal);
         }
 
@@ -173,16 +166,16 @@ public class VistaEmpresa extends VBox {
     private HBox crearFilaValoracion(String cliente, int puntos, String comentario) {
         HBox fVal = new HBox(12);
         fVal.setAlignment(Pos.CENTER_LEFT);
-        fVal.setStyle("-fx-background-color: rgba(255,255,255,0.04); -fx-padding: 12; -fx-background-radius: 10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius: 10;");
+        fVal.getStyleClass().add("tarjeta-valoracion");
 
         Label lEstrellas = new Label("★".repeat(Math.max(0, Math.min(5, puntos))) + "☆".repeat(Math.max(0, 5 - puntos)));
-        lEstrellas.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 14px;");
+        lEstrellas.getStyleClass().add("etiqueta-estrellas");
 
         Label lCliente = new Label(cliente);
-        lCliente.setStyle("-fx-text-fill: #f8fafc; -fx-font-weight: bold;");
+        lCliente.getStyleClass().add("valoracion-cliente");
 
         Label lComentario = new Label(comentario.isBlank() ? "(Sin comentario)" : "\"" + comentario + "\"");
-        lComentario.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic;");
+        lComentario.getStyleClass().add("valoracion-comentario");
         lComentario.setWrapText(true);
 
         VBox vText = new VBox(2, new HBox(10, lCliente, lEstrellas), lComentario);
@@ -194,17 +187,17 @@ public class VistaEmpresa extends VBox {
     private HBox fila(String etiqueta, String valor) {
         HBox f = new HBox(8);
         Label lbl = new Label(etiqueta + ":");
-        lbl.getStyleClass().add("modal-label");
+        lbl.getStyleClass().add("etiqueta-modal");
         lbl.setMinWidth(180);
         Label val = new Label(valor);
-        val.getStyleClass().add("modal-value");
+        val.getStyleClass().add("valor-modal");
         f.getChildren().addAll(lbl, val);
         return f;
     }
 
     private Separator sep() {
         Separator s = new Separator();
-        s.setStyle("-fx-background-color: #2D3348;");
+        s.getStyleClass().add("separador-contenido");
         return s;
     }
 

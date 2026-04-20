@@ -29,7 +29,7 @@ public class CabeceraTabla extends VBox {
         this.alCambiarFiltro = alCambiarFiltro;
         this.txtBusqueda = new TextField();
         
-        getStyleClass().add("card-header");
+        getStyleClass().add("cabecera-tarjeta");
         construir();
     }
 
@@ -39,11 +39,11 @@ public class CabeceraTabla extends VBox {
         filaSuperior.setAlignment(Pos.CENTER_LEFT);
         
         Label lblTitulo = new Label("Incidencias");
-        lblTitulo.getStyleClass().add("card-title");
+        lblTitulo.getStyleClass().add("titulo-tarjeta");
         HBox.setHgrow(lblTitulo, Priority.ALWAYS);
 
         txtBusqueda.setPromptText("⌕  Buscar por ID, Cliente o Título...");
-        txtBusqueda.getStyleClass().add("search-field");
+        txtBusqueda.getStyleClass().add("campo-busqueda");
         txtBusqueda.textProperty().addListener((obs, viejo, nuevo) -> 
             alCambiarFiltro.accept(nuevo, filtroActivo));
         
@@ -57,7 +57,7 @@ public class CabeceraTabla extends VBox {
 
     private HBox construirTabs() {
         HBox tabs = new HBox(4);
-        tabs.getStyleClass().add("filter-tabs");
+        tabs.getStyleClass().add("pestanas-filtro");
         tabs.setAlignment(Pos.CENTER_LEFT);
 
         ToggleGroup grupo = new ToggleGroup();
@@ -70,22 +70,22 @@ public class CabeceraTabla extends VBox {
 
         for (String[] op : configuracion) {
             ToggleButton btn = new ToggleButton(op[1]);
-            btn.getStyleClass().add("filter-tab");
+            btn.getStyleClass().add("pestana-filtro");
             btn.setToggleGroup(grupo);
             
             if ("todas".equals(op[0])) {
                 btn.setSelected(true);
-                btn.getStyleClass().add("selected");
+                btn.getStyleClass().add("seleccionada");
             }
             
             String idFiltro = op[0];
             btn.selectedProperty().addListener((obs, eraSeleccionado, esSeleccionadoAhora) -> {
                 if (esSeleccionadoAhora) {
-                    btn.getStyleClass().add("selected");
+                    btn.getStyleClass().add("seleccionada");
                     this.filtroActivo = idFiltro;
                     alCambiarFiltro.accept(txtBusqueda.getText(), idFiltro);
                 } else {
-                    btn.getStyleClass().remove("selected");
+                    btn.getStyleClass().remove("seleccionada");
                 }
             });
             

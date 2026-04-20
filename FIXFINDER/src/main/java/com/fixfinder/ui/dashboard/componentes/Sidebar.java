@@ -44,7 +44,7 @@ public class Sidebar extends VBox {
     public Sidebar(String usuarioNombre, String usuarioRol, String urlFoto,
             Consumer<String> onNavegar, Runnable onLogout) {
         this.nombreUsuario = usuarioNombre;
-        getStyleClass().add("sidebar");
+        getStyleClass().add("barra-lateral");
         getChildren().addAll(
                 construirNav(onNavegar),
                 construirUsuario(usuarioNombre, usuarioRol, urlFoto, onLogout));
@@ -84,18 +84,18 @@ public class Sidebar extends VBox {
 
         for (String[] item : items) {
             Button btn = new Button(item[1] + "  " + item[2]);
-            btn.getStyleClass().add("nav-item");
+            btn.getStyleClass().add("item-navegacion");
             btn.setMaxWidth(Double.MAX_VALUE);
             if ("dashboard".equals(item[0]))
-                btn.getStyleClass().add("active");
+                btn.getStyleClass().add("activo");
 
             String vistaId = item[0];
             btn.setOnAction(e -> {
                 if (vistaId.equals(vistaActual))
                     return;
                 vistaActual = vistaId;
-                navButtons.forEach(b -> b.getStyleClass().remove("active"));
-                btn.getStyleClass().add("active");
+                navButtons.forEach(b -> b.getStyleClass().remove("activo"));
+                btn.getStyleClass().add("activo");
                 onNavegar.accept(vistaId);
             });
 
@@ -107,13 +107,13 @@ public class Sidebar extends VBox {
 
     private VBox construirUsuario(String nombre, String rol, String urlFoto, Runnable onLogout) {
         VBox box = new VBox(6);
-        box.getStyleClass().add("sidebar-user-box");
+        box.getStyleClass().add("caja-usuario-lateral");
 
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
 
         this.avatarPane = new StackPane();
-        avatarPane.getStyleClass().add("user-avatar");
+        avatarPane.getStyleClass().add("avatar-usuario");
         avatarPane.setMinSize(36, 36);
         avatarPane.setMaxSize(36, 36);
         cargarFotoEnPane(avatarPane, urlFoto, nombre);
@@ -121,14 +121,14 @@ public class Sidebar extends VBox {
         VBox info = new VBox(3);
         HBox.setHgrow(info, Priority.ALWAYS);
         Label lblNombre = new Label(nombre);
-        lblNombre.getStyleClass().add("sidebar-user-name");
+        lblNombre.getStyleClass().add("nombre-usuario-lateral");
         lblNombre.setMaxWidth(120);
         Label lblRol = new Label(rol);
-        lblRol.getStyleClass().add("sidebar-user-role");
+        lblRol.getStyleClass().add("rol-usuario-lateral");
         info.getChildren().addAll(lblNombre, lblRol);
 
         Button btnLogout = new Button("↪");
-        btnLogout.getStyleClass().add("btn-logout");
+        btnLogout.getStyleClass().add("btn-cerrar-sesion");
         btnLogout.setTooltip(new Tooltip("Cerrar sesión"));
         btnLogout.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -187,7 +187,7 @@ public class Sidebar extends VBox {
 
     private void mostrarAvatarTexto(StackPane avatar, String nombre) {
         Label ini = new Label(iniciales(nombre));
-        ini.setStyle("-fx-text-fill: #F97316; -fx-font-weight: bold; -fx-font-size: 13px;");
+        ini.getStyleClass().add("iniciales-avatar");
         avatar.getChildren().add(ini);
     }
 

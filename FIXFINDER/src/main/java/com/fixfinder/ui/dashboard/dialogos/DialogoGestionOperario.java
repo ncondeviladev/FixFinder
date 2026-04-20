@@ -50,7 +50,7 @@ public class DialogoGestionOperario {
         if (cssUrl != null) {
             dialog.getDialogPane().getStylesheets().add(cssUrl);
         }
-        dialog.getDialogPane().getStyleClass().add("dialog-pane");
+        dialog.getDialogPane().getStyleClass().add("panel-dialogo");
 
         // --- CAMPOS DE ENTRADA ---
         TextField txtNombre = new TextField(esModoEdicion ? operarioActual.getNombre() : "");
@@ -85,11 +85,11 @@ public class DialogoGestionOperario {
             : new Control[]{txtNombre, txtDni, txtEmail, txtTelefono, txtPass};
             
         for (Control c : inputs) {
-            c.getStyleClass().add("modal-input");
+            c.getStyleClass().add("entrada-modal");
             if (c instanceof TextField tf) tf.setMaxWidth(Double.MAX_VALUE);
         }
         cbEsp.setMaxWidth(Double.MAX_VALUE);
-        cbEsp.getStyleClass().add("modal-combo"); // Asumiendo estilo en CSS
+        cbEsp.getStyleClass().add("combo-modal"); // Asumiendo estilo en CSS
 
         // --- CONSTRUCCIÓN DEL FORMULARIO ---
         VBox form = new VBox(12);
@@ -117,10 +117,10 @@ public class DialogoGestionOperario {
         dialog.getDialogPane().getButtonTypes().addAll(btnOk, ButtonType.CANCEL);
 
         Button okBtn = (Button) dialog.getDialogPane().lookupButton(btnOk);
-        okBtn.getStyleClass().add("btn-primary");
+        okBtn.getStyleClass().add("btn-primario");
         
         Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
-        cancelBtn.getStyleClass().add("btn-secondary");
+        cancelBtn.getStyleClass().add("btn-secundario");
 
         // --- CONVERSOR DE RESULTADOS ---
         dialog.setResultConverter(b -> {
@@ -143,7 +143,7 @@ public class DialogoGestionOperario {
     private VBox seccion(String titulo, Control input) {
         VBox sec = new VBox(5);
         Label lbl = new Label(titulo);
-        lbl.getStyleClass().add("modal-label");
+        lbl.getStyleClass().add("etiqueta-modal");
         sec.getChildren().addAll(lbl, input);
         return sec;
     }

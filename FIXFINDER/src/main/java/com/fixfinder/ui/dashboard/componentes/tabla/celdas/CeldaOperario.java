@@ -24,7 +24,7 @@ public class CeldaOperario extends TableCell<TrabajoFX, String> {
 
         if ("Sin asignar".equalsIgnoreCase(nombreOperario)) {
             Label lblSinAsignar = new Label(nombreOperario);
-            lblSinAsignar.setStyle("-fx-text-fill: #94A3B8; -fx-font-style: italic; -fx-font-size: 12px;");
+            lblSinAsignar.getStyleClass().add("texto-sin-asignar");
             setGraphic(lblSinAsignar);
         } else {
             HBox contenedor = new HBox(8);
