@@ -141,7 +141,7 @@ public class VistaOperarios extends VBox {
                     Circle dot = new Circle(5);
                     dot.setFill("Disponible".equals(v) ? Color.web("#22C55E") : Color.web("#F59E0B"));
                     Label lbl = new Label(v);
-                    lbl.getStyleClass().add("Disponible".equals(v) ? "estado-available" : "estado-ocupado");
+                    lbl.getStyleClass().add("Disponible".equals(v) ? "estado-disponible" : "estado-ocupado");
                     box.getChildren().addAll(dot, lbl);
                 }
                 setGraphic(box);

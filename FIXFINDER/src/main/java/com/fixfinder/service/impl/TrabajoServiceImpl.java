@@ -333,4 +333,13 @@ public class TrabajoServiceImpl implements TrabajoService {
             throw new ServiceException("Error al listar todos los trabajos.", e);
         }
     }
+
+    @Override
+    public Trabajo obtenerPorId(Integer idTrabajo) throws ServiceException {
+        try {
+            return trabajoDAO.obtenerPorId(idTrabajo);
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al obtener el trabajo por ID.", e);
+        }
+    }
 }

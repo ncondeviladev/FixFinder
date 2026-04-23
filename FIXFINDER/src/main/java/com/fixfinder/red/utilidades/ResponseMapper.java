@@ -84,20 +84,27 @@ public class ResponseMapper {
 
     /**
      * Mapea un presupuesto con Filtro de Privacidad Contextual.
+     * El dueño de la incidencia y la propia empresa emisora tienen visibilidad total.
      */
-    public ObjectNode mapearPresupuesto(Presupuesto p, int idEmpresaConsulta) {
+    public ObjectNode mapearPresupuesto(Presupuesto p, int idUsuarioConsulta, int idEmpresaConsulta, int idClientePropietario) {
         if (p == null) return null;
         ObjectNode node = mapper.createObjectNode();
         node.put("id", p.getId());
         node.put("estado", p.getEstado().toString());
 
+        // Visibilidad total si:
+        // 1. Es un presupuesto emitido por la empresa que consulta.
+        // 2. El usuario que consulta es el Cliente dueño de la incidencia.
+        // 3. El presupuesto ya ha sido aceptado (se vuelve público para los involucrados).
         boolean esPropio = (p.getEmpresa() != null && p.getEmpresa().getId() == idEmpresaConsulta);
+        boolean esDuenioIncidencia = (idUsuarioConsulta == idClientePropietario);
         boolean esAceptado = "ACEPTADO".equalsIgnoreCase(p.getEstado().toString());
 
-        if (esAceptado || esPropio) {
+        if (esAceptado || esPropio || esDuenioIncidencia) {
             node.put("monto", p.getMonto());
             node.put("notas", p.getNotas());
         } else {
+            // Máscara de privacidad para la competencia
             node.put("monto", 0.0);
             node.put("notas", "--- Contenido Privado (Oferta de competencia) ---");
         }

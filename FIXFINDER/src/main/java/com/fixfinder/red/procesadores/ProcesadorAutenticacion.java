@@ -31,8 +31,8 @@ public class ProcesadorAutenticacion {
 
             try {
                 Usuario usuario = usuarioService.login(email, password);
+                System.out.println("👤 [LOGIN] Acceso concedido: " + email + " (" + usuario.getRol() + ")");
 
-                System.out.println("[LOGIN-DEBUG] PENDIENTE DE ENVIO: " + email + " (" + usuario.getRol() + ")");
                 // GENERAR TOKEN DE SESIÓN
                 String token = SessionManager.crearSesion(usuario.getId());
 
@@ -58,12 +58,10 @@ public class ProcesadorAutenticacion {
                 if (usuario instanceof Operario) {
                     datosUsuario.put("idEmpresa", ((Operario) usuario).getIdEmpresa());
                 }
-                System.out.println("[LOGIN-OK] " + email);
 
             } catch (ServiceException e) {
                 if (e.getMessage().equals("Contraseña incorrecta")
                         || e.getMessage().equals("Usuario no encontrado")) {
-                    System.out.println("[LOGIN-FALLIDO] " + email + ": " + e.getMessage());
                     respuesta.put("status", 401);
                     respuesta.put("mensaje", "Credenciales incorrectas");
                 } else {
@@ -119,9 +117,8 @@ public class ProcesadorAutenticacion {
                     gerente.setEspecialidad(CategoriaServicio.ELECTRICIDAD);
 
                     usuarioService.registrarUsuario(gerente);
+                    System.out.println("🏢 [REGISTRO] Nueva Empresa registrada: " + nuevaEmpresa.getNombre());
 
-                    System.out.println("[REGISTRO-EMPRESA] " + nuevaEmpresa.getNombre() + " (Gerente: "
-                            + gerente.getEmail() + ")");
                     respuesta.put("status", 200);
                     respuesta.put("mensaje", "Empresa y gerente registrado correctamente");
 
@@ -172,8 +169,6 @@ public class ProcesadorAutenticacion {
 
                     usuarioService.registrarUsuario(nuevoOperario);
 
-                    System.out.println("[REGISTRO-OPERARIO] " + nuevoOperario.getEmail()
-                            + " (Empresa ID: " + nuevoOperario.getIdEmpresa() + ")");
                     respuesta.put("status", 200);
                     respuesta.put("mensaje", "Operario registrado correctamente");
                 } catch (Exception e) {
@@ -211,9 +206,8 @@ public class ProcesadorAutenticacion {
 
                     nuevoCliente.setRol(Rol.CLIENTE);
                     usuarioService.registrarUsuario(nuevoCliente);
+                    System.out.println("👤 [REGISTRO] Nuevo Cliente registrado: " + nuevoCliente.getEmail());
 
-                    System.out.println("[REGISTRO-CLIENTE] " + nuevoCliente.getEmail() + " (ID: "
-                            + nuevoCliente.getId() + ")");
                     respuesta.put("status", 201);
                     respuesta.put("mensaje", "Cliente registrado OK. ID: " + nuevoCliente.getId());
                 } catch (Exception e) {

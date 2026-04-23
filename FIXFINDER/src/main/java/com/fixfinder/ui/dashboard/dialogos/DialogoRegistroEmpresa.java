@@ -129,7 +129,7 @@ public class DialogoRegistroEmpresa {
                     servicioCliente.setOnMensajeRecibido(json -> {
                         Platform.runLater(() -> {
                             try {
-                                RespuestaServidor res = servicioCliente.interpretarRespuesta(json);
+                                RespuestaServidor res = servicioCliente.parseRespuesta(json);
                                 if (res.esExito()) {
                                     Alert exito = new Alert(Alert.AlertType.INFORMATION);
                                     exito.setTitle("Registro Completado");

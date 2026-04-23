@@ -91,11 +91,15 @@ public class HeaderBar extends HBox {
         btnActualizar.getStyleClass().add("btn-cabecera");
         
         btnActualizar.setOnAction(e -> {
-            // Animación de rotación simple para feedback visual
-            RotateTransition rt = new RotateTransition(Duration.millis(500), btnActualizar);
-            rt.setByAngle(360);
-            rt.setCycleCount(1);
-            rt.play();
+            // Animación de pulsación (escala) para feedback táctil moderno
+            javafx.animation.ScaleTransition st = new javafx.animation.ScaleTransition(Duration.millis(100), btnActualizar);
+            st.setFromX(1.0);
+            st.setFromY(1.0);
+            st.setToX(0.95);
+            st.setToY(0.95);
+            st.setCycleCount(2);
+            st.setAutoReverse(true);
+            st.play();
             
             this.alRefrescar.run();
         });

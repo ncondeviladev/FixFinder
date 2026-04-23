@@ -87,7 +87,9 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
         onRefresh: () => context.read<TrabajoProvider>().obtenerTrabajos(),
         child: Consumer<TrabajoProvider>(
           builder: (context, provider, child) {
-            if (provider.estaCargando) {
+            // Solo mostramos el spinner de pantalla completa si no hay datos y estamos cargando.
+            // Si ya hay datos, dejamos la lista visible para evitar parpadeos en blanco.
+            if (provider.estaCargando && provider.trabajos.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -145,7 +147,7 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
                       // Esperamos a que el servidor procese la acción
                       await Future.delayed(const Duration(milliseconds: 900));
                       if (context.mounted) {
-                        context.read<TrabajoProvider>().obtenerTrabajos();
+                        context.read<TrabajoProvider>().obtenerTrabajos(silencioso: true);
                       }
                     });
                   },
@@ -160,7 +162,7 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
                     ).then((_) async {
                       await Future.delayed(const Duration(milliseconds: 500));
                       if (context.mounted) {
-                        context.read<TrabajoProvider>().obtenerTrabajos();
+                        context.read<TrabajoProvider>().obtenerTrabajos(silencioso: true);
                       }
                     });
                   },
@@ -179,7 +181,9 @@ class _DashboardPantallaState extends State<DashboardPantalla> {
                   MaterialPageRoute(
                       builder: (context) => const CrearTrabajoPantalla()),
                 ).then((_) {
-                  context.read<TrabajoProvider>().obtenerTrabajos();
+                  if (context.mounted) {
+                    context.read<TrabajoProvider>().obtenerTrabajos(silencioso: true);
+                  }
                 });
               },
               child: const Icon(Icons.add),

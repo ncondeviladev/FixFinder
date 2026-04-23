@@ -5,8 +5,10 @@ import com.fixfinder.ui.dashboard.modelos.OperarioFX;
 import com.fixfinder.ui.dashboard.modelos.TrabajoFX;
 import com.fixfinder.ui.dashboard.vistas.VistaDashboard;
 import com.fixfinder.ui.dashboard.vistas.VistaEmpresa;
+import com.fixfinder.ui.dashboard.utils.ToastUtils;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -25,7 +27,9 @@ public class ManejadorRespuestas {
     private final Consumer<String> alRegistrarActividad;
     private final Runnable alSolicitarRefresco;
     private final Consumer<String> alNavegarA;
+    private final java.util.function.BiConsumer<String, String> alActualizarPerfilLateral; // (nombre, urlFoto)
     private final int idEmpresaLogueada;
+    private final int idUsuarioLogueado;
 
     /**
      * Constructor del manejador de respuestas.
@@ -46,14 +50,18 @@ public class ManejadorRespuestas {
             Consumer<String> alRegistrarActividad,
             Runnable alSolicitarRefresco,
             Consumer<String> alNavegarA,
-            int idEmpresaLogueada) {
+            java.util.function.BiConsumer<String, String> alActualizarPerfilLateral,
+            int idEmpresaLogueada,
+            int idUsuarioLogueado) {
         this.todosTrabajos = todosTrabajos;
         this.listaOperarios = listaOperarios;
         this.infoEmpresaActual = infoEmpresaActual;
         this.alRegistrarActividad = alRegistrarActividad;
         this.alSolicitarRefresco = alSolicitarRefresco;
         this.alNavegarA = alNavegarA;
+        this.alActualizarPerfilLateral = alActualizarPerfilLateral;
         this.idEmpresaLogueada = idEmpresaLogueada;
+        this.idUsuarioLogueado = idUsuarioLogueado;
     }
 
     /**
@@ -106,6 +114,9 @@ public class ManejadorRespuestas {
             case "MODIFICAR_EMPRESA":
             case "MODIFICAR_USUARIO":
             case "CREAR_PRESUPUESTO":
+            case "ACEPTAR_PRESUPUESTO":
+            case "RECHAZAR_PRESUPUESTO":
+            case "CANCELAR_TRABAJO":
             case "ACTUALIZAR_FOTO_PERFIL":
                 if (status < 400)
                     alSolicitarRefresco.run();
@@ -113,9 +124,102 @@ public class ManejadorRespuestas {
                     alRegistrarActividad.accept("❌ " + msg);
                 break;
 
+            case "BROADCAST":
+                procesarBroadcast(datos, rootPane);
+                break;
+
             default:
                 if (status >= 400)
                     alRegistrarActividad.accept("❌ " + msg);
+                break;
+        }
+    }
+
+    /**
+     * Reacciona a notificaciones en tiempo real procedentes del Broadcaster central.
+     * @param datos Información del evento (categoría, subtipo, id, etc).
+     */
+    private void procesarBroadcast(JsonNode datos, BorderPane rootPane) {
+        if (datos == null) return;
+
+        String categoria = datos.path("categoria").asText("SISTEMA");
+        String subtipo = datos.path("subtipo").asText("");
+        String info = datos.path("info").asText("");
+
+        System.out.println("🔔 [NOTIFICATION] Recepción: " + categoria + " -> " + subtipo);
+
+        // Intentar obtener el Stage para el Toast y las alertas de sistema
+        Stage stage = null;
+        if (rootPane != null && rootPane.getScene() != null) {
+            stage = (Stage) rootPane.getScene().getWindow();
+        }
+
+        // Lógica de filtrado de aviso visual (Toast)
+        int idEmpresaEvento = datos.path("idEmpresa").asInt(-1);
+        int idClienteEvento = datos.path("idCliente").asInt(-1);
+        
+        boolean esParaMiEmpresa = (idEmpresaEvento == idEmpresaLogueada);
+        boolean esParaMiUsuario = (idClienteEvento == idUsuarioLogueado);
+        boolean esNuevoGlobal = "NUEVO".equals(subtipo);
+
+        // 1. Mostrar Notificación Flotante (Toast) SOLO si soy el interesado o es algo nuevo global
+        if (stage != null && (esParaMiEmpresa || esParaMiUsuario || esNuevoGlobal)) {
+            final Stage finalStage = stage;
+            String type = "INFO";
+            if ("PRESUPUESTO".equals(categoria)) type = "SUCCESS";
+            if ("TRABAJO".equals(categoria) && info.toUpperCase().contains("URGENTE")) type = "WARNING";
+            
+            ToastUtils.showToast(finalStage, info, type);
+            
+            // 2. Alertar si está minimizado o en segundo plano
+            if (!finalStage.isFocused() && !"USUARIO".equals(categoria)) {
+                finalStage.setIconified(false);
+                finalStage.toFront();
+            }
+        }
+
+        // 3. Lógica específica por categoría
+        if ("USUARIO".equals(categoria)) {
+            int idEvent = datos.path("idUsuario").asInt();
+            if (idEvent == idUsuarioLogueado) {
+                String nuevoNombre = datos.path("nombre").asText(null);
+                String nuevaFoto = datos.path("url_foto").asText(null);
+                if (alActualizarPerfilLateral != null) {
+                    alActualizarPerfilLateral.accept(nuevoNombre, nuevaFoto);
+                }
+            }
+            return; // Fin de procesamiento USUARIO (Silencioso)
+        }
+
+        switch (categoria) {
+            case "TRABAJO":
+                alRegistrarActividad.accept("🔔 " + info);
+                alSolicitarRefresco.run(); // Refrescamos tablas para ver la nueva incidencia o el cambio
+                break;
+            
+            case "PRESUPUESTO":
+                alRegistrarActividad.accept("💰 " + info);
+                alSolicitarRefresco.run();
+                break;
+
+            case "VALORACION":
+                alRegistrarActividad.accept("⭐ " + info);
+                alSolicitarRefresco.run(); // Refrescar KPIs y panel de empresa
+                break;
+
+            case "EMPRESA":
+                alRegistrarActividad.accept("🏢 " + info);
+                alSolicitarRefresco.run(); // Refrescar datos corporativos
+                break;
+
+            case "OPERARIO":
+                alRegistrarActividad.accept("🔧 " + info);
+                alSolicitarRefresco.run(); // Refrescar tabla de personal
+                break;
+
+            case "SISTEMA":
+                String msg = datos.path("mensaje").asText("Aviso de sistema");
+                alRegistrarActividad.accept("📢 " + msg);
                 break;
         }
     }

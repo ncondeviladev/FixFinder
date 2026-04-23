@@ -171,6 +171,33 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public Usuario obtenerPorEmail(String email) throws ServiceException {
+        try {
+            Usuario u = usuarioDAO.obtenerPorEmail(email);
+            if (u == null) throw new ServiceException("Usuario no encontrado.");
+            
+            // Cargar datos extendidos polimórficos
+            return obtenerDatosExtendidos(u);
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al obtener usuario por email.", e);
+        }
+    }
+
+    /**
+     * Helper para cargar datos de Operario o Cliente según el rol.
+     */
+    private Usuario obtenerDatosExtendidos(Usuario u) throws DataAccessException {
+        if (u.getRol() == Rol.OPERARIO || u.getRol() == Rol.GERENTE) {
+            Usuario op = operarioDAO.obtenerPorId(u.getId());
+            if (op != null) return op;
+        } else if (u.getRol() == Rol.CLIENTE) {
+            Usuario cli = clienteDAO.obtenerPorId(u.getId());
+            if (cli != null) return cli;
+        }
+        return u;
+    }
+
+    @Override
     public boolean validarPassword(String passwordInput, String passwordHash) {
         if (passwordInput == null || passwordHash == null)
             return false;

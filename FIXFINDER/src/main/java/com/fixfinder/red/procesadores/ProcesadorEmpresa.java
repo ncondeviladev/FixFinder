@@ -1,5 +1,6 @@
 package com.fixfinder.red.procesadores;
 
+import com.fixfinder.red.Broadcaster;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -101,6 +102,9 @@ public class ProcesadorEmpresa {
 
                 respuesta.put("status", 200);
                 respuesta.put("mensaje", "Empresa actualizada correctamente");
+                
+                // BROADCAST: Sincronizar cambios administrativos
+                Broadcaster.getInstancia().difundirEventoEmpresa("MODIFICACION", id, "Datos de empresa actualizados");
             } catch (ServiceException e) {
                 respuesta.put("status", 400);
                 respuesta.put("mensaje", e.getMessage());
@@ -151,7 +155,6 @@ public class ProcesadorEmpresa {
                 }
             }
         } catch (Exception ex) {
-            System.err.println("Error enriqueciendo empresa con gerente: " + ex.getMessage());
         }
 
         // Obtener valoraciones
@@ -170,7 +173,6 @@ public class ProcesadorEmpresa {
             }
             m.put("valoraciones", valoraciones);
         } catch (Exception ex) {
-            System.err.println("Error enriqueciendo empresa con valoraciones: " + ex.getMessage());
         }
     }
 }

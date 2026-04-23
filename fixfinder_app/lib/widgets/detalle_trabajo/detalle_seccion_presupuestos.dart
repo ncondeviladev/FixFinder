@@ -1,6 +1,6 @@
-// Sección de la pantalla de detalles dedicada a la gestión de presupuestos.
-// Permite al cliente listar, ver detalles y aceptar los presupuestos recibidos.
+
 import 'package:flutter/material.dart';
+import '../../services/external_launcher_service.dart';
 import '../../models/presupuesto.dart';
 import '../../theme/fixfinder_theme.dart';
 
@@ -29,65 +29,130 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Información de la Empresa'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nombre: ${p.nombreEmpresa ?? "Desconocido"}',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            if (p.cifEmpresa != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.assignment_ind, size: 16),
-                  const SizedBox(width: 8),
-                  Text('CIF: ${p.cifEmpresa!}'),
-                ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cabecera del diálogo con Logo y Nombre
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      backgroundImage: (p.urlFotoEmpresa != null && p.urlFotoEmpresa!.isNotEmpty)
+                          ? NetworkImage(p.urlFotoEmpresa!)
+                          : null,
+                      child: (p.urlFotoEmpresa == null || p.urlFotoEmpresa!.isEmpty)
+                          ? Icon(Icons.business, size: 40, color: Theme.of(context).colorScheme.primary)
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      p.nombreEmpresa ?? "Desconocido",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-            ],
-            if (p.emailEmpresa != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.email, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(p.emailEmpresa!)),
-                ],
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 10),
+              
+              // Bloques de información interactiva
+              _crearFilaInfo(
+                context, 
+                Icons.assignment_ind, 
+                'CIF', 
+                p.cifEmpresa ?? "No disponible"
               ),
-              const SizedBox(height: 8),
-            ],
-            if (p.telefonoEmpresa != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.phone, size: 16),
-                  const SizedBox(width: 8),
-                  Text(p.telefonoEmpresa!),
-                ],
+              
+              _crearFilaInfo(
+                context, 
+                Icons.email, 
+                'Email', 
+                p.emailEmpresa ?? "No disponible"
               ),
-              const SizedBox(height: 8),
-            ],
-            if (p.direccionEmpresa != null) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.location_on, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(p.direccionEmpresa!)),
-                ],
+
+              _crearFilaInfo(
+                context, 
+                Icons.phone, 
+                'Teléfono', 
+                p.telefonoEmpresa ?? "No disponible",
+                onTap: () => ExternalLauncherService.llamarTelefono(p.telefonoEmpresa),
+                color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(height: 8),
+
+              _crearFilaInfo(
+                context, 
+                Icons.location_on, 
+                'Dirección', 
+                p.direccionEmpresa ?? "No especificada",
+                trailing: IconButton(
+                  icon: const Icon(Icons.map_outlined, color: Colors.blue),
+                  onPressed: () => ExternalLauncherService.abrirMapa(p.direccionEmpresa),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+              const Divider(),
+              const SizedBox(height: 10),
+              const Text('Propuesta Técnica:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+              const SizedBox(height: 4),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(p.notas ?? "Sin notas adicionales", 
+                    style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic)),
+              ),
             ],
-            const Divider(),
-            const Text('Detalles del Presupuesto:',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            Text(p.notas ?? "Sin notas adicionales"),
-          ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('CERRAR'),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _crearFilaInfo(BuildContext context, IconData icono, String etiqueta, String valor, {VoidCallback? onTap, Widget? trailing, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icono, size: 20, color: Colors.blueGrey),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(etiqueta, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                GestureDetector(
+                  onTap: onTap,
+                  child: Text(
+                    valor, 
+                    style: TextStyle(
+                      fontSize: 14, 
+                      fontWeight: FontWeight.w500,
+                      decoration: onTap != null ? TextDecoration.underline : null,
+                      color: color ?? Theme.of(context).textTheme.bodyLarge?.color,
+                    )
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing,
         ],
       ),
     );
@@ -122,12 +187,12 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
         else
           ...presupuestos
               .where((p) => p.estado != 'RECHAZADO')
-              .map((p) => _buildPresupuestoCard(context, p)),
+              .map((p) => _crearTarjetaPresupuesto(context, p)),
       ],
     );
   }
 
-  Widget _buildPresupuestoCard(BuildContext context, Presupuesto p) {
+  Widget _crearTarjetaPresupuesto(BuildContext context, Presupuesto p) {
     final bool esPendiente = p.estado == 'PENDIENTE';
 
     return Card(
@@ -140,15 +205,18 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
           // Cabecera de la tarjeta: Empresa y Precio
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              child: Icon(Icons.business,
-                  color: Theme.of(context).colorScheme.onSecondary),
+              backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              backgroundImage: (p.urlFotoEmpresa != null && p.urlFotoEmpresa!.isNotEmpty)
+                ? NetworkImage(p.urlFotoEmpresa!)
+                : null,
+              child: (p.urlFotoEmpresa == null || p.urlFotoEmpresa!.isEmpty)
+                ? Icon(Icons.business, color: Theme.of(context).colorScheme.primary)
+                : null,
             ),
             title: Text(
               p.nombreEmpresa ?? "Empresa",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: Text('ID Oferta: #${p.id}'),
             trailing: Text(
               '${p.monto.toStringAsFixed(2)}€',
               style: TextStyle(

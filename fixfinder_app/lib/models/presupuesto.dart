@@ -15,6 +15,7 @@ class Presupuesto {
   final String? telefonoEmpresa;
   final String? direccionEmpresa;
   final String? cifEmpresa;
+  final String? urlFotoEmpresa;
 
   Presupuesto({
     required this.id,
@@ -27,6 +28,7 @@ class Presupuesto {
     this.telefonoEmpresa,
     this.direccionEmpresa,
     this.cifEmpresa,
+    this.urlFotoEmpresa,
   });
 
   /// Construye un presupuesto a partir de un mapa de datos JSON del servidor.
@@ -48,6 +50,7 @@ class Presupuesto {
       direccionEmpresa:
           json['empresa'] != null ? json['empresa']['direccion'] : null,
       cifEmpresa: json['empresa'] != null ? json['empresa']['cif'] : null,
+      urlFotoEmpresa: json['empresa'] != null ? json['empresa']['url_foto'] : null,
     );
   }
 

@@ -401,7 +401,7 @@ public class PanelPrototipoController {
     private void procesarRespuesta(String json) {
         try {
             // Usar el servicio para parsear la respuesta
-            RespuestaServidor respuesta = servicioCliente.interpretarRespuesta(json);
+            RespuestaServidor respuesta = servicioCliente.parseRespuesta(json);
 
             int status = respuesta.getStatus();
             String mensaje = respuesta.getMensaje();

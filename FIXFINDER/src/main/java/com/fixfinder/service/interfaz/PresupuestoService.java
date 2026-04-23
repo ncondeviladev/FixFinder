@@ -12,4 +12,6 @@ public interface PresupuestoService {
     void aceptarPresupuesto(int idPresupuesto) throws ServiceException;
 
     void rechazarPresupuesto(int idPresupuesto) throws ServiceException;
+    
+    Presupuesto obtenerPorId(int idPresupuesto) throws ServiceException;
 }

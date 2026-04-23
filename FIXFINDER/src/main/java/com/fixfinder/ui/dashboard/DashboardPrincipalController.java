@@ -83,7 +83,12 @@ public class DashboardPrincipalController {
         // Inicialización del manejador de red especializado
         this.manejadorRespuestas = new ManejadorRespuestas(
             todosTrabajos, listaOperarios, infoEmpresaActual,
-            this::registrarActividad, this::sincronizarTodo, this::navegarA, idEmpresa
+            this::registrarActividad, this::sincronizarTodo, this::navegarA,
+            (nombre, url) -> {
+                if (nombre != null) sidebar.actualizarNombre(nombre);
+                if (url != null) sidebar.actualizarFoto(url);
+            },
+            idEmpresa, usuarioId
         );
 
         this.servicioCliente.setOnMensajeRecibido(json -> Platform.runLater(() -> procesarRespuesta(json)));
@@ -135,7 +140,7 @@ public class DashboardPrincipalController {
             // Refresco total de datos
             servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
             if (idEmpresa > 0) {
-                servicioCliente.enviarGetEmpresa(idEmpresa);
+                servicioCliente.obtenerDatosEmpresa(idEmpresa);
                 servicioCliente.solicitarListaOperarios(idEmpresa);
             }
         } catch (IOException e) { logError("sincronización total", e); }
@@ -263,7 +268,7 @@ public class DashboardPrincipalController {
 
     private void procesarRespuesta(String json) {
         try {
-            RespuestaServidor r = servicioCliente.interpretarRespuesta(json);
+            RespuestaServidor r = servicioCliente.parseRespuesta(json);
             if (r != null) {
                 manejadorRespuestas.procesar(r.getAccion(), r.getMensaje(), r.getDatos(), r.getStatus(), vistaDashboard, rootPane);
             }

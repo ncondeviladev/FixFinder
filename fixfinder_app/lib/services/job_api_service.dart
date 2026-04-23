@@ -10,7 +10,7 @@ import '../models/usuario.dart';
 class JobApiService {
   final SocketService _socket = SocketService();
   /// Obtiene la lista de trabajos para un usuario y rol específicos.
-  Future<List<Trabajo>> fetchTrabajos(Usuario usuario) async {
+  Future<List<Trabajo>> obtenerTrabajos(Usuario usuario) async {
     try {
       final respuesta = await _socket.request(
         'LISTAR_TRABAJOS',
@@ -31,15 +31,16 @@ class JobApiService {
       if (respuesta['status'] == 401 || (respuesta['mensaje'] != null && respuesta['mensaje'].toString().contains('no válida'))) {
         throw Exception('SESSION_EXPIRED');
       }
+
+      throw Exception('Error del servidor: ${respuesta['mensaje']}');
     } catch (e) {
       debugPrint('[JobApi] Error listando trabajos: $e');
-      if (e.toString().contains('SESSION_EXPIRED')) rethrow;
+      rethrow;
     }
-    return [];
   }
 
   /// Envía la creación de un nuevo trabajo.
-  Future<bool> createTrabajo(
+  Future<bool> crearTrabajo(
       Usuario usuario, Map<String, dynamic> datosTrabajo) async {
     datosTrabajo['idCliente'] = usuario.id;
     try {
@@ -55,7 +56,7 @@ class JobApiService {
   }
 
   /// Finaliza un trabajo con informe y fotos.
-  Future<bool> finalizeTrabajo(Usuario usuario, int idTrabajo, String informe,
+  Future<bool> finalizarTrabajo(Usuario usuario, int idTrabajo, String informe,
       List<String>? fotos) async {
     try {
       final respuesta = await _socket.request(
@@ -74,7 +75,7 @@ class JobApiService {
   }
 
   /// Obtiene presupuestos asociados a un trabajo.
-  Future<List<Presupuesto>> fetchPresupuestos(
+  Future<List<Presupuesto>> obtenerPresupuestos(
       Usuario usuario, int idTrabajo) async {
     try {
       final respuesta = await _socket.request(
@@ -95,7 +96,7 @@ class JobApiService {
   }
 
   /// Acepta un presupuesto específico.
-  Future<bool> acceptPresupuesto(Usuario usuario, int idPresupuesto) async {
+  Future<bool> aceptarPresupuesto(Usuario usuario, int idPresupuesto) async {
     try {
       final respuesta = await _socket.request(
         'ACEPTAR_PRESUPUESTO',
@@ -109,7 +110,7 @@ class JobApiService {
   }
 
   /// Rechaza un presupuesto específico.
-  Future<bool> rejectPresupuesto(Usuario usuario, int idPresupuesto) async {
+  Future<bool> rechazarPresupuesto(Usuario usuario, int idPresupuesto) async {
     try {
       final respuesta = await _socket.request(
         'RECHAZAR_PRESUPUESTO',
@@ -123,7 +124,7 @@ class JobApiService {
   }
 
   /// Registra la valoración de un cliente.
-  Future<bool> valorateTrabajo(
+  Future<bool> valorarTrabajo(
       Usuario usuario, int idTrabajo, int valoracion, String comentario) async {
     try {
       final respuesta = await _socket.request(
@@ -142,7 +143,7 @@ class JobApiService {
   }
 
   /// Cancela un trabajo con un motivo específico.
-  Future<bool> cancelTrabajo(
+  Future<bool> cancelarTrabajo(
       Usuario usuario, int idTrabajo, String motivo) async {
     try {
       final respuesta = await _socket.request(
@@ -157,7 +158,7 @@ class JobApiService {
   }
 
   /// Modifica los datos de un trabajo existente.
-  Future<bool> modifyTrabajo(
+  Future<bool> modificarTrabajo(
       Usuario usuario, int idTrabajo, Map<String, dynamic> datos) async {
     datos['idTrabajo'] = idTrabajo;
     try {

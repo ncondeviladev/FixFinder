@@ -1,5 +1,7 @@
 package com.fixfinder.red.procesadores;
 
+import com.fixfinder.red.Broadcaster;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,6 +11,8 @@ import com.fixfinder.modelos.Presupuesto;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.service.interfaz.PresupuestoService;
 import com.fixfinder.utilidades.ServiceException;
+import com.fixfinder.data.DataRepositoryImpl;
+import com.fixfinder.data.interfaces.TrabajoDAO;
 
 import com.fixfinder.modelos.enums.EstadoPresupuesto;
 import java.util.List;
@@ -24,40 +28,41 @@ public class ProcesadorPresupuestos {
     }
 
     public void procesarCrearPresupuesto(JsonNode datos, ObjectNode respuesta) {
-        System.err.println("🚨 [DEBUG-CRITICO] Entrando en ProcesadorPresupuestos.procesarCrearPresupuesto");
         if (datos == null) {
-            System.err.println("🚨 [DEBUG-CRITICO] Error: Datos son NULL");
             respuesta.put("status", 400);
             return;
         }
-        System.err.println("🚨 [DEBUG-CRITICO] Payload: " + datos.toString());
         try {
             int idTrabajo = datos.get("idTrabajo").asInt();
             int idEmpresa = datos.get("idEmpresa").asInt();
             double monto = datos.get("monto").asDouble();
             String notas = datos.path("notas").asText("");
 
-            System.out.println("📩 [DEBUG-BUDGET] Recibida oferta: Trabajo=" + idTrabajo + ", Empresa=" + idEmpresa + ", Monto=" + monto);
 
             Presupuesto p = new Presupuesto();
             Trabajo t = new Trabajo();
             t.setId(idTrabajo);
             p.setTrabajo(t);
-            
+
             Empresa emp = new Empresa();
             emp.setId(idEmpresa);
             p.setEmpresa(emp);
-            
+
             p.setMonto(monto);
             p.setNotas(notas);
             p.setEstado(EstadoPresupuesto.PENDIENTE);
 
             presupuestoService.crearPresupuesto(p);
+            System.out.println("💰 [PRESUPUESTO] Nueva oferta registrada de " + monto + "€ para Incidencia #" + idTrabajo);
 
             respuesta.put("status", 201);
             respuesta.put("mensaje", "Presupuesto enviado correctamente");
-            System.out.println("✅ [DEBUG-BUDGET] Presupuesto procesado y guardado en DB.");
             respuesta.set("datos", presupuestoToJson(p));
+
+            // BROADCAST: Notificar cambio de estado (PRESUPUESTADO) al cliente y a los gerentes
+            TrabajoDAO trabajoDAO = new DataRepositoryImpl().getTrabajoDAO();
+            int idCliente = trabajoDAO.obtenerPorId(idTrabajo).getCliente().getId();
+            Broadcaster.getInstancia().difundirEventoPresupuesto("TRABAJO_PRESUPUESTADO", idTrabajo, idCliente, idEmpresa, "Nueva oferta de presupuesto registrada");
 
         } catch (ServiceException e) {
             System.out.println("[DEBUG] ServiceException: " + e.getMessage());
@@ -100,9 +105,18 @@ public class ProcesadorPresupuestos {
         try {
             int idPresupuesto = datos.get("idPresupuesto").asInt();
             presupuestoService.aceptarPresupuesto(idPresupuesto);
+            System.out.println("✅ [PRESUPUESTO] Oferta aceptada para la Incidencia.");
 
             respuesta.put("status", 200);
             respuesta.put("mensaje", "Presupuesto aceptado correctamente.");
+
+            // BROADCAST: Notificar aceptación
+            Presupuesto p = presupuestoService.obtenerPorId(idPresupuesto);
+            int idT = p.getTrabajo().getId();
+            int idCliente = p.getTrabajo().getCliente() != null ? p.getTrabajo().getCliente().getId() : 0;
+            int idEmp = p.getEmpresa() != null ? p.getEmpresa().getId() : 0;
+
+            Broadcaster.getInstancia().difundirEventoPresupuesto("PRESUPUESTO_ACEPTADO", idT, idCliente, idEmp, "Presupuesto aceptado (Trabajo asignado)");
 
         } catch (ServiceException e) {
             respuesta.put("status", 400);
@@ -121,6 +135,14 @@ public class ProcesadorPresupuestos {
 
             respuesta.put("status", 200);
             respuesta.put("mensaje", "Presupuesto rechazado correctamente.");
+
+            // BROADCAST: Notificar rechazo (permite refrescar dashboards en tiempo real)
+            Presupuesto p = presupuestoService.obtenerPorId(idPresupuesto);
+            int idT = p.getTrabajo().getId();
+            int idCliente = p.getTrabajo().getCliente() != null ? p.getTrabajo().getCliente().getId() : 0;
+            int idEmp = p.getEmpresa() != null ? p.getEmpresa().getId() : 0;
+
+            Broadcaster.getInstancia().difundirEventoPresupuesto("PRESUPUESTO_RECHAZADO", idT, idCliente, idEmp, "Presupuesto rechazado por el cliente");
 
         } catch (ServiceException e) {
             respuesta.put("status", 400);
@@ -148,6 +170,7 @@ public class ProcesadorPresupuestos {
             emp.put("telefono", p.getEmpresa().getTelefono());
             emp.put("direccion", p.getEmpresa().getDireccion());
             emp.put("cif", p.getEmpresa().getCif());
+            emp.put("url_foto", p.getEmpresa().getUrlFoto());
         }
         return n;
     }

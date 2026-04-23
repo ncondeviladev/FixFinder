@@ -30,6 +30,7 @@ public class Sidebar extends VBox {
     private final List<Button> navButtons = new ArrayList<>();
     private String vistaActual = "dashboard";
     private StackPane avatarPane;
+    private Label lblNombreUsuario; // Referencia para actualización en vivo
     private String nombreUsuario;
 
     /**
@@ -60,8 +61,22 @@ public class Sidebar extends VBox {
         this.vistaActual = vistaId;
     }
 
+    /** Actualiza el nombre a mostrar en el perfil del sidebar. */
+    public void actualizarNombre(String nuevo) {
+        if (lblNombreUsuario != null) {
+            Platform.runLater(() -> {
+                this.nombreUsuario = nuevo;
+                lblNombreUsuario.setText(nuevo);
+                // Si la foto es de iniciales, también refrescarla
+                if (avatarPane != null && avatarPane.getChildren().size() == 1 && avatarPane.getChildren().get(0) instanceof Label) {
+                    actualizarFoto(null); // Refrescará las iniciales con el nuevo nombre
+                }
+            });
+        }
+    }
+
     /** Actualiza la foto del avatar en el sidebar sin reconstruir la vista. */
-    public void actualizarFoto(String url) {
+public void actualizarFoto(String url) {
         if (avatarPane != null) {
             avatarPane.getChildren().clear();
             cargarFotoEnPane(avatarPane, url, nombreUsuario);
@@ -120,12 +135,12 @@ public class Sidebar extends VBox {
 
         VBox info = new VBox(3);
         HBox.setHgrow(info, Priority.ALWAYS);
-        Label lblNombre = new Label(nombre);
-        lblNombre.getStyleClass().add("nombre-usuario-lateral");
-        lblNombre.setMaxWidth(120);
+        this.lblNombreUsuario = new Label(nombre);
+        lblNombreUsuario.getStyleClass().add("nombre-usuario-lateral");
+        lblNombreUsuario.setMaxWidth(120);
         Label lblRol = new Label(rol);
         lblRol.getStyleClass().add("rol-usuario-lateral");
-        info.getChildren().addAll(lblNombre, lblRol);
+        info.getChildren().addAll(lblNombreUsuario, lblRol);
 
         Button btnLogout = new Button("↪");
         btnLogout.getStyleClass().add("btn-cerrar-sesion");

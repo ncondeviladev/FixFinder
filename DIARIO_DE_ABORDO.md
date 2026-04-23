@@ -856,9 +856,9 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 - [x] **Refactor TablaIncidencias:** Desmontar la "God Class" `TablaIncidencias.java`. Separar factorías de celdas, filtrado y diálogos en clases independientes (SRP).
 - [x] **Micro-refactor Autenticacion:** Trocear `procesarRegistro` en métodos privados segregados por rol.
 - [x] **Gestion de Timeouts:** Asegurar que acciones como `VALORAR` o `CANCELAR` devuelvan siempre la clave `"mensaje"` en el JSON para evitar interrupciones de flujo en la App.
-
+- [] Revisar sistema de prioridad y urgencia y plantear si mantenerlo o eliminarlo
 ## Pruebas y QA
-- [ ] **Terminar Suite de Tests (Post-Broadcaster):** Implementar por completo los tests unitarios y de integración a partir de los esqueletos preparados. Se pospone a después de la implementación del Broadcaster para asegurar que los tests cubran el flujo de tiempo real.
+- [ ] **Terminar Suite de Tests:** Implementar por completo los tests unitarios y de integración a partir de los esqueletos (stubs) preparados tanto en Java como en Flutter, para asegurar la máxima estabilidad antes de la entrega final.
 
 ## Tareas Tras la Revisión del Tutor
 - [ ] **Apaciguar la falta de Providers:** Crear un `usuario_provider.dart` ligero como envoltorio del perfil y documentar en la MEMORIA la desestimación técnica del "EmpresaProvider" por Arquitectura de Dominios.
@@ -1018,5 +1018,33 @@ Se ha establecido una infraestructura de pruebas para garantizar la estabilidad 
 #### 🎨 Refinamiento Visual
 - **Optimización de Estados**: El texto del estado "Disponible" se ha ajustado a un tono gris tenue (`-ff-tenue`) para evitar la fatiga visual, manteniendo el punto verde como indicador principal de actividad.
 - **Consistencia en Diálogos**: El botón "Cancelar" en la configuración de la empresa ahora utiliza correctamente la clase `.btn-secundario`, eliminando estilos nativos del SO.
+
+---
+
+## ✅ SESIÓN 22/04/2026 — Tiempo Real (Broadcaster) y Auditoría Arquitectónica
+
+### Logros Técnicos de la Sesión
+
+#### 📡 Implementación del Sistema Broadcaster (Push)
+- **Centralita de Eventos**: Desplegada la clase `Broadcaster.java` (Singleton) para gestionar la difusión de mensajes en tiempo real.
+- **Concurrencia Segura**: Uso de `ConcurrentHashMap` y `synchronized` para garantizar que las notificaciones no corrompan los flujos de datos ni provoquen deadlocks.
+- **Flujo de Notificación**: Implementada la difusión automática en eventos clave:
+    - **NUEVO_TRABAJO**: Notifica a todos los gerentes al instante.
+    - **PRESUPUESTO**: Notifica al cliente de la incidencia.
+    - **CAMBIOS_ESTADO**: Sincroniza Dashboard y App sin intervención del usuario.
+
+#### 🏗️ Auditoría y Refactorización Arquitectónica
+- **Limpieza de Redundancias**: Consolidado el procesamiento de fotos iniciales/finales en un único método `procesarFotos` en `ManejadorCicloVidaTrabajo.java`, eliminando código duplicado.
+- **Eliminación de Código Muerto**: Limpieza de utilidades no utilizadas en el motor de red (`Broadcaster`).
+- **Seguridad en Capas**: Revisión del sistema de filtrado en `GestorConexion`. Separación estricta entre acciones públicas (Login/Registro) y acciones privadas bajo validación de Token.
+- **Desacoplamiento Estructural**: Consolidación del patrón **Mediador** (Gestor -> Procesador -> Manejador) para cumplir con el principio de Responsabilidad Única (SRP).
+
+#### 🧪 Calidad de Código y Robustez
+- **Refactor Jackon**: Estandarización del uso de `path()` vs `get()` para manejar campos opcionales sin riesgo de `NullPointerException`.
+- **Sincronización TCP**: Blindado el método de salida de sockets del servidor para permitir envíos simultáneos del Workers y del Broadcaster sin colisiones.
+
+### Estado Final de la Sesión
+- El sistema de tiempo real es 100% operativo en Dashboard y App.
+- Arquitectura limpia, documentada línea a línea y preparada para la redacción de la memoria final.
 
 ---

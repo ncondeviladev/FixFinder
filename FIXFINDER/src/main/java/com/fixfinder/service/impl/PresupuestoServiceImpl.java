@@ -190,4 +190,13 @@ public class PresupuestoServiceImpl implements PresupuestoService {
             throw new ServiceException("Error al rechazar presupuesto", e);
         }
     }
+
+    @Override
+    public Presupuesto obtenerPorId(int idPresupuesto) throws ServiceException {
+        try {
+            return presupuestoDAO.obtenerPorId(idPresupuesto);
+        } catch (DataAccessException e) {
+            throw new ServiceException("Error al obtener presupuesto por ID", e);
+        }
+    }
 }

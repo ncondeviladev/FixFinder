@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fixfinder.data.ConexionDB;
+import com.fixfinder.modelos.Usuario;
 import com.fixfinder.red.procesadores.ProcesadorAutenticacion;
 import com.fixfinder.red.procesadores.ProcesadorFacturas;
 import com.fixfinder.red.procesadores.ProcesadorPresupuestos;
@@ -34,6 +35,8 @@ public class GestorConexion implements Runnable {
     private final Socket socket;
     private final Semaphore semaforo;
     private final ObjectMapper mapper;
+    private DataOutputStream salida; // Guardamos referencia para el Broadcaster
+    private Usuario usuario; // Identidad del usuario tras el login
 
     // Servicios
     private final UsuarioService usuarioService;
@@ -76,14 +79,15 @@ public class GestorConexion implements Runnable {
 
     @Override
     public void run() {
+        Broadcaster.getInstancia().registrarConexion(this);
         try (
-                DataInputStream entrada = new DataInputStream(socket.getInputStream());
-                DataOutputStream salida = new DataOutputStream(socket.getOutputStream())) {
+                DataInputStream entrada = new DataInputStream(socket.getInputStream())) {
+
+            // Inicializamos la salida como campo de clase para permitir el Broadcaster
+            this.salida = new DataOutputStream(socket.getOutputStream());
 
             while (!socket.isClosed()) {
-                System.err.println("📡 [SOCKET-WAIT] Esperando nueva cabecera (4 bytes)...");
                 int length = entrada.readInt();
-                System.err.println("📡 [SOCKET-IN] Recibidos " + length + " bytes.");
 
                 if (length <= 0 || length > 1024 * 1024) {
                     System.err.println("⚠️ [SOCKET-WARN] Longitud inválida recibida: " + length);
@@ -92,9 +96,7 @@ public class GestorConexion implements Runnable {
 
                 byte[] bytes = new byte[length];
                 entrada.readFully(bytes);
-                System.err.println("📡 [SOCKET-IN] Payload leído completo.");
                 String mensajeCliente = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
-                System.out.println("📩 Recibido: " + mensajeCliente);
 
                 ObjectNode respuesta = mapper.createObjectNode();
                 try {
@@ -118,6 +120,10 @@ public class GestorConexion implements Runnable {
                         switch (accion) {
                             case "LOGIN":
                                 procesadorAutenticacion.procesarLogin(datos, respuesta);
+                                // Tras un login exitoso, vinculamos el usuario a la conexión
+                                if (respuesta.get("status").asInt() == 200) {
+                                    this.usuario = usuarioService.obtenerPorEmail(datos.get("email").asText());
+                                }
                                 break;
 
                             case "REGISTRO":
@@ -133,8 +139,18 @@ public class GestorConexion implements Runnable {
                                 // VALIDACIÓN DE TOKEN para el resto de acciones
                                 String tokenMsg = nodo.has("token") ? nodo.get("token").asText() : null;
                                 if (SessionManager.esTokenValido(tokenMsg)) {
-                                    System.err.println("🔥 [GESTOR-DEBUG] Acción: " + accion + " | Usuario: "
-                                            + SessionManager.obtenerUsuario(tokenMsg));
+                                    // Auto-identificación del usuario si aún no está vinculado (Persistencia de
+                                    // sesión)
+                                    if (this.usuario == null) {
+                                        try {
+                                            int idU = SessionManager.obtenerUsuario(tokenMsg);
+                                            this.usuario = usuarioService.obtenerPorId(idU);
+                                        } catch (Exception e) {
+                                            System.err.println("⚠️ [GESTOR] Error vinculando usuario por token: "
+                                                    + e.getMessage());
+                                        }
+                                    }
+
                                     switch (accion) {
                                         case "CREAR_TRABAJO":
                                             procesadorTrabajos.procesarCrearTrabajo(datos, respuesta);
@@ -237,29 +253,54 @@ public class GestorConexion implements Runnable {
                     ConexionDB.cerrarConexion();
                 }
 
-                String jsonSalida = mapper.writeValueAsString(respuesta);
-                byte[] bytesSalida = jsonSalida.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-                int limit = Math.min(jsonSalida.length(), 250);
-                String act = respuesta.has("accion") ? respuesta.get("accion").asText() : "N/A";
-                System.out.println("📤 Enviando respuesta a " + act + ": " + jsonSalida.substring(0, limit)
-                        + (jsonSalida.length() > limit ? "..." : ""));
-                salida.writeInt(bytesSalida.length);
-                salida.write(bytesSalida);
-                salida.flush();
+                enviarMensaje(respuesta);
             }
 
         } catch (EOFException e) {
-            // Desconexión normal del cliente
             System.err.println("🔌 [SOCKET] Cliente desconectado (EOF alcanzado).");
         } catch (IOException e) {
-            // Error real de red
             System.err.println("❌ [SOCKET] Error de comunicación: " + e.getMessage());
             e.printStackTrace();
         } finally {
+            Broadcaster.getInstancia().desregistrarConexion(this);
             cerrarRecursos();
             semaforo.release();
-            System.out.println("🔓 Conexión liberada. Huecos disponibles: " + semaforo.availablePermits());
         }
+    }
+
+    /**
+     * Envía un mensaje JSON sincronizado para evitar la corrupción de datos
+     * si el Broadcaster intenta enviar un mensaje al mismo tiempo.
+     */
+    private synchronized void enviarMensaje(JsonNode nodo) {
+        try {
+            if (salida == null || socket.isClosed())
+                return;
+
+            String jsonSalida = mapper.writeValueAsString(nodo);
+            byte[] bytesSalida = jsonSalida.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+            salida.writeInt(bytesSalida.length);
+            salida.write(bytesSalida);
+            salida.flush();
+        } catch (IOException e) {
+            System.err.println("❌ [SOCKET-OUT] Error enviando mensaje: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Punto de entrada del Broadcaster para enviar una notificación push.
+     */
+    public void enviarPush(ObjectNode msg) {
+        enviarMensaje(msg);
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
     private void cerrarRecursos() {

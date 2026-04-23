@@ -1,5 +1,7 @@
 package com.fixfinder.red.procesadores;
 
+import com.fixfinder.red.Broadcaster;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,7 +40,6 @@ public class ProcesadorUsuarios {
         if (datos != null && datos.has("idEmpresa")) {
             try {
                 int idEmpresa = datos.get("idEmpresa").asInt();
-                System.out.println("[DEBUG-SERVER] Listando operarios para empresa ID: " + idEmpresa);
 
                 List<Operario> lista = operarioService.listarPorEmpresa(idEmpresa);
 
@@ -107,6 +108,9 @@ public class ProcesadorUsuarios {
 
                 respuesta.put("status", 200);
                 respuesta.put("mensaje", "Operario modificado correctamente");
+
+                // BROADCAST: Sincronizar cambios en el personal (Solo a su empresa)
+                Broadcaster.getInstancia().difundirEventoOperario("MODIFICACION", id, op.getIdEmpresa(), "Datos de operario actualizados");
             } catch (ServiceException e) {
                 respuesta.put("status", 400);
                 respuesta.put("mensaje", e.getMessage());
@@ -138,6 +142,9 @@ public class ProcesadorUsuarios {
 
                 respuesta.put("status", 200);
                 respuesta.put("mensaje", "Foto de perfil actualizada correctamente");
+
+                // BROADCAST: Cambio silencioso de foto de perfil
+                Broadcaster.getInstancia().difundirEventoUsuario("FOTO", idUsuario, "Foto de perfil actualizada", urlFoto, u.getNombreCompleto());
             } catch (Exception e) {
                 e.printStackTrace();
                 respuesta.put("status", 500);
@@ -170,6 +177,9 @@ public class ProcesadorUsuarios {
 
                 respuesta.put("status", 200);
                 respuesta.put("mensaje", "Datos actualizados correctamente");
+                
+                // BROADCAST: Notificar cambio de nombre/datos silenciosamente
+                Broadcaster.getInstancia().difundirEventoUsuario("DATOS", id, "Perfil actualizado", u.getUrlFoto(), u.getNombreCompleto());
             } catch (ServiceException e) {
                 respuesta.put("status", 400);
                 respuesta.put("mensaje", e.getMessage());

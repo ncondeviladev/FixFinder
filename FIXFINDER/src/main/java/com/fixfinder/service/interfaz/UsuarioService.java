@@ -53,6 +53,15 @@ public interface UsuarioService {
     Usuario obtenerPorId(Integer id) throws ServiceException;
 
     /**
+     * Obtiene un usuario por su dirección de email.
+     *
+     * @param email Email del usuario.
+     * @return El usuario encontrado.
+     * @throws ServiceException Si no existe.
+     */
+    Usuario obtenerPorEmail(String email) throws ServiceException;
+
+    /**
      * Verifica si una contraseña coincide con el hash almacenado.
      * Útil para re-autenticación antes de acciones críticas.
      *

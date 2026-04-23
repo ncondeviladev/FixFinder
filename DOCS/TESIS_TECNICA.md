@@ -85,8 +85,25 @@ Tanto en Java como en Dart, hemos programado un buffer acumulativo de seguridad:
 
 ---
 
-## 6. Conclusión de Ingeniería
-FixFinder demuestra un dominio total de las capas inferiores del desarrollo de software:
-1.  **Gestión de Red:** Control manual de sockets y buffers.
-2.  **Gestión de Concurrencia:** Arquitecturas asíncronas de 3 hilos y dispatchers.
-3.  **Gestión de Datos:** Transaccionalidad atómica y aislamiento de hilos mediante patrones de diseño avanzados.
+## 7. Notificaciones en Tiempo Real (Sistema Broadcaster)
+
+El sistema de notificaciones Push de FixFinder representa una implementación avanzada de comunicación bidireccional asíncrona sobre sockets TCP.
+
+### A. La Centralita Singleton y Concurrencia
+Para gestionar los avisos espontáneos (ej: cuando un nuevo cliente crea un trabajo), se ha implementado la clase `Broadcaster.java`.
+- **Estructura de Datos Segura:** Se utiliza un `ConcurrentHashMap` para almacenar las conexiones activas. Esto es crítico en **PSP**, ya que permite que el sistema registre o elimine conexiones mientras simultáneamente recorre la lista para enviar avisos, evitando la temida `ConcurrentModificationException`.
+- **Sincronización Atómica de Salida:** En `GestorConexion.java`, el método que escribe en el socket es `synchronized`. Esto actúa como un "semáforo" que impide que los datos de una respuesta estándar y los datos de un broadcast se mezclen en el buffer de red del sistema operativo, garantizando la integridad de los paquetes JSON.
+
+### B. El Mecanismo de "Trigger" (Disparo)
+El sistema sigue un flujo desacoplado:
+1.  **Gatillo:** Los `Manejadores de Ciclo de Vida` ejecutan la lógica de negocio (ej: guardar un presupuesto).
+2.  **Llamada al Mediador:** Si la operación es exitosa, llaman al `Broadcaster`.
+3.  **Difusión:** El Broadcaster decide a quién notificar (Global, a un Usuario concreto o a un Rol/Gerente).
+4.  **Reacción:** El cliente (Dashboard/App) recibe el evento y, basándose en la `categoria` del mensaje, decide si debe mostrar un Toast visual o forzar un refresco silencioso de sus tablas de datos.
+
+### C. Arquitectura de Defensa en Capas
+La gestión de peticiones en el servidor se ha diseñado siguiendo un patrón de "cebolla":
+1.  **Capa de Socket (Gestor):** Control de hilos y cabeceras binarias.
+2.  **Capa de Seguridad (Filter Switch):** Un primer nivel de ruteo separa acciones públicas de privadas, denegando el acceso a cualquier funcionalidad de negocio si el token de sesión no es válido.
+3.  **Capa de Ruteo (Procesador):** Organiza los comandos por área temática (Trabajos, Usuarios, Empresa).
+4.  **Capa Especialista (Manejador):** Ejecuta la lógica fina, validaciones de campos (utilizando el modo defensivo `path()` de Jackson para evitar nulos) y orquestación con la base de datos.

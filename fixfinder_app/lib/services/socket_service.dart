@@ -42,6 +42,9 @@ class SocketService {
   /// Flujo continuo de mensajes entrantes (eventos de servidor o respuestas).
   Stream<Map<String, dynamic>> get respuestas => _controladorRespuestas.stream;
 
+  // Semáforo para evitar colisiones en escrituras simultáneas al socket
+  Future<void>? _operacionSendEnCurso;
+
   /// Envía una solicitud asíncrona y espera su respuesta única identificada por ticket.
   Future<Map<String, dynamic>> request(String accion, Map<String, dynamic> datos, {String? token, Duration timeout = const Duration(seconds: 15)}) async {
     final String idTicket = DateTime.now().microsecondsSinceEpoch.toString();
@@ -163,12 +166,27 @@ class SocketService {
   }
 
   /// Serializa y envía un mapa JSON al servidor precedido de su longitud.
+  /// Implementa sincronización atómica para evitar colisiones de red.
   Future<void> send(Map<String, dynamic> peticion) async {
-    if (_socket == null) {
-      if (!await connect()) throw Exception('Servidor no disponible');
+    // Encadenamos la nueva operación al final de la cola actual
+    final Future<void>? operacionPrevia = _operacionSendEnCurso;
+    final Completer<void> completer = Completer<void>();
+    _operacionSendEnCurso = completer.future;
+
+    // Esperamos a que todas las operaciones anteriores hayan terminado
+    if (operacionPrevia != null) {
+      try {
+        await operacionPrevia;
+      } catch (_) {
+        // Ignoramos errores de peticiones previas para no bloquear la cola
+      }
     }
 
     try {
+      if (_socket == null) {
+        if (!await connect()) throw Exception('Servidor no disponible');
+      }
+
       final List<int> jsonBytes = utf8.encode(jsonEncode(peticion));
       final int len = jsonBytes.length;
 
@@ -188,6 +206,9 @@ class SocketService {
       debugPrint('[Socket] Error envío: $e');
       disconnect();
       rethrow;
+    } finally {
+      // Liberamos el semáforo para la siguiente petición en cola
+      completer.complete();
     }
   }
 

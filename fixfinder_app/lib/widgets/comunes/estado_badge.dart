@@ -12,17 +12,16 @@ class EstadoBadge extends StatelessWidget {
   Color _obtenerColor(BuildContext context, EstadoTrabajo e) {
     switch (e) {
       case EstadoTrabajo.PENDIENTE:
-        return Theme.of(context).colorScheme.primary;
+        return const Color(0xFFF59E0B); // Amarillo
       case EstadoTrabajo.PRESUPUESTADO:
-        return FixFinderTheme.adminColor;
+        return const Color(0xFF38BDF8); // Azul Claro
       case EstadoTrabajo.ACEPTADO:
-        return FixFinderTheme.infoColor;
+        return const Color(0xFF3B82F6); // Azul Medio
       case EstadoTrabajo.ASIGNADO:
-        return Theme.of(context).colorScheme.tertiary;
+        return const Color(0xFFA855F7); // Morado
       case EstadoTrabajo.REALIZADO:
-        return FixFinderTheme.successColor;
       case EstadoTrabajo.FINALIZADO:
-        return Theme.of(context).disabledColor;
+        return const Color(0xFF22C55E); // Verde
       case EstadoTrabajo.PAGADO:
         return Theme.of(context).colorScheme.secondary;
       case EstadoTrabajo.CANCELADO:

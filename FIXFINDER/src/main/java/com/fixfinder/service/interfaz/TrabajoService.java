@@ -101,10 +101,12 @@ public interface TrabajoService {
         List<Trabajo> historialOperario(Integer idOperario) throws ServiceException;
 
         /**
-         * Lista TODOS los trabajos del sistema (Vista Admin/Gerente).
-         * 
-         * @return Lista completa de trabajos.
          * @throws ServiceException Error de acceso.
          */
         List<Trabajo> listarTodos() throws ServiceException;
+
+        /**
+         * Obtiene un trabajo específico por su ID.
+         */
+        Trabajo obtenerPorId(Integer idTrabajo) throws ServiceException;
 }

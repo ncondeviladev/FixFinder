@@ -152,7 +152,7 @@ public class ServicioCliente {
         enviarJson("CREAR_PRESUPUESTO", datos);
     }
 
-    public void enviarGetEmpresa(int idEmpresa) throws IOException {
+    public void obtenerDatosEmpresa(int idEmpresa) throws IOException {
         ObjectNode datos = mapper.createObjectNode();
         datos.put("idEmpresa", idEmpresa);
         enviarJson("GET_EMPRESA", datos);
@@ -190,7 +190,7 @@ public class ServicioCliente {
 
     // --- PROCESAMIENTO RESPUESTA ---
 
-    public RespuestaServidor interpretarRespuesta(String json) throws ClienteException {
+    public RespuestaServidor parseRespuesta(String json) throws ClienteException {
         try {
             JsonNode root = mapper.readTree(json);
             int status = root.has("status") ? root.get("status").asInt() : 0;

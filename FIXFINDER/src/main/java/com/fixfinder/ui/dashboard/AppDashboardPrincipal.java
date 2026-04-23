@@ -185,7 +185,7 @@ public class AppDashboardPrincipal extends Application {
 
                 servicioCliente.setOnMensajeRecibido(json -> Platform.runLater(() -> {
                     try {
-                        RespuestaServidor respuesta = servicioCliente.interpretarRespuesta(json);
+                        RespuestaServidor respuesta = servicioCliente.parseRespuesta(json);
                         if (respuesta.esExito() && respuesta.getDatos() != null
                                 && respuesta.getDatos().has("rol")) {
 

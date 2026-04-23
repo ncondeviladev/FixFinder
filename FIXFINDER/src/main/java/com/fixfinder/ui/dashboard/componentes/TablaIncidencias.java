@@ -64,7 +64,6 @@ public class TablaIncidencias extends VBox {
 
         tabla.getColumns().addAll(
                 crearColumnaAcciones(),
-                crearColumnaId(),
                 crearColumnaTitulo(),
                 crearColumnaCliente(),
                 crearColumnaCategoria(),
@@ -84,27 +83,6 @@ public class TablaIncidencias extends VBox {
         return col;
     }
 
-    private TableColumn<TrabajoFX, Number> crearColumnaId() {
-        TableColumn<TrabajoFX, Number> col = new TableColumn<>("ID");
-        col.setCellValueFactory(c -> c.getValue().idProperty());
-        col.setMinWidth(40);
-        col.setMaxWidth(50);
-        col.setCellFactory(c -> new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Number v, boolean empty) {
-                super.updateItem(v, empty);
-                if (empty || v == null) {
-                    setGraphic(null);
-                    return;
-                }
-                Label l = new Label(String.valueOf(v.intValue()));
-                l.getStyleClass().add("celda-id");
-                setGraphic(l);
-                setText(null);
-            }
-        });
-        return col;
-    }
 
     private TableColumn<TrabajoFX, String> crearColumnaTitulo() {
         TableColumn<TrabajoFX, String> col = new TableColumn<>("Título");
