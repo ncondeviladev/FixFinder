@@ -151,6 +151,7 @@ class TrabajoProvider with ChangeNotifier {
           _trabajos.firstWhere((t) => t.id == nuevo.id, orElse: () => nuevo);
       if (actual.estado != nuevo.estado) return true;
       if (actual.presupuesto?.estado != nuevo.presupuesto?.estado) return true;
+      if (actual.presupuestos.length != nuevo.presupuestos.length) return true;
     }
     return false;
   }

@@ -17,12 +17,11 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
     private final TrabajoDAOImpl trabajoDAO = new TrabajoDAOImpl();
 
-    private static final String SQL_CON_RELACIONES = 
-        "SELECT p.*, " +
-        " e.nombre AS emp_nombre, e.cif AS emp_cif, e.email_contacto AS emp_email, e.telefono AS emp_telefono, " +
-        " e.direccion AS emp_direccion, e.url_foto AS emp_logo_url " +
-        "FROM presupuesto p " +
-        "LEFT JOIN empresa e ON p.id_empresa = e.id";
+    private static final String SQL_CON_RELACIONES = "SELECT p.*, " +
+            " e.nombre AS emp_nombre, e.cif AS emp_cif, e.email_contacto AS emp_email, e.telefono AS emp_telefono, " +
+            " e.direccion AS emp_direccion, e.url_foto AS emp_logo_url " +
+            "FROM presupuesto p " +
+            "LEFT JOIN empresa e ON p.id_empresa = e.id";
 
     @Override
     public void insertar(Presupuesto presupuesto) throws DataAccessException {
@@ -97,7 +96,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
     public void eliminarPorEmpresa(int idEmpresa) throws DataAccessException {
         String sql = "DELETE FROM presupuesto WHERE id_empresa = ?";
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idEmpresa);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -229,9 +228,11 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
     }
 
     private void hidratarTrabajo(Presupuesto p) {
-        if (p == null || p.getTrabajo() == null) return;
+        if (p == null || p.getTrabajo() == null)
+            return;
         try {
-            // Se carga fuera del bucle del ResultSet para evitar el error de conexión cerrada
+            // Se carga fuera del bucle del ResultSet para evitar el error de conexión
+            // cerrada
             p.setTrabajo(trabajoDAO.obtenerPorId(p.getTrabajo().getId()));
         } catch (DataAccessException e) {
             System.err.println("Error hidratando trabajo en presupuesto " + p.getId());

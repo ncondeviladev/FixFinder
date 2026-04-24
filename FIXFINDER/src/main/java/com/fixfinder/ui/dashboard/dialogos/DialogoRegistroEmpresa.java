@@ -93,6 +93,7 @@ public class DialogoRegistroEmpresa {
 
         PasswordField txtPass = new PasswordField();
         txtPass.setPromptText("Contraseña Segura");
+        txtPass.getStyleClass().add("entrada-modal");
         grid.add(crearEtiqueta("Contraseña:"), 0, 11);
         grid.add(txtPass, 1, 11);
 
@@ -172,9 +173,15 @@ public class DialogoRegistroEmpresa {
             }).start();
         });
 
+        root.getStyleClass().add("pila-principal-login");
+        root.setPadding(new Insets(30));
         root.getChildren().addAll(lblTitulo, lblSubtitulo, grid, lblFeedback, btnBox);
 
-        Scene scene = new Scene(root, 480, 660);
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.getStyleClass().add("scroll-transparente");
+        
+        Scene scene = new Scene(scroll, 500, 680);
         String css = getClass().getResource("/com/fixfinder/ui/dashboard/dashboard-principal.css").toExternalForm();
         scene.getStylesheets().add(css);
         dialog.setScene(scene);

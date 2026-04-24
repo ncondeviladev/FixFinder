@@ -101,7 +101,8 @@ public class DialogoFichaCliente {
         datos.getChildren().addAll(
                 fila(t, "Teléfono", t.getClienteTelefono().isBlank() ? "No proporcionado" : t.getClienteTelefono()),
                 fila(t, "Email", t.getClienteEmail().isBlank() ? "No proporcionado" : t.getClienteEmail()),
-                fila(t, "Dirección de la Incidencia", t.getDireccion().isBlank() ? "No especificada" : t.getDireccion()));
+                fila(t, "Dirección Contacto", t.getClienteDireccion().isBlank() ? "No proporcionada" : t.getClienteDireccion()),
+                fila(t, "Dirección Incidencia", t.getDireccion().isBlank() ? "No especificada" : t.getDireccion()));
 
         content.getChildren().addAll(header, datos);
         dialog.getDialogPane().setContent(content);

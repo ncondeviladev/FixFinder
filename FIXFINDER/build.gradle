@@ -114,11 +114,30 @@ task runPanelPrototipo(type: JavaExec) {
     mainClass = 'com.fixfinder.LanzadorPanelPrototipo'
 }
 
+task dashboardJar(type: Jar) {
+    group = 'build'
+    description = 'Generates a Fat JAR for the Dashboard'
+    archiveFileName = 'fixfinder-dashboard.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'com.fixfinder.ui.dashboard.LauncherDashboard'
+    }
+    from sourceSets.main.output
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes 'Main-Class': 'com.fixfinder.red.ServidorCentral'
     }
+    from sourceSets.main.output
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     } {

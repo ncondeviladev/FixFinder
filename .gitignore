@@ -23,3 +23,9 @@ out/
 # Secrets and Credentials
 FIXFINDER/src/main/resources/firebase-service-account.json
 *.pem
+
+# Artefactos de Despliegue (Generados)
+FixFinderDashboard/
+*.apk
+*.exe
+*.jar

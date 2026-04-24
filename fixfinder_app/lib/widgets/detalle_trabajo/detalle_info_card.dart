@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
 import '../../models/usuario.dart';
 import 'package:provider/provider.dart';
-import '../../providers/usuario_provider.dart';
 import '../comunes/dato_fila.dart';
 import '../comunes/estado_badge.dart';
 import '../trabajos/tarjeta_contacto.dart';
 import '../trabajos/galeria_fotos.dart';
 import 'bloques_descripcion.dart';
+import '../../models/trabajo.dart';
+import '../../providers/usuario_provider.dart';
+import 'tarjeta_empresa_presupuesto.dart';
 import '../../services/external_launcher_service.dart';
 import '../../utils/date_format_utils.dart';
 
@@ -75,6 +77,15 @@ class DetalleInfoCard extends StatelessWidget {
                 trabajo.cliente != null)
               TarjetaContacto(
                   titulo: 'Datos del Cliente:', usuario: trabajo.cliente!),
+            if (context.watch<UsuarioProvider>().usuario?.rol == Rol.CLIENTE &&
+                trabajo.presupuesto != null &&
+                trabajo.estado != EstadoTrabajo.PENDIENTE &&
+                trabajo.estado != EstadoTrabajo.PRESUPUESTADO)
+              TarjetaEmpresaPresupuesto(
+                presupuesto: trabajo.presupuesto!,
+                mostrarAcciones: false,
+                mostrarNotas: false,
+              ),
             if (context.watch<UsuarioProvider>().usuario?.rol == Rol.CLIENTE &&
                 trabajo.operarioAsignado != null)
               TarjetaContacto(

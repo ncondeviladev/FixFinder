@@ -167,7 +167,9 @@ public class ManejadorLecturaTrabajo {
 
                 for (Presupuesto p : listap) {
                     nodosPresus.add(mapper.mapearPresupuesto(p, idUsuarioConsulta, idEmpresaConsulta, idClientePropietario));
-                    if (EstadoPresupuesto.ACEPTADO == p.getEstado()) {
+                    
+                    String estP = p.getEstado() != null ? p.getEstado().toString() : "";
+                    if ("ACEPTADO".equalsIgnoreCase(estP)) {
                         aceptado = p;
                     }
                 }

@@ -248,10 +248,11 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                     (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
                         trabajoActual.estado == EstadoTrabajo.PRESUPUESTADO))
                   DetalleSeccionPresupuestos(
-                    presupuestos: trabajoActual
-                        .presupuestos, // Usar datos en tiempo real del provider
+                    presupuestos: _presupuestos.isNotEmpty 
+                        ? _presupuestos 
+                        : trabajoActual.presupuestos,
                     cargando: _cargandoPresupuestos &&
-                        trabajoActual.presupuestos.isEmpty,
+                        (_presupuestos.isEmpty && trabajoActual.presupuestos.isEmpty),
                     procesando: _procesando,
                     onRefresh: _cargarPresupuestos,
                     onAceptar: _aceptarPresupuesto,

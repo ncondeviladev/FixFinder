@@ -116,7 +116,7 @@ public class ProcesadorPresupuestos {
             int idCliente = p.getTrabajo().getCliente() != null ? p.getTrabajo().getCliente().getId() : 0;
             int idEmp = p.getEmpresa() != null ? p.getEmpresa().getId() : 0;
 
-            Broadcaster.getInstancia().difundirEventoPresupuesto("PRESUPUESTO_ACEPTADO", idT, idCliente, idEmp, "Presupuesto aceptado (Trabajo asignado)");
+            Broadcaster.getInstancia().difundirEventoPresupuesto("PRESUPUESTO_ACEPTADO", idT, idCliente, idEmp, "Presupuesto aceptado");
 
         } catch (ServiceException e) {
             respuesta.put("status", 400);

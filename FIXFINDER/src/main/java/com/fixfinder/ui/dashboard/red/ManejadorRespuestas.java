@@ -188,7 +188,8 @@ public class ManejadorRespuestas {
                     alActualizarPerfilLateral.accept(nuevoNombre, nuevaFoto);
                 }
             }
-            return; // Fin de procesamiento USUARIO (Silencioso)
+            alSolicitarRefresco.run(); // Refrescamos para ver cambios de cualquier cliente/operario en las tablas
+            return;
         }
 
         switch (categoria) {

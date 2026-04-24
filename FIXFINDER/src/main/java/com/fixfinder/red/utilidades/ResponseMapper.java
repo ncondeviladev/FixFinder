@@ -112,8 +112,12 @@ public class ResponseMapper {
         if (p.getEmpresa() != null) {
             ObjectNode emp = node.putObject("empresa");
             emp.put("id", p.getEmpresa().getId());
-            emp.put("nombre", p.getEmpresa().getNombre());
-            emp.put("telefono", p.getEmpresa().getTelefono());
+            emp.put("nombre", p.getEmpresa().getNombre() != null ? p.getEmpresa().getNombre() : "Empresa");
+            emp.put("telefono", p.getEmpresa().getTelefono() != null ? p.getEmpresa().getTelefono() : "");
+            emp.put("cif", p.getEmpresa().getCif() != null ? p.getEmpresa().getCif() : "---");
+            emp.put("email", p.getEmpresa().getEmailContacto() != null ? p.getEmpresa().getEmailContacto() : "");
+            emp.put("direccion", p.getEmpresa().getDireccion() != null ? p.getEmpresa().getDireccion() : "");
+            emp.put("url_foto", p.getEmpresa().getUrlFoto());
         }
         return node;
     }

@@ -22,7 +22,7 @@ public class TrabajoFX {
      * Crea una instancia de TrabajoFX a partir de un nodo JSON del servidor.
      * Centraliza la lógica de mapeo para evitar duplicidad en los controladores.
      * 
-     * @param n Nodo JSON con datos del trabajo.
+     * @param n                 Nodo JSON con datos del trabajo.
      * @param idEmpresaLogueada ID de la empresa para contextualizar flags de puja.
      * @return Instancia reactiva de TrabajoFX.
      */
@@ -33,6 +33,7 @@ public class TrabajoFX {
         String cliTelefono = "";
         String cliEmail = "";
         String cliUrlFoto = "";
+        String cliDireccion = "";
 
         if (n.has("cliente") && !n.get("cliente").isNull()) {
             JsonNode c = n.get("cliente");
@@ -40,6 +41,7 @@ public class TrabajoFX {
                     : c.has("nombreCompleto") ? c.get("nombreCompleto").asText() : "";
             cliTelefono = c.has("telefono") ? c.get("telefono").asText() : "";
             cliEmail = c.has("email") ? c.get("email").asText() : "";
+            cliDireccion = c.has("direccion") ? c.get("direccion").asText() : "";
             cliUrlFoto = c.has("url_foto") ? c.get("url_foto").asText()
                     : c.has("urlFoto") ? c.get("urlFoto").asText()
                             : c.has("foto") ? c.get("foto").asText() : "";
@@ -72,7 +74,7 @@ public class TrabajoFX {
                 n.has("fecha") ? n.get("fecha").asText() : "",
                 n.has("descripcion") ? n.get("descripcion").asText() : "",
                 n.has("direccion") ? n.get("direccion").asText() : "",
-                idOp, cliTelefono, cliEmail,
+                idOp, cliTelefono, cliEmail, cliDireccion,
                 n.has("valoracion") ? n.get("valoracion").asInt() : 0,
                 n.has("comentarioCliente") ? n.get("comentarioCliente").asText() : "");
 
@@ -92,7 +94,7 @@ public class TrabajoFX {
                     String est = pNode.has("estado") ? pNode.get("estado").asText() : "PENDIENTE";
                     double monto = pNode.has("monto") ? pNode.get("monto").asDouble() : 0;
                     String notas = pNode.has("notas") ? pNode.get("notas").asText() : "";
-                    
+
                     t.agregarMetaPresupuesto(idEmp, est, monto, notas);
                 }
             }
@@ -106,7 +108,8 @@ public class TrabajoFX {
     }
 
     // Estructura ligera para metadatos de presupuesto
-    public record MetaPresupuesto(int idEmpresa, String estado, double monto, String notas) {}
+    public record MetaPresupuesto(int idEmpresa, String estado, double monto, String notas) {
+    }
 
     private final IntegerProperty id = new SimpleIntegerProperty();
     private final StringProperty titulo = new SimpleStringProperty();
@@ -121,6 +124,7 @@ public class TrabajoFX {
 
     private final StringProperty clienteTelefono = new SimpleStringProperty("");
     private final StringProperty clienteEmail = new SimpleStringProperty("");
+    private final StringProperty clienteDireccion = new SimpleStringProperty("");
     private final IntegerProperty valoracion = new SimpleIntegerProperty(0);
     private final StringProperty comentarioCliente = new SimpleStringProperty("");
     private final StringProperty clienteUrlFoto = new SimpleStringProperty("");
@@ -146,10 +150,12 @@ public class TrabajoFX {
     public TrabajoFX(int id, String titulo, String cliente, String categoria,
             String estado, String operario, String fecha,
             String descripcion, String direccion, int idOperario,
-            String clienteTelefono, String clienteEmail, int valoracion, String comentarioCliente) {
+            String clienteTelefono, String clienteEmail, String clienteDireccion,
+            int valoracion, String comentarioCliente) {
         this(id, titulo, cliente, categoria, estado, operario, fecha, descripcion, direccion, idOperario);
         this.clienteTelefono.set(clienteTelefono != null ? clienteTelefono : "");
         this.clienteEmail.set(clienteEmail != null ? clienteEmail : "");
+        this.clienteDireccion.set(clienteDireccion != null ? clienteDireccion : "");
         this.valoracion.set(valoracion);
         this.comentarioCliente.set(comentarioCliente != null ? comentarioCliente : "");
     }
@@ -230,6 +236,14 @@ public class TrabajoFX {
         return clienteEmail.get();
     }
 
+    public String getClienteDireccion() {
+        return clienteDireccion.get();
+    }
+
+    public StringProperty clienteDireccionProperty() {
+        return clienteDireccion;
+    }
+
     public int getValoracion() {
         return valoracion.get();
     }
@@ -270,32 +284,32 @@ public class TrabajoFX {
      * Indica si la empresa ya tiene un presupuesto activo (PENDIENTE o ACEPTADO).
      */
     public boolean haPresupuestado(int idEmp) {
-        return historialPresupuestos.stream().anyMatch(p -> 
-            p.idEmpresa() == idEmp && 
-            (p.estado().equalsIgnoreCase("PENDIENTE") || p.estado().equalsIgnoreCase("ACEPTADO"))
-        );
+        return historialPresupuestos.stream().anyMatch(p -> p.idEmpresa() == idEmp &&
+                (p.estado().equalsIgnoreCase("PENDIENTE") || p.estado().equalsIgnoreCase("ACEPTADO")));
     }
 
     /**
-     * Indica si el último presupuesto de esta empresa fue rechazado y no ha vuelto a pujar.
+     * Indica si el último presupuesto de esta empresa fue rechazado y no ha vuelto
+     * a pujar.
      */
     public boolean fueRechazado(int idEmp) {
-        // Un trabajo se considera rechazado para esta empresa si NO tiene presupuestos pendientes
+        // Un trabajo se considera rechazado para esta empresa si NO tiene presupuestos
+        // pendientes
         // pero TIENE al menos uno rechazado.
         boolean tienePendiente = haPresupuestado(idEmp);
-        boolean tieneRechazado = historialPresupuestos.stream().anyMatch(p -> 
-            p.idEmpresa() == idEmp && p.estado().equalsIgnoreCase("RECHAZADO")
-        );
+        boolean tieneRechazado = historialPresupuestos.stream()
+                .anyMatch(p -> p.idEmpresa() == idEmp && p.estado().equalsIgnoreCase("RECHAZADO"));
         return !tienePendiente && tieneRechazado;
     }
 
     /**
-     * Obtiene el último presupuesto (más reciente) de la empresa para mostrarlo en el diálogo.
+     * Obtiene el último presupuesto (más reciente) de la empresa para mostrarlo en
+     * el diálogo.
      */
     public MetaPresupuesto getMiUltimoPresupuesto(int idEmp) {
         return historialPresupuestos.stream()
-            .filter(p -> p.idEmpresa() == idEmp)
-            .reduce((first, second) -> second) // Quedarnos con el último añadido
-            .orElse(null);
+                .filter(p -> p.idEmpresa() == idEmp)
+                .reduce((first, second) -> second) // Quedarnos con el último añadido
+                .orElse(null);
     }
 }
