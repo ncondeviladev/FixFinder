@@ -9,7 +9,7 @@ import '../providers/usuario_provider.dart';
 import '../theme/fixfinder_theme.dart';
 
 /// Pantalla de Perfil de Usuario.
-/// Permite visualizar la información personal, cambiar la foto de perfil 
+/// Permite visualizar la información personal, cambiar la foto de perfil
 /// (subiéndola a Firebase) y editar datos básicos (nombre, email, tlf, dirección).
 /// Se comunica con [AuthService] para la persistencia y sincronización con el servidor.
 class PerfilPantalla extends StatefulWidget {
@@ -58,7 +58,8 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
           contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
           content: Container(
             width: double.maxFinite,
-            constraints: const BoxConstraints(maxWidth: 450), // Ancho máximo profesional
+            constraints:
+                const BoxConstraints(maxWidth: 450), // Ancho máximo profesional
             child: Form(
               key: formKey,
               child: SingleChildScrollView(
@@ -66,62 +67,80 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     Text('Modificar datos de: ${usuario.nombreCompleto}', 
-                          style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                    Text('Modificar datos de: ${usuario.nombreCompleto}',
+                        style:
+                            const TextStyle(fontSize: 13, color: Colors.grey)),
                     const SizedBox(height: 20),
-                    _crearSeccionEdicion('Nombre completo', nombreCtrl, Icons.person, obligatorio: true),
-                    _crearSeccionEdicion('Correo electrónico', emailCtrl, Icons.email, teclado: TextInputType.emailAddress, obligatorio: true),
-                    _crearSeccionEdicion('Teléfono', telefonoCtrl, Icons.phone, teclado: TextInputType.phone),
-                    _crearSeccionEdicion('Dirección', direccionCtrl, Icons.home),
+                    _crearSeccionEdicion(
+                        'Nombre completo', nombreCtrl, Icons.person,
+                        obligatorio: true),
+                    _crearSeccionEdicion(
+                        'Correo electrónico', emailCtrl, Icons.email,
+                        teclado: TextInputType.emailAddress, obligatorio: true),
+                    _crearSeccionEdicion('Teléfono', telefonoCtrl, Icons.phone,
+                        teclado: TextInputType.phone),
+                    _crearSeccionEdicion(
+                        'Dirección', direccionCtrl, Icons.home),
                   ],
                 ),
               ),
             ),
           ),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           actions: [
             TextButton(
               onPressed: _guardandoDatos ? null : () => Navigator.pop(context),
-              child: const Text('CANCELAR', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              child: const Text('CANCELAR',
+                  style: TextStyle(
+                      color: Colors.grey, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
-              onPressed: _guardandoDatos ? null : () async {
-                if (formKey.currentState!.validate()) {
-                  setDialogState(() => _guardandoDatos = true);
-                  final exito = await AuthService().actualizarPerfil(
-                    nombre: nombreCtrl.text.trim(),
-                    email: emailCtrl.text.trim(),
-                    telefono: telefonoCtrl.text.trim(),
-                    direccion: direccionCtrl.text.trim(),
-                  );
-                  
-                  if (mounted) {
-                    setState(() => _guardandoDatos = false);
-                    Navigator.pop(context);
-                    if (exito) {
-                      if (context.mounted) {
-                        context.read<UsuarioProvider>().refrescar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  const Text('Perfil actualizado correctamente'),
-                              backgroundColor: FixFinderTheme.successColor),
+              onPressed: _guardandoDatos
+                  ? null
+                  : () async {
+                      if (formKey.currentState!.validate()) {
+                        setDialogState(() => _guardandoDatos = true);
+                        final exito = await AuthService().actualizarPerfil(
+                          nombre: nombreCtrl.text.trim(),
+                          email: emailCtrl.text.trim(),
+                          telefono: telefonoCtrl.text.trim(),
+                          direccion: direccionCtrl.text.trim(),
                         );
+
+                        if (mounted) {
+                          setState(() => _guardandoDatos = false);
+                          Navigator.pop(context);
+                          if (exito) {
+                            if (context.mounted) {
+                              context.read<UsuarioProvider>().refrescar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Perfil actualizado correctamente'),
+                                    backgroundColor:
+                                        FixFinderTheme.successColor),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: const Text(
+                                      'Error al actualizar perfil. El servidor rechazó la acción.'),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.error),
+                            );
+                          }
+                        }
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: const Text(
-                                'Error al actualizar perfil. El servidor rechazó la acción.'),
-                            backgroundColor: Theme.of(context).colorScheme.error),
-                      );
-                    }
-                  }
-                }
-              },
-              child: _guardandoDatos 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('GUARDAR CAMBIOS'),
+                    },
+              child: _guardandoDatos
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('GUARDAR CAMBIOS'),
             ),
           ],
         ),
@@ -130,24 +149,32 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   }
 
   /// Helper para crear campos de edición con estilo uniforme.
-  Widget _crearSeccionEdicion(String titulo, TextEditingController ctrl, IconData icono, {TextInputType? teclado, bool obligatorio = false}) {
+  Widget _crearSeccionEdicion(
+      String titulo, TextEditingController ctrl, IconData icono,
+      {TextInputType? teclado, bool obligatorio = false}) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(titulo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          Text(titulo,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey)),
           const SizedBox(height: 6),
           TextFormField(
             controller: ctrl,
             keyboardType: teclado,
             decoration: InputDecoration(
               prefixIcon: Icon(icono, size: 18),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: const OutlineInputBorder(),
             ),
             validator: (v) {
-              if (obligatorio && (v == null || v.trim().isEmpty)) return 'Campo requerido';
+              if (obligatorio && (v == null || v.trim().isEmpty))
+                return 'Campo requerido';
               return null;
             },
           ),
@@ -163,12 +190,14 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
     if (usuario == null) return;
 
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final image =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image == null) return;
 
     setState(() => _subiendoFoto = true);
     try {
-      final ruta = 'perfiles/${usuario.id}_${DateTime.now().millisecondsSinceEpoch}';
+      final ruta =
+          'perfiles/${usuario.id}_${DateTime.now().millisecondsSinceEpoch}';
       final ref = FirebaseStorage.instance.ref().child(ruta);
       await ref.putFile(File(image.path));
       final url = await ref.getDownloadURL();
@@ -193,7 +222,8 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   @override
   Widget build(BuildContext context) {
     final usuario = context.watch<UsuarioProvider>().usuario;
-    if (usuario == null) return const Scaffold(body: Center(child: Text('Sesión no encontrada')));
+    if (usuario == null)
+      return const Scaffold(body: Center(child: Text('Sesión no encontrada')));
 
     return Scaffold(
       appBar: AppBar(
@@ -212,15 +242,19 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
           children: [
             _construirAvatar(usuario),
             const SizedBox(height: 16),
-            Text(usuario.nombreCompleto, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(usuario.nombreCompleto,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             _construirBadgeRol(usuario),
             const SizedBox(height: 24),
             const Divider(),
             _bloqueInfo(Icons.email, 'Email', usuario.email),
-            _bloqueInfo(Icons.phone, 'Teléfono', usuario.telefono ?? 'No especificado'),
+            _bloqueInfo(
+                Icons.phone, 'Teléfono', usuario.telefono ?? 'No especificado'),
             _bloqueInfo(Icons.badge, 'DNI', usuario.dni ?? 'No especificado'),
-            _bloqueInfo(Icons.home, 'Dirección', usuario.direccion ?? 'No especificada'),
+            _bloqueInfo(Icons.home, 'Dirección',
+                usuario.direccion ?? 'No especificada'),
             const SizedBox(height: 40),
             _botonCerrarSesion(),
           ],
@@ -238,10 +272,14 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
           CircleAvatar(
             radius: 55,
             backgroundColor: _obtenerColorRol(usuario.rol).withOpacity(0.15),
-            backgroundImage: usuario.urlFoto != null ? NetworkImage(usuario.urlFoto!) : null,
-            child: _subiendoFoto 
-              ? const CircularProgressIndicator() 
-              : (usuario.urlFoto == null ? Icon(Icons.person, size: 55, color: _obtenerColorRol(usuario.rol)) : null),
+            backgroundImage:
+                usuario.urlFoto != null ? NetworkImage(usuario.urlFoto!) : null,
+            child: _subiendoFoto
+                ? const CircularProgressIndicator()
+                : (usuario.urlFoto == null
+                    ? Icon(Icons.person,
+                        size: 55, color: _obtenerColorRol(usuario.rol))
+                    : null),
           ),
           Positioned(
             child: GestureDetector(
@@ -251,9 +289,13 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.3), blurRadius: 4)
+                  ],
                 ),
-                child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                child:
+                    const Icon(Icons.camera_alt, color: Colors.white, size: 20),
               ),
             ),
           ),
@@ -263,7 +305,7 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   }
 
   /// Genera una etiqueta visual estilizada con el rol del usuario.
-  /// 
+  ///
   /// Utiliza un esquema de colores diferenciado por tipo de perfil para
   /// una jerarquía visual clara.
   Widget _construirBadgeRol(Usuario usuario) {
@@ -274,12 +316,15 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _obtenerColorRol(usuario.rol)),
       ),
-      child: Text(usuario.rol.name, style: TextStyle(color: _obtenerColorRol(usuario.rol), fontWeight: FontWeight.bold)),
+      child: Text(usuario.rol.name,
+          style: TextStyle(
+              color: _obtenerColorRol(usuario.rol),
+              fontWeight: FontWeight.bold)),
     );
   }
 
   /// Widget informativo para mostrar un par de datos (Icono + Etiqueta + Valor).
-  /// 
+  ///
   /// Estructura la información personal de forma legible y alineada.
   Widget _bloqueInfo(IconData icono, String etiqueta, String valor) {
     return Padding(
@@ -291,8 +336,14 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(etiqueta, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
-              Text(valor, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              Text(etiqueta,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold)),
+              Text(valor,
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w500)),
             ],
           ),
         ],
@@ -301,7 +352,7 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
   }
 
   /// Despliega el botón de cierre de sesión con validación de seguridad.
-  /// 
+  ///
   /// Finaliza la sesión activa, limpia la persistencia local y redirige al Login.
   Widget _botonCerrarSesion() {
     return SizedBox(

@@ -20,6 +20,6 @@ void main() {
     expect(find.text('PENDIENTE'), findsOneWidget);
 
     final Text textWidget = tester.widget(find.text('PENDIENTE'));
-    expect(textWidget.style?.color, Colors.orange);
+    expect(textWidget.style?.color, const Color(0xFFF59E0B));
   });
 }

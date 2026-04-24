@@ -166,6 +166,36 @@ public class OperarioDAOImpl implements OperarioDAO {
     }
 
     @Override
+    public void eliminarPorEmpresa(int idEmpresa) throws DataAccessException {
+        String sql = "DELETE FROM usuario WHERE id IN (SELECT id_usuario FROM operario WHERE id_empresa = ?)";
+        try (Connection conn = ConexionDB.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEmpresa);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al eliminar operarios de la empresa: " + idEmpresa, e);
+        }
+    }
+
+    @Override
+    public List<Operario> obtenerPorEmpresa(int idEmpresa) throws DataAccessException {
+        String sql = "SELECT u.*, o.* FROM usuario u JOIN operario o ON u.id = o.id_usuario WHERE o.id_empresa = ?";
+        List<Operario> lista = new ArrayList<>();
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEmpresa);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearOperario(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al obtener operarios de la empresa: " + idEmpresa, e);
+        }
+        return lista;
+    }
+
+    @Override
     public Operario obtenerPorId(int id) throws DataAccessException {
         return obtenerPorId(id, null);
     }

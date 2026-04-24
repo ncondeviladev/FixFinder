@@ -26,9 +26,21 @@ import java.io.IOException;
  */
 public class AppDashboardPrincipal extends Application {
 
-    private static final String CSS_URL = AppDashboardPrincipal.class
-            .getResource("/com/fixfinder/ui/dashboard/dashboard-principal.css")
-            .toExternalForm();
+    private static String CSS_URL;
+    static {
+        try {
+            // Intentamos cargar el CSS de forma segura. Si falla, la app arranca sin estilos pero NO crashea.
+            var res = AppDashboardPrincipal.class.getResource("dashboard-principal.css");
+            if (res == null) {
+                // Fallback a ruta absoluta si la relativa falla
+                res = AppDashboardPrincipal.class.getResource("/com/fixfinder/ui/dashboard/dashboard-principal.css");
+            }
+            CSS_URL = (res != null) ? res.toExternalForm() : null;
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo cargar el CSS del Dashboard: " + e.getMessage());
+            CSS_URL = null;
+        }
+    }
 
     private ServicioCliente servicioCliente;
     private Stage loginStage;
@@ -153,7 +165,11 @@ public class AppDashboardPrincipal extends Application {
         txtPass.setOnAction(e -> btnEntrar.fire());
 
         Scene scene = new Scene(mainStack, 440, 580);
-        scene.getStylesheets().add(CSS_URL);
+        if (CSS_URL != null) {
+            scene.getStylesheets().add(CSS_URL);
+        } else {
+            System.out.println("ℹ️ Iniciando Dashboard sin CSS personalizado (Modo Seguro)");
+        }
         stage.setTitle("FixFinder — Acceso");
         stage.setScene(scene);
         stage.setResizable(false);
@@ -231,7 +247,7 @@ public class AppDashboardPrincipal extends Application {
 
             } catch (IOException ex) {
                 Platform.runLater(() -> {
-                    lblError.setText("No se pudo conectar con el servidor (puerto 5000).");
+                    lblError.setText("No se pudo conectar con el servidor.");
                     btnEntrar.setDisable(false);
                     lblConexion.setVisible(false);
                 });

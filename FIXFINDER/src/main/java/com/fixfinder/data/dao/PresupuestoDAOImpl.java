@@ -94,6 +94,18 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
     }
 
     @Override
+    public void eliminarPorEmpresa(int idEmpresa) throws DataAccessException {
+        String sql = "DELETE FROM presupuesto WHERE id_empresa = ?";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEmpresa);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al eliminar presupuestos de la empresa: " + idEmpresa, e);
+        }
+    }
+
+    @Override
     public Presupuesto obtenerPorId(int id) throws DataAccessException {
         String sql = SQL_CON_RELACIONES + " WHERE p.id=?";
         Presupuesto p = null;

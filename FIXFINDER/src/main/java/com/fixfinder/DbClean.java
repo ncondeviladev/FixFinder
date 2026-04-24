@@ -44,18 +44,19 @@ public class DbClean {
                         // 2. Limpiar datos viejos residuales (SEGURIDAD ACTIVA)
                         java.util.Scanner sc = new java.util.Scanner(System.in);
                         if (GlobalConfig.MODO_NUBE) {
-                            System.err.println("⚠️ MODO NUBE: ¿Formatear AWS RDS? (escribe 'confirmar')");
-                            if (!sc.nextLine().equalsIgnoreCase("confirmar")) {
-                                System.out.println("Abortado para proteger la nube.");
-                                sc.close();
-                                return;
-                            }
+                                System.err.println("⚠️ MODO NUBE: ¿Formatear AWS RDS? (escribe 'confirmar')");
+                                if (!sc.nextLine().equalsIgnoreCase("confirmar")) {
+                                        System.out.println("Abortado para proteger la nube.");
+                                        sc.close();
+                                        return;
+                                }
                         }
-                        
+
                         // Preguntar por Firebase Storage por separado (siempre es nube)
-                        System.out.println("🔥 ¿Deseas limpiar también todas las imágenes en Firebase Storage? (si/no)");
-                        if (sc.nextLine().equalsIgnoreCase("si")) {
-                            limpiarFirebaseStorage();
+                        System.out.println(
+                                        "🔥 ¿Deseas limpiar también todas las imágenes en Firebase Storage? (s/n)");
+                        if (sc.nextLine().equalsIgnoreCase("s")) {
+                                limpiarFirebaseStorage();
                         }
                         sc.close();
 
@@ -282,27 +283,34 @@ public class DbClean {
 
         private static void limpiarFirebaseStorage() {
                 try {
-                        InputStream serviceAccount = DbClean.class.getResourceAsStream("/firebase-service-account.json");
-                        
+                        InputStream serviceAccount = DbClean.class
+                                        .getResourceAsStream("/firebase-service-account.json");
+
                         // Fallback: Buscar en la raíz del proyecto si no está en recursos
                         if (serviceAccount == null) {
-                            java.io.File fileRaiz = new java.io.File("firebase-service-account.json");
-                            if (fileRaiz.exists()) {
-                                serviceAccount = new java.io.FileInputStream(fileRaiz);
-                            }
+                                java.io.File fileRaiz = new java.io.File("firebase-service-account.json");
+                                if (fileRaiz.exists()) {
+                                        serviceAccount = new java.io.FileInputStream(fileRaiz);
+                                }
                         }
 
                         if (serviceAccount == null) {
-                            System.err.println("⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en la raíz o en /resources/.");
-                            System.err.println("   Para limpiar Firebase, debes descargar la clave JSON desde: Console -> Ajustes -> Cuentas de servicio.");
-                            return;
+                                System.err.println(
+                                                "⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en la raíz o en /resources/.");
+                                System.err.println(
+                                                "   Para limpiar Firebase, debes descargar la clave JSON desde: Console -> Ajustes -> Cuentas de servicio.");
+                                return;
                         }
 
                         if (FirebaseApp.getApps().isEmpty()) {
                                 FirebaseOptions options = FirebaseOptions.builder()
-                                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                                        .setStorageBucket("fixfinder-dbb81.firebasestorage.app") // <-- REEMPLAZA AQUÍ POR EL NOMBRE DE TU BUCKET
-                                        .build();
+                                                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                                                .setStorageBucket("fixfinder-dbb81.firebasestorage.app") // <--
+                                                                                                         // REEMPLAZA
+                                                                                                         // AQUÍ POR EL
+                                                                                                         // NOMBRE DE TU
+                                                                                                         // BUCKET
+                                                .build();
                                 FirebaseApp.initializeApp(options);
                         }
 
@@ -315,7 +323,8 @@ public class DbClean {
                                 blob.delete();
                                 contador++;
                         }
-                        System.out.println("🧹 Firebase Storage: Vaciado total completado (" + contador + " archivos eliminados).");
+                        System.out.println("🧹 Firebase Storage: Vaciado total completado (" + contador
+                                        + " archivos eliminados).");
 
                 } catch (Exception e) {
                         System.err.println("❌ ERROR limpiando Firebase: " + e.getMessage());

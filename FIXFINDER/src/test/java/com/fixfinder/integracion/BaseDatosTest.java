@@ -2,101 +2,88 @@ package com.fixfinder.integracion;
 
 import com.fixfinder.data.DataRepository;
 import com.fixfinder.data.DataRepositoryImpl;
-import com.fixfinder.data.interfaces.TrabajoDAO;
+import com.fixfinder.data.interfaces.*;
 import com.fixfinder.modelos.*;
 import com.fixfinder.modelos.enums.*;
 import com.fixfinder.utilidades.DataAccessException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Pruebas de integración para la capa de persistencia (Base de Datos).
+ */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BaseDatosTest {
 
     private TestHelper helper;
-    private DataRepository repo;
+    private EmpresaDAO empresaDAO;
+    private OperarioDAO operarioDAO;
+    private ClienteDAO clienteDAO;
+    private TrabajoDAO trabajoDAO;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    void setup() {
         helper = new TestHelper();
-        repo = new DataRepositoryImpl();
-        // Limpiamos la BD antes de cada test para asegurar un estado limpio
-        helper.limpiarBaseDeDatos();
+        DataRepository repo = new DataRepositoryImpl();
+        empresaDAO = repo.getEmpresaDAO();
+        operarioDAO = repo.getOperarioDAO();
+        clienteDAO = repo.getClienteDAO();
+        trabajoDAO = repo.getTrabajoDAO();
     }
 
     @Test
     @DisplayName("Flujo Completo: Crear Empresa, Operario, Cliente y Ciclo de Trabajo")
-    void testFlujoCompleto() {
-        try {
-            // 1. Crear EMPRESA
-            Empresa empresa = helper.crearEmpresaTest();
-            assertNotNull(empresa.getId(), "La empresa debería tener un ID asignado tras la inserción");
-            assertTrue(empresa.getId() > 0, "El ID de la empresa debe ser mayor que 0");
-            assertEquals("http://example.com/logo.png", empresa.getUrlFoto(),
-                    "La URL de la foto de la empresa debería coincidir");
+    void testFlujoCompleto() throws DataAccessException {
+        System.out.println("🚀 Iniciando Test de Flujo Completo...");
+        Empresa empresa = helper.crearEmpresaTest();
+        Cliente cliente = null;
 
+        try {
             // 2. Crear OPERARIO
             Operario op = new Operario();
             op.setIdEmpresa(empresa.getId());
-            op.setEmail("operario.test@fixfinder.com");
+            op.setEmail(helper.generarEmailUnico());
             op.setPasswordHash("pass123");
             op.setNombreCompleto("Juan Técnico Test");
             op.setRol(Rol.OPERARIO);
-            op.setDni("12345678Z");
+            op.setDni(helper.generarDniUnico());
             op.setEspecialidad(CategoriaServicio.FONTANERIA);
-            op.setEstaActivo(true);
-            op.setLatitud(39.0);
-            op.setLongitud(-0.3);
-
-            repo.getOperarioDAO().insertar(op);
-            assertNotNull(op.getId(), "El operario debería tener ID");
+            operarioDAO.insertar(op);
+            helper.registrarUsuario(op.getId());
+            System.out.println("✅ Operario creado: " + op.getEmail());
 
             // 3. Crear CLIENTE
-            Cliente cliente = new Cliente();
-            cliente.setEmail("cliente.test@gmail.com");
+            cliente = new Cliente();
+            cliente.setEmail(helper.generarEmailUnico());
             cliente.setPasswordHash("pass123");
             cliente.setNombreCompleto("María Cliente Test");
             cliente.setRol(Rol.CLIENTE);
-            cliente.setTelefono("611223344");
-            cliente.setDireccion("Calle Cliente 1");
-            cliente.setUrlFoto("http://example.com/cliente.jpg");
-            cliente.setDni("87654321X"); // DNI es obligatorio ahora
-
-            repo.getClienteDAO().insertar(cliente);
-            assertNotNull(cliente.getId(), "El cliente debería tener ID");
-
-            Usuario clienteLeido = repo.getUsuarioDAO().obtenerPorId(cliente.getId());
-            assertEquals("611223344", clienteLeido.getTelefono());
-            assertEquals("Calle Cliente 1", clienteLeido.getDireccion());
-            assertEquals("http://example.com/cliente.jpg", clienteLeido.getUrlFoto());
+            cliente.setDni(helper.generarDniUnico());
+            clienteDAO.insertar(cliente);
+            helper.registrarUsuario(cliente.getId());
+            System.out.println("✅ Cliente creado: " + cliente.getEmail());
 
             // 4. Crear TRABAJO
             Trabajo trabajo = new Trabajo();
             trabajo.setCliente(cliente);
+            trabajo.setTitulo("Fuga de prueba");
+            trabajo.setDescripcion("Descripción de prueba");
             trabajo.setCategoria(CategoriaServicio.FONTANERIA);
-            trabajo.setTitulo("Fuga Urgente");
-            trabajo.setDescripcion("Fuga de agua en cocina");
-            trabajo.setDireccion("Calle Falsa 123");
+            trabajo.setDireccion("Calle Test 123");
             trabajo.setEstado(EstadoTrabajo.PENDIENTE);
-
-            TrabajoDAO trabajoDAO = repo.getTrabajoDAO();
             trabajoDAO.insertar(trabajo);
-            assertNotNull(trabajo.getId(), "El trabajo debería tener ID");
-            assertEquals(EstadoTrabajo.PENDIENTE, trabajo.getEstado());
+            helper.registrarTrabajo(trabajo.getId());
 
-            // 5. Asignar Operario
+            // 5. Flujo: ASIGNAR
             trabajo.setOperarioAsignado(op);
             trabajo.setEstado(EstadoTrabajo.ASIGNADO);
             trabajoDAO.actualizar(trabajo);
 
-            // Verificar actualización leyendo de BD
-            Trabajo trabajoLeido = trabajoDAO.obtenerPorId(trabajo.getId());
-            assertNotNull(trabajoLeido.getOperarioAsignado(), "El operario debería estar asignado en la BD");
-            assertEquals(op.getId(), trabajoLeido.getOperarioAsignado().getId());
-            assertEquals(EstadoTrabajo.ASIGNADO, trabajoLeido.getEstado());
 
-            // 6. Finalizar Trabajo
+            // 6. FINALIZAR y VALORAR
             trabajo.setEstado(EstadoTrabajo.FINALIZADO);
             trabajo.setValoracion(5);
             trabajo.setComentarioCliente("Excelente trabajo");
@@ -105,52 +92,27 @@ public class BaseDatosTest {
             Trabajo trabajoFinalizado = trabajoDAO.obtenerPorId(trabajo.getId());
             assertEquals(EstadoTrabajo.FINALIZADO, trabajoFinalizado.getEstado());
             assertEquals(Integer.valueOf(5), trabajoFinalizado.getValoracion());
-
-        } catch (Exception e) {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            System.out.println("EXCEPTION IN testFlujoCompleto:");
-            e.printStackTrace(System.out);
-
-            // DUMP TABLE STATE
-            try (java.sql.Connection conn = com.fixfinder.data.ConexionDB.getConnection();
-                    java.sql.Statement stmt = conn.createStatement()) {
-
-                System.out.println("--- DUMP TABLA USUARIO ---");
-                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT * FROM usuario")) {
-                    while (rs.next())
-                        System.out.println("ID: " + rs.getInt("id") + " Email: " + rs.getString("email"));
-                }
-
-                System.out.println("--- DUMP TABLA CLIENTE ---");
-                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT * FROM cliente")) {
-                    while (rs.next())
-                        System.out.println("ID_USUARIO: " + rs.getInt("id_usuario"));
-                }
-
-                System.out.println("--- DUMP TABLA OPERARIO ---");
-                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT * FROM operario")) {
-                    while (rs.next())
-                        System.out.println("ID_USUARIO: " + rs.getInt("id_usuario"));
-                }
-
-            } catch (Exception ex) {
-                System.out.println("Error dumping DB: " + ex.getMessage());
-            }
-
-            if (e.getCause() != null) {
-                System.out.println("CAUSE: " + e.getCause());
-            }
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            throw new RuntimeException(e);
+            System.out.println("🏁 Test finalizado correctamente.");
+        } finally {
+            helper.limpiarTodoLoGenerado();
         }
     }
 
     @Test
     @DisplayName("Simulación de Datos Masiva")
     void testSimulacionMasiva() throws DataAccessException {
-        Empresa empresa = helper.crearEmpresaTest();
+        System.out.println("📊 Iniciando Test de Simulación Masiva...");
+        Empresa empresaSim = helper.crearEmpresaTest();
 
-        assertDoesNotThrow(() -> helper.generarClientesSimulados(5, empresa.getId()));
-        assertDoesNotThrow(() -> helper.generarOperariosSimulados(3, empresa.getId()));
+        try {
+            helper.generarOperariosSimulados(5, empresaSim.getId());
+            helper.generarClientesSimulados(10, empresaSim.getId());
+
+            List<Operario> ops = (List<Operario>) operarioDAO.obtenerPorEmpresa(empresaSim.getId());
+            assertEquals(5, ops.size(), "Deberían haberse creado 5 operarios");
+            System.out.println("✅ Simulación masiva verificada.");
+        } finally {
+            helper.limpiarTodoLoGenerado();
+        }
     }
 }

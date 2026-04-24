@@ -5,7 +5,6 @@ import '../../models/trabajo.dart';
 import '../../models/usuario.dart';
 import 'package:provider/provider.dart';
 import '../../providers/usuario_provider.dart';
-import '../../services/auth_service.dart';
 import '../comunes/dato_fila.dart';
 import '../comunes/estado_badge.dart';
 import '../trabajos/tarjeta_contacto.dart';
@@ -50,8 +49,11 @@ class DetalleInfoCard extends StatelessWidget {
                 valor: DateFormatUtils.formatIsoString(trabajo.fechaCreacion)),
             Row(
               children: [
-                const Text('Dirección: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                Expanded(child: Text(trabajo.direccion, overflow: TextOverflow.ellipsis)),
+                const Text('Dirección: ',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(
+                    child: Text(trabajo.direccion,
+                        overflow: TextOverflow.ellipsis)),
                 IconButton(
                   icon: Icon(Icons.map,
                       size: 20, color: Theme.of(context).colorScheme.tertiary),

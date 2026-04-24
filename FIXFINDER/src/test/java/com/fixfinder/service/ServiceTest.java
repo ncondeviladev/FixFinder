@@ -19,6 +19,11 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Suite de pruebas de Integración para los Servicios de FixFinder.
+ * 
+ * Esta clase valida la lógica de negocio central del sistema
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ServiceTest {
 
@@ -35,9 +40,11 @@ public class ServiceTest {
     private static Integer idOperarioRegistrado;
     private static Integer idTrabajoRegistrado;
     private static Integer idFacturaGenerada;
+    private static com.fixfinder.integracion.TestHelper helper;
 
     @org.junit.jupiter.api.BeforeAll
     static void initDb() {
+        helper = new com.fixfinder.integracion.TestHelper();
         // Reset static variables
         idUsuarioRegistrado = null;
         idEmpresaRegistrada = null;
@@ -45,9 +52,15 @@ public class ServiceTest {
         idTrabajoRegistrado = null;
         idFacturaGenerada = null;
 
-        // Limpieza PROFUNDA de la BD
-        com.fixfinder.integracion.TestHelper helper = new com.fixfinder.integracion.TestHelper();
-        helper.limpiarBaseDeDatos();
+        System.out.println("🛡️ Iniciando ServiceTest en modo NO destructivo.");
+    }
+
+    @org.junit.jupiter.api.AfterAll
+    static void cleanup() {
+        System.out.println("🧹 Finalizando ServiceTest: Ejecutando limpieza quirúrgica...");
+        if (idEmpresaRegistrada != null)
+            helper.limpiarSurgicamente(idEmpresaRegistrada);
+        helper.limpiarTodoLoGenerado();
     }
 
     @BeforeEach
@@ -61,17 +74,15 @@ public class ServiceTest {
     }
 
     private String generateUniqueEmail() {
-        return "user_" + UUID.randomUUID().toString().substring(0, 8) + "@test.com";
+        return helper.generarEmailUnico();
     }
 
     private String generateUniqueDni() {
-        // 8 digitos + Letra
-        long num = 10000000 + (long) (Math.random() * 89999999);
-        return num + "Z";
+        return helper.generarDniUnico();
     }
 
     private String generateUniqueCif() {
-        return "B" + (10000000 + (long) (Math.random() * 89999999));
+        return helper.generarCifUnico();
     }
 
     private int ensureEmpresaExists() throws ServiceException {
@@ -86,6 +97,7 @@ public class ServiceTest {
         try {
             empresaService.registrarEmpresa(e);
             idEmpresaRegistrada = e.getId();
+            helper.registrarEmpresa(e.getId());
         } catch (Exception ex) {
             System.err.println("❌ ERROR Creando Empresa Fallback: " + ex.getMessage());
             ex.printStackTrace();
@@ -116,6 +128,7 @@ public class ServiceTest {
             usuarioService.registrarUsuario(u);
             assertTrue(u.getId() > 0, "El ID debería ser mayor a 0 tras registro.");
             idUsuarioRegistrado = u.getId();
+            helper.registrarUsuario(u.getId());
 
             // Login
             Usuario logueado = usuarioService.login(u.getEmail(), "password123");
@@ -158,6 +171,7 @@ public class ServiceTest {
 
             empresaService.registrarEmpresa(e);
             assertTrue(e.getId() > 0, "ID debe ser generado");
+            helper.registrarEmpresa(e.getId());
 
             // Update static if not set (or overwrite, fine)
             idEmpresaRegistrada = e.getId();
@@ -203,6 +217,7 @@ public class ServiceTest {
             operarioService.altaOperario(op);
             assertTrue(op.getId() > 0);
             idOperarioRegistrado = op.getId();
+            helper.registrarUsuario(op.getId());
 
             List<Operario> disponibles = operarioService.listarDisponibles(idEmp);
             assertTrue(disponibles.stream().anyMatch(o -> o.getId() == op.getId()));
@@ -235,6 +250,7 @@ public class ServiceTest {
             // u.setIdEmpresa(idEmp);
             usuarioService.registrarUsuario(u);
             idUsuarioRegistrado = u.getId();
+            helper.registrarUsuario(u.getId());
         }
         if (idOperarioRegistrado == null) {
             try {
@@ -249,6 +265,7 @@ public class ServiceTest {
                 op.setEstaActivo(true);
                 operarioService.altaOperario(op);
                 idOperarioRegistrado = op.getId();
+                helper.registrarUsuario(op.getId());
             } catch (Exception e) {
                 System.err.println("❌ Fallo al crear Operario Fallback: " + e.getMessage());
                 e.printStackTrace();
@@ -266,6 +283,7 @@ public class ServiceTest {
         assertTrue(t.getId() > 0);
         assertEquals(EstadoTrabajo.PENDIENTE, t.getEstado());
         idTrabajoRegistrado = t.getId();
+        helper.registrarTrabajo(t.getId());
 
         // 2. Asignar
         try {
@@ -354,6 +372,7 @@ public class ServiceTest {
 
             presupuestoService.crearPresupuesto(p);
             assertNotNull(p.getId(), "El presupuesto debe tener ID");
+            helper.registrarPresupuesto(p.getId());
 
             presupuestoService.aceptarPresupuesto(p.getId());
 
@@ -384,17 +403,19 @@ public class ServiceTest {
             assertEquals(EstadoTrabajo.REALIZADO, tCheck.getEstado());
 
             // Generar Factura
-            /* Comentado para evitar ruido en la base de datos de producción (AWS)
-            Factura f = facturaService.generarFactura(tPresu.getId());
-            assertNotNull(f, "Factura no debe ser nula");
-            assertNotNull(f.getId(), "Factura debe tener ID");
-            assertFalse(f.isPagada());
-
-            // Pagar
-            facturaService.marcarComoPagada(f.getId());
-            Factura fPagada = facturaService.obtenerPorTrabajo(tPresu.getId());
-            assertTrue(fPagada.isPagada());
-            */
+            /*
+             * Comentado para evitar ruido en la base de datos de producción (facturas no
+             * implementadas por ahora).
+             * Factura f = facturaService.generarFactura(tPresu.getId());
+             * assertNotNull(f, "Factura no debe ser nula");
+             * assertNotNull(f.getId(), "Factura debe tener ID");
+             * assertFalse(f.isPagada());
+             * 
+             * // Pagar
+             * facturaService.marcarComoPagada(f.getId());
+             * Factura fPagada = facturaService.obtenerPorTrabajo(tPresu.getId());
+             * assertTrue(fPagada.isPagada());
+             */
 
         } catch (Exception e) {
             System.err.println("❌ Error en testFinanzasFlow: " + e.getMessage());
@@ -431,6 +452,7 @@ public class ServiceTest {
 
         assertNotNull(tTest);
         int idTrabajoTGT = tTest.getId();
+        helper.registrarTrabajo(idTrabajoTGT);
 
         // 1. Probar Modificar (Estando PENDIENTE)
         trabajoService.modificarTrabajo(
@@ -469,6 +491,7 @@ public class ServiceTest {
                 "Desc t2",
                 "Dir t2",
                 1);
+        helper.registrarTrabajo(t2.getId());
 
         // Forzar asignación saltando lógica profunda
         if (idOperarioRegistrado == null) {

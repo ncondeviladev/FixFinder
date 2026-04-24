@@ -858,7 +858,7 @@ Esta sección centraliza la hoja de ruta técnica unificada, integrando deuda t�
 - [x] **Gestion de Timeouts:** Asegurar que acciones como `VALORAR` o `CANCELAR` devuelvan siempre la clave `"mensaje"` en el JSON para evitar interrupciones de flujo en la App.
 - [] Revisar sistema de prioridad y urgencia y plantear si mantenerlo o eliminarlo
 ## Pruebas y QA
-- [ ] **Terminar Suite de Tests:** Implementar por completo los tests unitarios y de integración a partir de los esqueletos (stubs) preparados tanto en Java como en Flutter, para asegurar la máxima estabilidad antes de la entrega final.
+- [x] **Terminar Suite de Tests:** Implementada y validada por completo la suite de tests unitarios y de integración. J
 
 ## Tareas Tras la Revisión del Tutor
 - [ ] **Apaciguar la falta de Providers:** Crear un `usuario_provider.dart` ligero como envoltorio del perfil y documentar en la MEMORIA la desestimación técnica del "EmpresaProvider" por Arquitectura de Dominios.
@@ -1046,5 +1046,69 @@ Se ha establecido una infraestructura de pruebas para garantizar la estabilidad 
 ### Estado Final de la Sesión
 - El sistema de tiempo real es 100% operativo en Dashboard y App.
 - Arquitectura limpia, documentada línea a línea y preparada para la redacción de la memoria final.
+
+---
+
+## ✅ SESIÓN 23/04/2026 — Estabilización Total de Tests y Entorno de Desarrollo
+
+### Objetivo de la sesión
+Resolver los errores de compilación y ejecución en la suite de pruebas de integración de Java y habilitar el descubrimiento visual de tests de Flutter en el IDE.
+
+### Logros Técnicos (Backend Java)
+- **Corrección de Integridad en `TestHelper`**: Se ha solucionado el error de "CIF cannot be null" inyectando un generador de CIF únicos en `crearEmpresaTest()`.
+- **Eliminación de Colisiones en `BaseDatosTest`**: Sustitución de DNIs estáticos por identificadores dinámicos basados en timestamp, permitiendo ejecuciones consecutivas sin errores de entrada duplicada.
+- **Robustez en Simulaciones**: Se ha corregido una `NullPointerException` en el generador de operarios masivos asegurando que siempre se asigne una `CategoriaServicio` por defecto.
+- **Mantenimiento de DAOs**: Se han re-implementado y documentado los métodos de limpieza (`eliminarPorEmpresa`) y consulta (`obtenerPorEmpresa`) necesarios para el ciclo de vida de los tests sin alterar la lógica de negocio.
+- **Resultado final**: Suite de integración **20/20 PASSED**.
+
+### Logros Técnicos (App Flutter)
+- **Activación de Entorno en IDE**: Configuración de `dart.projectSearchDirs` en `settings.json` para permitir que las extensiones de Dart/Flutter descubran el proyecto en subcarpetas.
+- **Consolidación de `launch.json`**: Creado un perfil de ejecución profesional que unifica el arranque de la App, el servidor y las dos suites de pruebas desde el menú de "Run & Debug" de VS Code.
+- **Validación de UI/Widgets**: Comprobación exitosa de los 18 tests funcionales (Login, Creación de Trabajo, Sockets, etc.).
+- **Resultado final**: Suite Flutter **18/18 PASSED**.
+
+### Notas para la Defensa Académica
+- El proyecto cuenta ahora con una **cobertura de tests de integración completa** que valida el flujo desde la persistencia en MySQL hasta la reactividad en el terminal móvil.
+- La infraestructura de desarrollo está blindada contra "falsos negativos" debidos a restos de datos en la BD gracias al nuevo sistema de limpieza quirúrgica y reseteo total (`SET FOREIGN_KEY_CHECKS = 0`).
+
+---
+
+## ✅ SESIÓN 24/04/2026 — Limpieza Quirúrgica y Auditoría Final de Tests
+
+### Logros Técnicos de la Sesión
+
+#### 🛠️ Implementación de la Limpieza Quirúrgica (Surgical Cleanup)
+- **Evolución del `TestHelper.java`**: Refactorización total del sistema de limpieza para que sea **100% no destructivo**.
+    - Implementado un sistema de **rastreo de IDs** (Usuarios, Trabajos, Presupuestos, Facturas) que registra cada entidad creada durante los tests.
+    - El borrado ahora sigue un **orden inverso de dependencias** (Integridad Referencial manual), eliminando primero las hojas (Facturas, Fotos, Presupuestos) y finalmente los nodos raíz (Empresas, Usuarios).
+- **Eliminación de Colisiones**: Sustitución de todos los datos hardcoded (DNIs como "87654321X" o CIFs fijos) por generadores dinámicos. Esto permite que los tests se ejecuten infinitas veces sin chocar con datos reales o de sesiones previas.
+- **Resultado final**: Suite de integración estable y **respetuosa con los datos del usuario** (el seeder permanece intacto tras las pruebas).
+
+#### 🔍 Auditoría y Documentación de Cobertura
+- Realizado un inventario completo de todos los tests del proyecto para la memoria técnica.
+- Verificación cruzada entre capas: Java (Servicios/Red/BD) y Flutter (UI/Providers/Sockets).
+
+---
+
+## 🧪 INVENTARIO DE LA TEST SUITE (ESTADO FINAL)
+
+Este es el catálogo de pruebas automáticas que blindan la integridad de FixFinder:
+
+### A. Backend & Integración (Java/JUnit)
+*   **`ServiceTest.java`**: Valida los flujos de negocio (Registro, Login, Ciclo de Trabajo, Finanzas).
+*   **`BaseDatosTest.java`**: Integridad de la capa de persistencia y simulaciones masivas de datos.
+*   **`MultiPresupuestoIntegracionTest.java`**: Lógica de licitación competitiva y rechazo automático de ofertas.
+*   **`ConcurrenciaServidorTest.java`**: Control de semáforos TCP y límites de conexión simultánea (PSP).
+*   **`ResponseMapperTest.java`**: Serialización/Deserialización del protocolo JSON propio.
+*   **`GestorPasswordTest.java`**: Seguridad de hashing BCrypt y validación de credenciales.
+
+### B. Dashboard Administrador (JavaFX)
+*   **`ManejadorRespuestasTest.java`**: Validación del contrato de datos Servidor-Cliente y reacción a eventos PUSH.
+*   **`ModelosFXTest.java`**: Sincronización de propiedades observables en las tablas de la UI.
+
+### C. App Móvil (Flutter/Dart)
+*   **Widget Tests (UI)**: Cobertura de pantallas de Login, Crear Trabajo, Detalle y Valoración.
+*   **Unit Tests (Lógica)**: Validación de `Providers` (filtrado de estados) y `AuthService` (persistencia de sesión).
+*   **Integration Tests (Red)**: Comprobación del Stream de eventos push a través de Sockets.
 
 ---

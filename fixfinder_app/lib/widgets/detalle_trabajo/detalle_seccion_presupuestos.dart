@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../services/external_launcher_service.dart';
 import '../../models/presupuesto.dart';
@@ -40,19 +39,27 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 40,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      backgroundImage: (p.urlFotoEmpresa != null && p.urlFotoEmpresa!.isNotEmpty)
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.1),
+                      backgroundImage: (p.urlFotoEmpresa != null &&
+                              p.urlFotoEmpresa!.isNotEmpty)
                           ? NetworkImage(p.urlFotoEmpresa!)
                           : null,
-                      child: (p.urlFotoEmpresa == null || p.urlFotoEmpresa!.isEmpty)
-                          ? Icon(Icons.business, size: 40, color: Theme.of(context).colorScheme.primary)
+                      child: (p.urlFotoEmpresa == null ||
+                              p.urlFotoEmpresa!.isEmpty)
+                          ? Icon(Icons.business,
+                              size: 40,
+                              color: Theme.of(context).colorScheme.primary)
                           : null,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       p.nombreEmpresa ?? "Desconocido",
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -60,39 +67,33 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
               const SizedBox(height: 20),
               const Divider(),
               const SizedBox(height: 10),
-              
+
               // Bloques de información interactiva
-              _crearFilaInfo(
-                context, 
-                Icons.assignment_ind, 
-                'CIF', 
-                p.cifEmpresa ?? "No disponible"
-              ),
-              
-              _crearFilaInfo(
-                context, 
-                Icons.email, 
-                'Email', 
-                p.emailEmpresa ?? "No disponible"
-              ),
+              _crearFilaInfo(context, Icons.assignment_ind, 'CIF',
+                  p.cifEmpresa ?? "No disponible"),
+
+              _crearFilaInfo(context, Icons.email, 'Email',
+                  p.emailEmpresa ?? "No disponible"),
 
               _crearFilaInfo(
-                context, 
-                Icons.phone, 
-                'Teléfono', 
+                context,
+                Icons.phone,
+                'Teléfono',
                 p.telefonoEmpresa ?? "No disponible",
-                onTap: () => ExternalLauncherService.llamarTelefono(p.telefonoEmpresa),
+                onTap: () =>
+                    ExternalLauncherService.llamarTelefono(p.telefonoEmpresa),
                 color: Theme.of(context).colorScheme.primary,
               ),
 
               _crearFilaInfo(
-                context, 
-                Icons.location_on, 
-                'Dirección', 
+                context,
+                Icons.location_on,
+                'Dirección',
                 p.direccionEmpresa ?? "No especificada",
                 trailing: IconButton(
                   icon: const Icon(Icons.map_outlined, color: Colors.blue),
-                  onPressed: () => ExternalLauncherService.abrirMapa(p.direccionEmpresa),
+                  onPressed: () =>
+                      ExternalLauncherService.abrirMapa(p.direccionEmpresa),
                 ),
               ),
 
@@ -100,7 +101,10 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 10),
               const Text('Propuesta Técnica:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey)),
               const SizedBox(height: 4),
               Container(
                 width: double.infinity,
@@ -109,8 +113,9 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                   color: Colors.grey.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(p.notas ?? "Sin notas adicionales", 
-                    style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic)),
+                child: Text(p.notas ?? "Sin notas adicionales",
+                    style: const TextStyle(
+                        fontSize: 14, fontStyle: FontStyle.italic)),
               ),
             ],
           ),
@@ -125,7 +130,9 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
     );
   }
 
-  Widget _crearFilaInfo(BuildContext context, IconData icono, String etiqueta, String valor, {VoidCallback? onTap, Widget? trailing, Color? color}) {
+  Widget _crearFilaInfo(
+      BuildContext context, IconData icono, String etiqueta, String valor,
+      {VoidCallback? onTap, Widget? trailing, Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -136,18 +143,22 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(etiqueta, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                Text(etiqueta,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold)),
                 GestureDetector(
                   onTap: onTap,
-                  child: Text(
-                    valor, 
-                    style: TextStyle(
-                      fontSize: 14, 
-                      fontWeight: FontWeight.w500,
-                      decoration: onTap != null ? TextDecoration.underline : null,
-                      color: color ?? Theme.of(context).textTheme.bodyLarge?.color,
-                    )
-                  ),
+                  child: Text(valor,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        decoration:
+                            onTap != null ? TextDecoration.underline : null,
+                        color: color ??
+                            Theme.of(context).textTheme.bodyLarge?.color,
+                      )),
                 ),
               ],
             ),
@@ -205,13 +216,16 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
           // Cabecera de la tarjeta: Empresa y Precio
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-              backgroundImage: (p.urlFotoEmpresa != null && p.urlFotoEmpresa!.isNotEmpty)
-                ? NetworkImage(p.urlFotoEmpresa!)
-                : null,
+              backgroundColor:
+                  Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              backgroundImage:
+                  (p.urlFotoEmpresa != null && p.urlFotoEmpresa!.isNotEmpty)
+                      ? NetworkImage(p.urlFotoEmpresa!)
+                      : null,
               child: (p.urlFotoEmpresa == null || p.urlFotoEmpresa!.isEmpty)
-                ? Icon(Icons.business, color: Theme.of(context).colorScheme.primary)
-                : null,
+                  ? Icon(Icons.business,
+                      color: Theme.of(context).colorScheme.primary)
+                  : null,
             ),
             title: Text(
               p.nombreEmpresa ?? "Empresa",
@@ -219,7 +233,7 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
             ),
             trailing: Text(
               '${p.monto.toStringAsFixed(2)}€',
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: FixFinderTheme.successColor),
@@ -234,10 +248,14 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.05),
+                  color:
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.1)),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withOpacity(0.1)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,8 +290,8 @@ class DetalleSeccionPresupuestos extends StatelessWidget {
                     onPressed: procesando ? null : () => onRechazar(p.id),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.error,
-                      side:
-                          BorderSide(color: Theme.of(context).colorScheme.error),
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.error),
                     ),
                     child: const Text('RECHAZAR'),
                   ),

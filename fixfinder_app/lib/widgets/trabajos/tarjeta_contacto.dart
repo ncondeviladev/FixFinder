@@ -52,14 +52,14 @@ class TarjetaContacto extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (usuario.telefono != null)
-                Text('Tel: ${usuario.telefono}'),
+              if (usuario.telefono != null) Text('Tel: ${usuario.telefono}'),
               if (usuario.email.isNotEmpty) Text('Email: ${usuario.email}'),
             ],
           ),
           trailing: usuario.telefono != null
               ? IconButton(
-                  icon: Icon(Icons.phone, color: FixFinderTheme.successColor),
+                  icon: const Icon(Icons.phone,
+                      color: FixFinderTheme.successColor),
                   onPressed: () =>
                       ExternalLauncherService.llamarTelefono(usuario.telefono),
                 )

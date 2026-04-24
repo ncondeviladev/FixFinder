@@ -27,10 +27,10 @@ class DetalleResumenFinal extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
                 Icon(Icons.check_circle, color: FixFinderTheme.successColor),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Trabajo Completado',
                   style: TextStyle(
@@ -45,7 +45,8 @@ class DetalleResumenFinal extends StatelessWidget {
             if (trabajo.fechaFinalizacion != null)
               DatoFila(
                   etiqueta: 'Finalizado',
-                  valor: DateFormatUtils.formatIsoString(trabajo.fechaFinalizacion),
+                  valor: DateFormatUtils.formatIsoString(
+                      trabajo.fechaFinalizacion),
                   color: Theme.of(context).hintColor),
             if (trabajo.presupuesto != null)
               DatoFila(

@@ -8,4 +8,5 @@ import java.util.List;
 public interface TrabajoDAO extends BaseDAO<Trabajo> {
     List<Trabajo> obtenerPendientesPorCategoria(CategoriaServicio categoria) throws DataAccessException;
     List<Trabajo> obtenerValoracionesPorEmpresa(int idEmpresa) throws DataAccessException;
+    void eliminarPorEmpresa(int idEmpresa) throws DataAccessException;
 }

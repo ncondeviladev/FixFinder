@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface PresupuestoDAO extends BaseDAO<Presupuesto> {
     List<Presupuesto> obtenerPorTrabajo(int idTrabajo) throws DataAccessException;
+    void eliminarPorEmpresa(int idEmpresa) throws DataAccessException;
 }

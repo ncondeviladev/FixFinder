@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/trabajo.dart';
-import '../../theme/fixfinder_theme.dart';
 
 /// Etiqueta visual que representa el estado evolutivo de un trabajo.
 /// Utiliza una paleta de colores semánticos para indicar la fase actual de la incidencia.

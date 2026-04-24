@@ -187,6 +187,20 @@ public class TrabajoDAOImpl implements TrabajoDAO {
     }
 
     @Override
+    public void eliminarPorEmpresa(int idEmpresa) throws DataAccessException {
+        // En el esquema actual, el trabajo no tiene id_empresa directo.
+        // Lo vinculamos a través del operario asignado.
+        String sql = "DELETE FROM trabajo WHERE id_operario IN (SELECT id_usuario FROM operario WHERE id_empresa = ?)";
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEmpresa);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al eliminar trabajos asociados a la empresa: " + idEmpresa, e);
+        }
+    }
+
+    @Override
     public Trabajo obtenerPorId(int id) throws DataAccessException {
         String sql = SQL_CON_RELACIONES + " WHERE t.id = ?";
         Trabajo t = null;

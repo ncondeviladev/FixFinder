@@ -4,7 +4,6 @@ import com.fixfinder.data.ConexionDB;
 import com.fixfinder.data.interfaces.ClienteDAO;
 import com.fixfinder.modelos.Cliente;
 import com.fixfinder.modelos.Usuario;
-import com.fixfinder.modelos.enums.Rol;
 import com.fixfinder.utilidades.DataAccessException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -149,6 +148,18 @@ public class ClienteDAOImpl implements ClienteDAO {
             throw new DataAccessException("Error al listar clientes", e);
         }
         return clientes;
+    }
+
+    @Override
+    public void eliminarPorEmail(String email) throws DataAccessException {
+        String sql = "DELETE FROM usuario WHERE email = ?";
+        try (Connection conn = ConexionDB.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Error al eliminar cliente por email: " + email, e);
+        }
     }
 
     private Cliente mapearCliente(Usuario u) {

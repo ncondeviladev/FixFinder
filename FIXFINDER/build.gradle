@@ -29,6 +29,8 @@ dependencies {
     // JUnit
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     
     // JSON (Jackson)
@@ -37,7 +39,7 @@ dependencies {
     // Firebase Admin SDK (Para limpieza automatizada en tests)
     implementation 'com.google.firebase:firebase-admin:9.2.0'
     
-    // Google Cloud Storage (dependencia explícita para las clases utilizadas en DbClean)
+    // Google Cloud Storage (necesario para DbClean)
     implementation 'com.google.cloud:google-cloud-storage:2.30.1'
 }
 
@@ -93,10 +95,16 @@ task runDashboard(type: JavaExec) {
     description = 'Arranca el Panel de Gestión Principal (Gerente/Admin)'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.fixfinder.ui.dashboard.AppDashboardPrincipal'
-    jvmArgs = [
-        '--module-path', configurations.runtimeClasspath.asPath,
-        '--add-modules', 'javafx.controls,javafx.fxml,javafx.graphics'
-    ]
+    
+    // Filtramos solo los JARs de JavaFX para el module-path
+    // Las demás dependencias se quedan en el classpath para evitar conflictos de módulos duplicados
+    doFirst {
+        def javafxJars = configurations.runtimeClasspath.filter { it.name.contains('javafx') }
+        jvmArgs = [
+            '--module-path', javafxJars.asPath,
+            '--add-modules', 'javafx.controls,javafx.fxml,javafx.graphics'
+        ]
+    }
 }
 
 task runPanelPrototipo(type: JavaExec) {

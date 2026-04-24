@@ -9,7 +9,6 @@ import '../models/presupuesto.dart';
 import '../providers/trabajo_provider.dart';
 import '../providers/usuario_provider.dart';
 import '../theme/fixfinder_theme.dart';
-import '../services/auth_service.dart';
 import '../widgets/detalle_trabajo/detalle_info_card.dart';
 import '../widgets/detalle_trabajo/detalle_resumen_final.dart';
 import '../widgets/detalle_trabajo/detalle_seccion_presupuestos.dart';
@@ -17,14 +16,15 @@ import '../widgets/detalle_trabajo/dialogos_trabajo.dart';
 import 'crear_trabajo_pantalla.dart';
 
 /// Pantalla de visualización detallada de una incidencia.
-/// 
-/// Permite al usuario ver toda la información, gestionar presupuestos 
+///
+/// Permite al usuario ver toda la información, gestionar presupuestos
 /// (si es Cliente) o finalizar el trabajo (si es Operario).
 class DetalleTrabajoPantalla extends StatefulWidget {
   final Trabajo trabajo;
   const DetalleTrabajoPantalla({super.key, required this.trabajo});
 
   @override
+
   /// Estado privado que gestiona el ciclo de vida de la vista de detalle.
   /// Mantiene la lista de presupuestos y controla los estados de carga asíncrona.
   State<DetalleTrabajoPantalla> createState() => _DetalleTrabajoPantallaState();
@@ -72,8 +72,9 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
 
   Future<void> _rechazarPresupuesto(int idPresupuesto) async {
     setState(() => _procesando = true);
-    final exito =
-        await context.read<TrabajoProvider>().rechazarPresupuesto(idPresupuesto);
+    final exito = await context
+        .read<TrabajoProvider>()
+        .rechazarPresupuesto(idPresupuesto);
     if (mounted) {
       setState(() => _procesando = false);
       if (exito) {
@@ -247,8 +248,10 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                     (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
                         trabajoActual.estado == EstadoTrabajo.PRESUPUESTADO))
                   DetalleSeccionPresupuestos(
-                    presupuestos: trabajoActual.presupuestos, // Usar datos en tiempo real del provider
-                    cargando: _cargandoPresupuestos && trabajoActual.presupuestos.isEmpty,
+                    presupuestos: trabajoActual
+                        .presupuestos, // Usar datos en tiempo real del provider
+                    cargando: _cargandoPresupuestos &&
+                        trabajoActual.presupuestos.isEmpty,
                     procesando: _procesando,
                     onRefresh: _cargarPresupuestos,
                     onAceptar: _aceptarPresupuesto,
@@ -283,7 +286,8 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: _procesando ? null : () => _mostrarDialogoFinalizar(idTrabajo),
+        onPressed:
+            _procesando ? null : () => _mostrarDialogoFinalizar(idTrabajo),
         icon: const Icon(Icons.check_circle),
         label: const Text('MARCAR COMO FINALIZADO'),
         style: ElevatedButton.styleFrom(

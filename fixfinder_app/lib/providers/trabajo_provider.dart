@@ -8,7 +8,7 @@ import '../services/job_api_service.dart';
 import '../models/presupuesto.dart';
 
 /// Gestor de estado para todo lo relacionado con los Trabajos (Incidencias).
-/// 
+///
 /// Esta clase es el "cerebro" de la UI: centraliza la lista de trabajos,
 /// controla los estados de carga, maneja el refresco automático (polling)
 /// y reacciona a eventos en tiempo real mediante Sockets.
@@ -23,10 +23,10 @@ class TrabajoProvider with ChangeNotifier {
   Timer? _pollingTimer;
 
   // --- Getters ---
-  
+
   /// Lista de trabajos filtrada del usuario actual.
   List<Trabajo> get trabajos => _trabajos;
-  
+
   /// Flag para mostrar spinners de carga en la UI.
   bool get estaCargando => _estaCargando;
 
@@ -43,12 +43,12 @@ class TrabajoProvider with ChangeNotifier {
         final datos = respuesta['datos'] ?? {};
         final categoria = datos['categoria'] ?? 'SISTEMA';
         final info = datos['info'] ?? 'Actualización del sistema';
-        
+
         debugPrint('🔔 [SOCKET-BROADCAST] $categoria: $info');
-        
+
         // Refrescamos los trabajos en segundo plano para no bloquear la UI con spinners
         _actualizarEstadoSilencioso();
-        
+
         // Mostramos notificación visual en la app con el nuevo estilo corporativo
         _mostrarNotificacionUI(categoria, info);
       }
@@ -61,7 +61,7 @@ class TrabajoProvider with ChangeNotifier {
 
     IconData icono;
     // Naranja corporativo de FixFinder
-    const Color colorNaranja = Color(0xFFFF9800); 
+    const Color colorNaranja = Color(0xFFFF9800);
 
     switch (categoria) {
       case 'TRABAJO':
@@ -79,7 +79,7 @@ class TrabajoProvider with ChangeNotifier {
       SnackBar(
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(left: BorderSide(color: colorNaranja, width: 4)),
           ),
           child: Row(
@@ -88,11 +88,9 @@ class TrabajoProvider with ChangeNotifier {
               Icon(icono, color: colorNaranja),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  mensaje, 
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)
-                )
-              ),
+                  child: Text(mensaje,
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w500))),
             ],
           ),
         ),
@@ -208,7 +206,7 @@ class TrabajoProvider with ChangeNotifier {
     return await _api.crearTrabajo(usuario, datosTrabajo);
   }
 
-  /// Marca un trabajo como finalizado. 
+  /// Marca un trabajo como finalizado.
   /// Permite adjuntar fotos del resultado y un informe técnico.
   Future<bool> actualizarEstadoTrabajo(int id, EstadoTrabajo nuevoEstado,
       {String? informe, List<String>? fotos}) async {
@@ -277,8 +275,8 @@ class TrabajoProvider with ChangeNotifier {
       int idTrabajo, int valoracion, String comentario) async {
     final usuario = _auth.usuarioActual;
     if (usuario == null) return false;
-    final exito = await _api.valorarTrabajo(
-        usuario, idTrabajo, valoracion, comentario);
+    final exito =
+        await _api.valorarTrabajo(usuario, idTrabajo, valoracion, comentario);
     if (exito) await obtenerTrabajos();
     return exito;
   }
@@ -298,7 +296,8 @@ class TrabajoProvider with ChangeNotifier {
     }
 
     // PRIORIDAD 2: Trabajos en curso (Asignados o Aceptados)
-    if (trabajo.estado == EstadoTrabajo.ACEPTADO || trabajo.estado == EstadoTrabajo.ASIGNADO) {
+    if (trabajo.estado == EstadoTrabajo.ACEPTADO ||
+        trabajo.estado == EstadoTrabajo.ASIGNADO) {
       return 2;
     }
 
@@ -308,7 +307,9 @@ class TrabajoProvider with ChangeNotifier {
     }
 
     // PRIORIDAD 4: Completados y valorados o realizados
-    if (trabajo.estado == EstadoTrabajo.REALIZADO || trabajo.estado == EstadoTrabajo.FINALIZADO || trabajo.estado == EstadoTrabajo.PAGADO) {
+    if (trabajo.estado == EstadoTrabajo.REALIZADO ||
+        trabajo.estado == EstadoTrabajo.FINALIZADO ||
+        trabajo.estado == EstadoTrabajo.PAGADO) {
       return 4;
     }
 
