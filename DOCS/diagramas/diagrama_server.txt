@@ -1,0 +1,54 @@
+---
+config:
+  layout: elk
+---
+classDiagram
+direction TB
+    class ServidorCentral {
+	    -ServerSocket serverSocket
+	    -Broadcaster broadcaster
+	    +iniciar(int puerto)
+	    +detener()
+    }
+
+    class GestorConexion {
+	    -Socket socket
+	    -DataOutputStream out
+	    -DataInputStream in
+	    -Usuario usuarioActual
+	    +run()
+	    +enviar(String json)
+	    +procesarComando(String json)
+    }
+
+    class Broadcaster {
+	    -Map~Integer, GestorConexion~ clientes
+	    +suscribir(int id, GestorConexion c)
+	    +desuscribir(int id)
+	    +difundirGlobal(String json)
+	    +notificar(int id, String json)
+    }
+
+    class SessionManager {
+	    -Set~Integer~ logueados
+	    +isOnline(int id)
+	    +login(int id)
+    }
+
+    class ResponseMapper {
+	    +map(Object data)
+	    +hydrateTrabajo(Trabajo t)
+    }
+
+    class ConexionDB {
+	    -ThreadLocal~Connection~ connections
+	    +getConnection()
+	    +closeConnection()
+    }
+
+    ServidorCentral "1" *-- "1" Broadcaster : posee
+    ServidorCentral ..> GestorConexion : instancia (Multihilo)
+    GestorConexion "1" --> "1" Broadcaster : usa para notificar
+    GestorConexion "1" --> "1" SessionManager : valida sesión
+    GestorConexion ..> ResponseMapper : usa para serializar
+    GestorConexion ..> ConexionDB : usa por cada hilo

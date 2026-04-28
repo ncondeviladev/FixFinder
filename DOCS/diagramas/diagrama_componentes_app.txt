@@ -10,15 +10,17 @@ flowchart TD
 
     subgraph UI ["📱 Capa de Vistas (Pantallas UI)"]
         direction TB
-        L[Login Pantalla]:::ui
+        L[Login / Registro]:::ui
         Dash[Dashboard Pantalla]:::ui
         Detalle[Detalle Trabajo Pantalla]:::ui
         Crear[Crear Trabajo Pantalla]:::ui
+        Perfil[Perfil Pantalla]:::ui
     end
 
     subgraph STATE ["🧠 Capa de Estado (Providers)"]
         direction TB
-        Prov[TrabajoProvider]:::estado
+        ProvTrabajo[TrabajoProvider]:::estado
+        ProvUsuario[UsuarioProvider]:::estado
     end
 
     subgraph SERVICES ["⚙️ Capa de Servicios"]
@@ -26,6 +28,7 @@ flowchart TD
         S_Auth[AuthService]:::core
         S_Img[ImagenService]:::core
         S_Job[TrabajoApiService]:::core
+        S_Launch[ExtLauncherService]:::core
         S_Sock[SocketService TCP]:::core
     end
 
@@ -33,15 +36,24 @@ flowchart TD
         direction LR
         Java[Servidor Java TCP]:::persist
         FB[Firebase Storage]:::persist
+        Apps[Apps del SO]:::persist
     end
+
     L --> S_Auth
-    Dash --> Prov
-    Detalle --> Prov
-    Crear --> Prov
+    Dash --> ProvTrabajo
+    Detalle --> ProvTrabajo
+    Crear --> ProvTrabajo
+    Perfil --> ProvUsuario
+    
     Dash -.->|Foto Perfil| S_Img
     Crear -.->|Fotos Avería| S_Img
+    Perfil -.->|Edición Foto| S_Img
+    
+    Detalle -.->|Llamar/Ruta| S_Launch
+    S_Launch -->|Abrir Maps/Tlf| Apps
+
     S_Img -->|Sube archivos| FB
-    Prov --> S_Job
+    ProvTrabajo --> S_Job
     S_Auth --> S_Sock
     S_Job --> S_Sock
     S_Sock <-->|JSON + 4 Bytes| Java

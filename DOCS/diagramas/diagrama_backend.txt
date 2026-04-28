@@ -8,18 +8,23 @@ flowchart TB
         APP["📱 App Móvil Flutter<br>(Clientes y Operarios)"]
         DESK["💻 Dashboard JavaFX<br>(Gerencia / Admin)"]
   end
- subgraph Red["2.1. Capa de Red y Sesión (Sockets)"]
+
+ subgraph Red["2.1. Capa de Red y Difusión (Sockets)"]
         SC["ServidorCentral<br>(Puerto 5000 - TCP)"]
-        GC["GestorConexion<br>(Hilo dedicado por cliente)"]
-        SM["SessionManager<br>(Control de usuarios activos)"]
+        GC["GestorConexion<br>(Worker dedicado)"]
+        BR["📢 Broadcaster<br>(Difusión de eventos Push)"]
+        SM["🔑 SessionManager<br>(Control de Usuarios Activos)"]
+        RM["📦 ResponseMapper<br>(Serialización y Hidratación)"]
   end
- subgraph Enrutamiento["2.2. Capa de Enrutamiento (Delegación por Acción)"]
+
+ subgraph Enrutamiento["2.2. Capa de Enrutamiento (Procesadores)"]
         PA["ProcesadorAutenticacion"]
         PT["ProcesadorTrabajos"]
         PU["ProcesadorUsuarios"]
         PP["ProcesadorPresupuestos"]
         PF["ProcesadorFacturas"]
   end
+
  subgraph Servicios["2.3. Capa de Lógica de Negocio (Servicios)"]
         US["UsuarioServiceImpl"]
         TS["TrabajoServiceImpl"]
@@ -27,80 +32,59 @@ flowchart TB
         PS["PresupuestoServiceImpl"]
         FS["FacturaServiceImpl"]
   end
- subgraph Fachada["2.4. Capa de Fachada de Datos (Patrón Repository)"]
-        DR["DataRepository / DataRepositoryImpl<br>(Punto de entrada único a DAOs)"]
+
+ subgraph Fachada["2.4. Capa de Fachada de Datos (Repository)"]
+        DR["DataRepository / DataRepositoryImpl<br>(Acceso Centralizado)"]
   end
- subgraph Datos["2.5. Capa de Acceso a Datos (Patrón DAO puro)"]
-        UDAO["UsuarioDAO / ClienteDAO / OperarioDAO"]
-        TDAO["TrabajoDAO / FotoTrabajoDAO"]
+
+ subgraph Datos["2.5. Capa de Acceso a Datos (DAOs)"]
+        UDAO["UsuarioDAO / ClienteDAO"]
+        TDAO["TrabajoDAO / FotoDAO"]
         EDAO["EmpresaDAO"]
         PDAO["PresupuestoDAO"]
         FDAO["FacturaDAO"]
-        DBPOOL["ConexionDB<br>(Singleton - Pool JDBC)"]
+        DBPOOL["ConexionDB<br>(ThreadLocal - JDBC Pool)"]
   end
- subgraph Backend["2. Núcleo del Servidor Java Puro (Thread-per-client)"]
+
+ subgraph Backend["2. Núcleo del Servidor Java"]
         Red
         Enrutamiento
         Servicios
         Fachada
         Datos
   end
+
  subgraph Persistencia["3. Persistencia y Nube"]
-        MYSQL[("Base de Datos MySQL<br>(Relacional)")]
-        FB["🔥 Firebase<br>(Storage y Notificaciones)"]
+        MYSQL[("AWS RDS MySQL<br>(Producción)")]
+        FB["🔥 Firebase Storage<br>(Imágenes)"]
   end
-    SC -- Asigna Socket --> GC
+
+    %% RELACIONES DE FLUJO
+    SC -- Crea Hilo --> GC
     GC <--> SM
-    GC -- Switch (LOGIN/REGISTRO) --> PA
-    GC -- Switch (CREAR/LISTAR TRABAJO) --> PT
-    GC -- Switch (GESTION PERFILES) --> PU
-    GC -- Switch (PRESUPUESTOS) --> PP
-    GC -- Switch (FACTURACION) --> PF
+    GC -- Notifica cambios --> BR
+    BR -- Envía Push --> GC
+    GC -- Formatea con --> RM
+    
+    GC -- Delega en --> PA & PT & PU & PP & PF
+    
     PA --> US
-    PU --> US & ES
     PT --> TS
+    PU --> US & ES
     PP --> PS
     PF --> FS
-    US --> DR
-    TS --> DR
-    ES --> DR
-    PS --> DR
-    FS --> DR
+    
+    US & TS & ES & PS & FS --> DR
     DR --> UDAO & TDAO & EDAO & PDAO & FDAO
-    UDAO --> DBPOOL
-    TDAO --> DBPOOL
-    EDAO --> DBPOOL
-    PDAO --> DBPOOL
-    FDAO --> DBPOOL
-    APP -- JSON over TCP (4 bytes cabecera) --> SC
-    DESK -- JSON over TCP (4 bytes cabecera) --> SC
-    APP -. Sube imagen directo HTTPS .-> FB
+    
+    UDAO & TDAO & EDAO & PDAO & FDAO --> DBPOOL
     DBPOOL -- Transacciones SQL --> MYSQL
+    
+    APP -- TCP/JSON --> SC
+    DESK -- TCP/JSON --> SC
+    APP -. Multimedia .-> FB
 
-     APP:::frontend
-     DESK:::frontend
-     SC:::net
-     GC:::net
-     SM:::net
-     PA:::router
-     PT:::router
-     PU:::router
-     PP:::router
-     PF:::router
-     US:::service
-     TS:::service
-     ES:::service
-     PS:::service
-     FS:::service
-     DR:::repo
-     UDAO:::dao
-     TDAO:::dao
-     EDAO:::dao
-     PDAO:::dao
-     FDAO:::dao
-     DBPOOL:::dao
-     MYSQL:::db
-     FB:::ext
+    %% ESTILOS
     classDef frontend fill:#E2E8F0,stroke:#64748B,stroke-width:2px,color:#0F172A
     classDef net fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A
     classDef router fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
@@ -109,3 +93,12 @@ flowchart TB
     classDef dao fill:#FCE7F3,stroke:#EC4899,stroke-width:2px,color:#9D174D
     classDef db fill:#F3F4F6,stroke:#374151,stroke-width:2px,color:#111827
     classDef ext fill:#FFEDD5,stroke:#EA580C,stroke-width:2px,color:#9A3412
+
+    class APP,DESK frontend
+    class SC,GC,BR,SM,RM net
+    class PA,PT,PU,PP,PF router
+    class US,TS,ES,PS,FS service
+    class DR repo
+    class UDAO,TDAO,EDAO,PDAO,FDAO,DBPOOL dao
+    class MYSQL db
+    class FB ext

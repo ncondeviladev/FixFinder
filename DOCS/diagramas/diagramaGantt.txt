@@ -1,0 +1,29 @@
+---
+config:
+  theme: neutral
+---
+gantt
+    title Planificación y Desarrollo de FixFinder
+    dateFormat  YYYY-MM-DD
+    axisFormat  %m/%y
+    tickInterval 1month
+    todayMarker off
+
+    section Análisis y Core
+    Definición de Modelos y DAOs Base   :2025-12-01, 15d
+    Capa de Persistencia y JDBC        :2025-12-16, 15d
+    Lógica de Negocio y Servicios      :2026-01-01, 15d
+    
+    section Sistemas Cliente
+    Prototipado de Dashboard (Desktop) :2026-01-16, 20d
+    Desarrollo Base App (Flutter)      :2026-02-06, 25d
+    Integración de Sockets y Red       :2026-03-04, 20d
+    
+    section Implementación Avanzada
+    Gestión Multimedia (Firebase)      :2026-03-25, 12d
+    Despliegue en AWS (EC2 + RDS)      :2026-04-06, 10d
+    Sistema Real-Time (Broadcaster)    :2026-04-16, 8d
+    
+    section Cierre de Proyecto
+    Pruebas Finales y Estabilidad      :2026-04-25, 10d
+    Memoria y Preparación de Defensa   :2026-05-05, 24d

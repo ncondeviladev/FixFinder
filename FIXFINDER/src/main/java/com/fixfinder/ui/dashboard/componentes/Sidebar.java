@@ -182,13 +182,19 @@ public void actualizarFoto(String url) {
                 img.progressProperty().addListener((obs, old, progress) -> {
                     if (progress.doubleValue() == 1.0) {
                         Platform.runLater(() -> {
-                            circulo.setFill(new ImagePattern(img));
+                            if (!img.isError()) {
+                                circulo.setFill(new ImagePattern(img));
+                            } else {
+                                mostrarAvatarTexto(pane, nombre);
+                            }
                         });
                     }
                 });
 
-                if (img.getProgress() == 1.0) {
+                if (img.getProgress() == 1.0 && !img.isError()) {
                     circulo.setFill(new ImagePattern(img));
+                } else if (img.getProgress() == 1.0 && img.isError()) {
+                    mostrarAvatarTexto(pane, nombre);
                 }
 
                 pane.getChildren().add(circulo);

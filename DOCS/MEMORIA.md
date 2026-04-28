@@ -21,6 +21,10 @@
 
 ---
 
+---
+**Repositorio Oficial:** [github.com/ncondeviladev/FixFinder](https://github.com/ncondeviladev/FixFinder.git)
+---
+
 # 1. Introducción
 
 ## 1.1. Presentación y motivación del proyecto
@@ -62,9 +66,9 @@ Con este proyecto he marcado unas metas muy claras:
 | **Acceso a Datos**                                        | Aplicación de patrones DAO y Repository para la persistencia en MySQL. Uso de JDBC para la gestión de conexiones y consultas complejas, garantizando la integridad referencial y la eficiencia en la persistencia de datos. |
 | **Desarrollo de Interfaces (DI)**                         | Diseño y desarrollo del Dashboard administrativo utilizando JavaFX. Uso de estilos CSS para una interfaz profesional y componentes personalizados para visualización de datos.                                              |
 | **Programación Multimedia y Dispositivos Móviles (PMDM)** | Desarrollo de la aplicación dual para el cliente y operario con Flutter. Integración de cámaras para fotos de incidencias, consumo de servicios de red y uso de Firebase para almacenamiento de contenido multimedia.       |
-| **Programación de Servicios y Procesos (PSP)**            | Arquitectura cliente-servidor mediante sockets TCP. Gestión de la concurrencia mediante hilos (Hilo por cliente), sincronización de recursos y diseño del protocolo de comunicación JSON.                                   |
-| **Sistemas de Gestión Empresarial (SGE)**                 | Implementación de la lógica de negocio para la gestión de empresas colaboradoras, flujos de trabajo, presupuestos y gestión de roles de usuario (Gerente, Operario, Cliente).                                               |
-| **Optativa Nube**                                         | Despliegue de la infraestructura en la nube utilizando AWS (instancias EC2 para el servidor y RDS para la base de datos) y Firebase Storage para imágenes.                                                                  |
+| **Programación de Servicios y Procesos (PSP)**            | Arquitectura cliente-servidor mediante sockets TCP. Implementación de una arquitectura orientada a eventos mediante un sistema de Broadcaster global. Gestión avanzada de la concurrencia con hilos dedicados y sincronización de streams de salida para permitir actualizaciones en tiempo real (Push) entre clientes.                                   |
+| **Sistemas de Gestión Empresarial (SGE)**                 | Modelado del ciclo de vida transaccional de una incidencia, desde el estado Pendiente hasta Finalizado, integrando flujos de aprobación de presupuestos y asignación dinámica de recursos humanos.                                               |
+| **Optativa Nube**                                         | Arquitectura de despliegue híbrida y desacoplada: cómputo en AWS EC2, persistencia relacional en AWS RDS y almacenamiento de objetos multimedia en Firebase Storage, garantizando alta disponibilidad y escalabilidad de los recursos.                                                                |
 | **Sostenibilidad**                                        | Contribución a la reducción del consumo de papel y transporte innecesario mediante la digitalización de partes de trabajo y la optimización de la comunicación remota entre actores.                                        |
 | **Digitalización**                                        | Transformación de procesos tradicionales de mantenimiento en flujos de trabajo 100% digitales, permitiendo el análisis de datos para la mejora de la eficiencia operativa.                                                  |
 
@@ -83,12 +87,12 @@ Por ejemplo, en el servidor he pasado de los frameworks automáticos para gestio
 | Componente               | Tecnología                       | Justificación                                                                                                                                                       |
 | ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dependencias**         | Gradle                           | Gestión de dependencias y construcción del proyecto.                                                                                                                |
-| **Servidor**             | Java (Sockets TCP)               | Control absoluto sobre el protocolo de comunicación y gestión de concurrencia mediante hilos.                                                                       |
+| **Servidor**             | Java (Sockets TCP)               | Control absoluto sobre el protocolo binario y gestión de concurrencia de alto rendimiento mediante Pool de hilos (Workers) y comunicación bidireccional asíncrona.                                                                       |
 | **Protocolo**            | JSON                             | Formato de datos ligero y fácil de leer y escribir por humanos y máquinas.                                                                                          |
 | **Base de Datos**        | MySQL + JDBC                     | Estándar de base de datos relacional para persistencia de datos con integración nativa en Java.                                                                     |
 | **Persistencia**         | Patrón DAO y Repository          | Patrones de diseño para la persistencia de datos sin ORM.                                                                                                           |
 | **Seguridad**            | bcrypt                           | Algoritmo de hashing para la encriptación de contraseñas.                                                                                                           |
-| **Cliente Escritorio**   | JavaFX + CSS                     | Interfaz nativa potente y personalizable para tareas administrativas del gerente.                                                                                   |
+| **Cliente Escritorio**   | JavaFX + CSS                     | Interfaz nativa potente y personalizada. Distribución profesional mediante Bundle Nativo (Portable EXE) generado con jpackage, eliminando la necesidad de que el cliente instale Java manualmente.                                                                       |
 | **App Móvil**            | Flutter / Dart                   | Desarrollo multiplataforma con UI de alta calidad y rendimiento nativo.                                                                                             |
 | **Almacenamiento Nube**  | Firebase Storage y AWS EC2 + RDS | Almacenamiento escalable de imágenes con acceso directo desde los clientes mediante URL, servidor en la nube y base de datos relacional para persistencia de datos. |
 | **Control de Versiones** | Git + GitHub                     | Gestión eficiente de cambios y versiones durante todo el desarrollo.                                                                                                |
@@ -139,16 +143,16 @@ FixFinder es un proyecto totalmente viable porque aprovecha lo mejor del softwar
 
 Durante todo el desarrollo me he enfrentado a auténticos retos tanto de diseño como de implementación.
 
-| Hito                             | Descripción                                                                                                               | Fecha              |
-| :------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :----------------- |
-| **1. Cimientos y Modelos**       | Creación del proyecto base, diseño del modelo de datos inicial y DAOs básicos para la persistencia manual en MySQL.       | **Dic 2025**       |
-| **2. Handshake y Auth**          | Implementación del protocolo de login funcional y las primeras pruebas de autorización de usuarios sobre socket TCP.      | **Ene 2026**       |
-| **3. Protocolo de Sockets**      | Definición del protocolo binario de red (cabecera de 4 bytes) y ajustes de concurrencia multihilo en el servidor central. | **Feb 2026**       |
-| **4. Simulador de pruebas**      | Creación de un **simulador de conexión y flujo de datos** para validar el funcionamiento completo del sistema.            | **Mar 2026**       |
-| **5. Refactor v1 Local**         | Hito de estabilidad local: limpieza profunda de "God Classes" en controladores y optimización de la lógica de red.        | **Mar 2026**       |
-| **6. Despliegue en AWS**         | Configuración de entornos de producción con IP elástica en EC2 y persistencia relacional en RDS.                          | **Abr 2026**       |
-| **7. Benchmarks y Test Finales** | Pruebas de carga con múltiples clientes concurrentes y validación de la estabilidad del sistema en la nube bajo demanda.  | **Abr - May 2026** |
-| **8. Documentación y Memoria**   | Redacción técnica final, diseño de diagramas definitivos y preparación de la presentación de defensa del proyecto.        | **Mar - Jun 2026** |
+| Hito | Descripción | Fecha |
+| :--- | :--- | :--- |
+| **1. Cimientos y Modelos** | Creación del proyecto base, diseño del modelo de datos y DAOs para persistencia manual en MySQL. | **Dic 2025** |
+| **2. Protocolo y Seguridad** | Implementación de Sockets TCP, protocolo de 4 bytes y encriptación BCrypt para autenticación segura. | **Ene - Feb 2026** |
+| **3. Desarrollo de Clientes** | Construcción simultánea del Dashboard (JavaFX) y la App móvil (Flutter) con lógica compartida. | **Feb - Mar 2026** |
+| **4. Estabilización v1 Local** | Refactorización de controladores y limpieza de código para una versión 100% funcional en red local. | **Mar 2026** |
+| **5. Despliegue en AWS** | Migración del servidor a instancias EC2 con IP elástica y base de datos gestionada en RDS. | **Abr 2026** |
+| **6. Sistema Broadcaster** | **(Reto técnico)**: Implementación del sistema de difusión en tiempo real para sincronizar clientes asíncronamente. | **Abr 2026** |
+| **7. Robustez y Distribución** | Creación de mapeadores de datos seguros y generación de binarios nativos (EXE/APK) para producción. | **Abr 2026** |
+| **8. Auditoría y Cierre** | Pruebas integrales del ecosistema (Cloud-Móvil-Desktop) y redacción de la memoria técnica final. | **May 2026** |
 
 #### Diagrama de Gantt
 
@@ -226,15 +230,29 @@ Hasta yo mismo durante le desarrollo me he perdido en el flujo de datos, por lo 
 
 #### Descripción de la arquitectura
 
-_marca_
+Como he mencionado antes, la arquitectura es de alto nivel sin usar frameworks pesados, aplicando patrones de diseño de bajo nivel para maximizar el control y la eficiencia. El sistema se sustenta sobre tres pilares de ingeniería concurrente:
 
-Como he mencionado antes, la arquitectura es de alto nivel sin usar frameworks, pero si patrones de diseño perfectamente ajustados como la conexión cliente-servidor mediante sockets TCP, cada conexión es un hilo que se asocian de forma permanente durante la sesión (thread-per-client).
+#### A. Gestión de hilos en el Servidor (Dispatcher-Worker)
+El servidor Java opera mediante una arquitectura de hilos desacoplados para garantizar que el sistema nunca se detenga:
+- **Hilo de escucha (Dispatcher):** Es el encargado de recibir a los clientes. Está siempre esperando nuevas conexiones y, en cuanto llega una, la pasa a un hilo trabajador para seguir libre.
+- **Hilos de trabajo (Workers):** Cada cliente tiene su propio hilo que se encarga de todo: leer sus mensajes, hablar con la base de datos y enviarle las respuestas. 
+- **Control de seguridad (Semáforo):** He limitado el servidor a 10 hilos simultáneos (en desarrollo) para evitar que el ordenador se bloquee si hay demasiadas peticiones a la vez, actuando como un seguro de memoria.
 
-Como tenemos una conexión continua, me encontré con problemas de concurrencia, tenemos cada conexión con su hilo, pero cada conexión no tenia control en el envio de datos y colapsaba, tuve que implementar un prefijo de 4 bytes en cada mensaje que indicaba el tamaño del mensaje, de esta forma el receptor sabia cuanto leer y podia procesar los mensajes de forma ordenada.
+#### B. Protocolo de comunicación propio (Cabecera y TxID)
+Como no usamos una API estándar, tuve que diseñar cómo se "hablan" las aplicaciones:
+- **Cabecera de 4 bytes:** Para que los mensajes no se corten por el camino, cada envío lleva delante 4 bytes que dicen cuánto mide el mensaje. Así, la App sabe exactamente cuánta información debe leer.
+- **Identificadores de transacción (txid):** Cada petición lleva un ID único. Esto permite que el servidor responda de forma asíncrona y la App sepa a qué pregunta corresponde cada respuesta, evitando que los datos se mezclen.
 
-La gestión de estas peticiones, al ser tan variadas no podiamos tener un solo switch, por lo que implementé un sistema de procesadores, cada uno especializado en un tipo de petición, de esta forma el servidor podia procesar las peticiones de forma ordenada y eficiente.
+#### C. Soluciones a bloqueos de red y concurrencia
+Uno de los mayores retos fue el **"Síndrome del Embudo TCP"**, que hacía que el servidor se quedara colgado al enviar listados muy grandes. Lo resolví con dos estrategias diferentes según la plataforma:
 
-Para tratar las imagenes y no tener que pelearme con enviar binarios por socket, ya que aprendimos a usar Firebase de Google, decidí usarlo para almacenar y gestionar las imagenes, por lo que la app solo almacena la URL de la imagen.
+- **En el Dashboard (Arquitectura de 3 hilos):** Diseñé un sistema de tres capas para que la interfaz nunca se congele. Primero, el **Hilo Lector Avaro** vacía la red a toda velocidad y guarda los mensajes en una cola interna. Segundo, un **Hilo Procesador** saca los mensajes de esa cola y los interpreta. Finalmente, el **Hilo de UI** se encarga de pintar los datos. Al estar separados, el servidor nunca tiene que esperar a que el Dashboard termine de pintar para seguir enviando.
+- **En el Servidor (Aislamiento con ThreadLocal):** Para evitar errores en la base de datos al tener muchos clientes a la vez, utilicé **ThreadLocal**. Esto hace que cada hilo de trabajo tenga su propia conexión privada a MySQL, evitando que las operaciones de un usuario interfieran con las de otro.
+
+Para el tratamiento de imágenes y evitar saturar el servidor con archivos pesados, integré **Firebase Storage**. Los clientes suben las imágenes a la nube y el servidor solo guarda los enlaces, lo que hace que todo el sistema sea mucho más ágil.
+
+#### D. Notificaciones en Tiempo Real (Sistema Broadcaster)
+Implementé un sistema de avisos instantáneos basado en el patrón **Observer**. La clase `Broadcaster` gestiona una "centralita" de hilos que avisa a los clientes (como nuevos trabajos o presupuestos) al momento, asegurando que todos vean lo mismo sin tener que refrescar a mano.
 
 #### Diagrama de Arquitectura del Backend
 
@@ -246,7 +264,7 @@ Para tratar las imagenes y no tener que pelearme con enviar binarios por socket,
 
 #### Diagrama de Componentes de la App Móvil
 
-> _Diagrama de la arquitectura interna de la aplicación Flutter, mostrando la organización en capas: pantallas, servicios, modelos, providers y componentes reutilizables (widgets)._
+> _Diagrama de la arquitectura lógica de la aplicación Flutter. Muestra cómo las distintas pantallas (UI) interactúan con la capa de estado (Providers) y la capa de servicios (Services), delegando la persistencia y conectividad externa al Servidor Java y a Firebase._
 
 ![Diagrama de Componentes de la App](diagramas/diagrama_componentes_app.png)
 
@@ -282,20 +300,46 @@ He conseguido que cada entidad (como un Trabajo o un Presupuesto) sepa exactamen
 
 ---
 
-## 4.3. Diseño de la interfaz de usuario
+## 4.3. Arquitectura de Red y Concurrencia
+
+#### Diagrama de Secuencia y Flujo de Hilos
+
+> _Diagrama de secuencia avanzado que detalla la interacción multihilo entre todos los componentes del sistema. Muestra el ciclo de vida completo de una incidencia: desde la gestión de fotos en Firebase, el protocolo binario de red (cabecera de 4 bytes), hasta la recepción asíncrona mediante el "Lector Avaro" en el Dashboard y el Event Loop en Flutter, garantizando una interfaz fluida sin bloqueos de red._
+
+![Diagrama de Secuencia de Sockets](diagramas/diagrama_flujo_hilos.png)
+
+---
+
+#### Diagrama de Clases de Red (Infraestructura)
+
+> _Este diagrama detalla las clases encargadas de la comunicación multihilo y el protocolo propio. Se observa el patrón Worker representado por el `GestorConexion` y el sistema de difusión asíncrona mediante el `Broadcaster`. También se destaca el uso de `ThreadLocal` en `ConexionDB` para garantizar la seguridad de hilos en el acceso a datos._
+
+![Diagrama de Clases de Red](diagramas/diagrama_server.png)
+
+---
+
+## 4.4. Diseño de la interfaz de usuario
 
 Para el diseño de las interfaces me he decantado por un tema **oscuro y elegante** con el **naranja** como énfasis como marca de la aplicación _FF_, paneles simples e intuitivos para el usuario, con un diseño moderno y limpio.
+
+#### Diagrama de Navegación del Ecosistema (Flutter y JavaFX)
+
+> _Mapa de navegación completo del sistema, mostrando los flujos y pantallas disponibles según el rol de acceso (Gerente en Dashboard, Cliente u Operario en App Móvil) y las transiciones entre ellas._
+
+![Diagrama de Navegación](diagramas/diagrama_navegacion.png)
+
+---
 
 #### Mockups y pantallas principales
 
 ---
 
-### Test panel
+### Panel prototipo
 
 > 🛠️ **Panel de Pruebas de Desarrollo**
 > _El primer panel que creé fue el de pruebas, muy sencillo que nos permitía probar la conexión con el servidor, crear incidencias, verlas, editarlas, valorarlas y eliminarlas al igual que gestionar los usuarios de forma rápida para testear todo el flujo de datos._
 
-|                 Test Conexión                 |               Test Crear               |                 Test Incidencia                  |
+|                 Conexión                 |               Crear               |               Incidencia                  |
 | :-------------------------------------------: | :------------------------------------: | :----------------------------------------------: |
 | ![Test Conexión](capturas/test_conection.png) | ![Test Crear](capturas/test_crear.png) | ![Test Incidencia](capturas/test_incidencia.png) |
 
@@ -371,23 +415,6 @@ Para el diseño de las interfaces me he decantado por un tema **oscuro y elegant
 
 ---
 
-#### Diagrama de Navegación de la App Móvil
-
-> _Mapa de navegación completo de la aplicación Flutter, mostrando todas las pantallas disponibles para cada rol (Cliente, Operario) y las transiciones entre ellas._
-
-![Diagrama de Navegación](diagramas/diagrama_navegacion.png)
-
----
-
-## 4.4. Otros diagramas y descripciones
-
-#### Diagrama de Secuencia y Flujo de Hilos
-
-> _Diagrama de secuencia avanzado que detalla la interacción multihilo entre todos los componentes del sistema. Muestra el ciclo de vida completo de una incidencia: desde la gestión de fotos en Firebase, el protocolo binario de red (cabecera de 4 bytes), hasta la recepción asíncrona mediante el "Lector Avaro" en el Dashboard y el Event Loop en Flutter, garantizando una interfaz fluida sin bloqueos de red._
-
-![Diagrama de Secuencia de Sockets](diagramas/diagrama_flujo_hilos.png)
-
----
 
 # 5. Implementación del proyecto
 
@@ -401,25 +428,43 @@ El proyecto se organiza en tres grandes bloques desacoplados:
 
 ```
 FF/
-├── FIXFINDER/            # Módulo Java (Servidor + Dashboard Tester)
-│   └── src/main/java/com/fixfinder/
-│       ├── cliente/      # ServicioCliente, ClienteSocket
-│       ├── controladores/# DashboardController, SimuladorController
-│       ├── data/         # DAOs, DataRepository
-│       ├── modelos/      # Usuario, Cliente, Operario, Trabajo, Empresa...
-│       ├── red/          # ServidorCentral, GestorConexion, Procesadores
-│       ├── service/      # Servicios de negocio (UsuarioService, etc.)
-│       ├── ui/dashboard/ # AppDashboardPrincipal, DashboardPrincipal...
-│       └── utilidades/   # SessionManager, GestorPassword, etc.
-├── fixfinder_app/        # Módulo Flutter (App Móvil)
-│   └── lib/
-│       ├── models/       # usuario.dart, trabajo.dart, etc.
-│       ├── providers/    # trabajo_provider.dart
-│       ├── screens/      # login, dashboard, perfil, detalle_trabajo...
-│       ├── services/     # auth_service.dart, socket_service.dart...
-│       └── widgets/      # Componentes reutilizables
-└── DOCS/                 # Documentación y diagramas
-    └── diagramas/        # Imágenes PNG + código Mermaid TXT
+├── FIXFINDER/                       # Módulo Java Principal (Maven/Gradle)
+│   ├── src/main/java/com/fixfinder/
+│   │   ├── red/                     # [SERVIDOR BACKEND]
+│   │   │   ├── ServidorCentral.java
+│   │   │   ├── GestorConexion.java
+│   │   │   ├── Broadcaster.java
+│   │   │   └── procesadores/        # Lógica de respuesta (Protocolo)
+│   │   │
+│   │   ├── ui/dashboard/            # [DASHBOARD GESTIÓN]
+│   │   │   ├── vistas/              # Pantallas (Panel, Incidencias...)
+│   │   │   ├── componentes/         # Elementos UI (Sidebar, Tarjetas)
+│   │   │   ├── dialogos/            # Ventanas modales
+│   │   │   └── red/                 # Cliente socket del dashboard
+│   │   │
+│   │   ├── data/                    # [CAPA DE DATOS - COMÚN]
+│   │   │   ├── ConexionDB.java      # Pool de conexiones MySQL
+│   │   │   └── dao/                 # CRUDs persistencia
+│   │   │
+│   │   ├── modelos/                 # [ENTIDADES - COMÚN]
+│   │   ├── service/                 # [LÓGICA DE NEGOCIO]
+│   │   └── utilidades/              # [AUXILIARES]
+│   │
+│   └── src/main/resources/          # Assets (FXML, CSS)
+│
+├── fixfinder_app/                   # Módulo Flutter (Android/iOS)
+│   ├── lib/
+│   │   ├── screens/                 # Pantallas (Login, Home, Detalle)
+│   │   ├── widgets/                 # Componentes reutilizables
+│   │   ├── providers/               # Estado global (ChangeNotifier)
+│   │   ├── services/                # Sockets y Firebase Storage
+│   │   └── models/                  # Mapeo JSON-Dart
+│   └── assets/                      # Iconos y fuentes
+│
+└── DOCS/                            # Documentación Técnica
+    ├── diagramas/                   # Diagramas arquitectura/flujo
+    ├── capturas/                    # Pantallazos memoria
+    └── ESQUEMA_BD.sql               # Script SQL de la base de datos
 ```
 
 ### Arquitectura de despliegue en producción (AWS)
@@ -433,69 +478,100 @@ Para el despliegue en producción, el sistema está planificado sobre la capa gr
 | **Almacenamiento de media**  | **Firebase Storage**            | Las imágenes de perfil y fotos de trabajo se suben directamente desde los clientes (App Flutter) a Firebase, sin pasar por EC2.                                      |
 | **Clientes**                 | App Flutter + Dashboard JavaFX  | Se conectan directamente a la IP elástica de EC2 en el puerto 5000 mediante sockets TCP.                                                                             |
 
-```
-╔═══════════════════════════ AWS Free Tier ═══════╗
-║                                                 ║
-║  ┌─────────────────┐     ┌─────────────────┐    ║
-║  │  EC2 (t3.micro)  │►───►│ RDS MySQL 8    │    ║
-║  │  Docker + Java  │     │ (db.t3.micro)   │    ║
-║  │  Puerto :5000   │     │  Puerto :3306   │    ║
-║  └─────────────────┘     └─────────────────┘    ║
-║           ▲                                     ║
-╚═══════════◊═════════════════════════════════════╝
-            │ TCP :5000
-  ┌─────────┴──────────┐
-  │  Clientes          │
-  │ App Flutter        │─────► Firebase Storage
-  │ Dashboard JavaFX   │     (Imágenes)
-  └───────────────────┘
-```
 
-> [Describe aquí los módulos principales del sistema y su función. Puedes estructurarlo en tres bloques: Servidor Java, Dashboard JavaFX y App Flutter.]
 
-#### Servidor Java (Backend)
 
-Actúa como el cerebro del sistema. Implementa la persistencia mediante DAOs y gestiona la comunicación bidireccional con los clientes mediante el protocolo de 4 bytes + JSON. Su arquitectura de procesadores permite una gran extensibilidad.
-
-#### Dashboard de Escritorio (JavaFX)
-
-Interfaz de alta productividad para el gerente. Se comunica con el servidor para la gestión masiva de incidencias, creación de presupuestos y administración de usuarios, integrando un simulador de estados para pruebas E2E.
-
-#### Aplicación Móvil (Flutter)
-
-Orientada a la movilidad de clientes y operarios. Gestiona fotos con Firebase Storage y utiliza un sistema de proveedores (Provider) para mantener la UI sincronizada con los mensajes asíncronos recibidos por el socket.
 
 ---
 
 ## 5.2. Descripción de los módulos y componentes principales
 
-> [Describe aquí los módulos principales del sistema y su función. Puedes estructurarlo en tres bloques: Servidor Java, Dashboard JavaFX y App Flutter.]
+El ecosistema de FixFinder se divide en tres pilares fundamentales que trabajan de forma coordinada:
 
 #### Servidor Java (Backend)
-
-> [Describe los componentes clave del servidor: `ServidorCentral`, `GestorConexion`, los `Procesadores` de cada acción, la capa de `Servicios`, los `DAOs` y el `DataRepository`. Menciona el patrón Thread-per-client y el protocolo JSON.]
+Es el núcleo del sistema, encargado de la persistencia y la lógica de negocio.
+- **Protocolo de Red:** Comunicación basada en cabeceras de control (4 bytes) y payloads JSON.
+- **Concurrencia:** Modelo `Thread-per-client` que permite gestionar múltiples conexiones simultáneas.
+- **Sincronización:** Sistema asíncrono de difusión de eventos mediante el patrón `Broadcaster`.
+- **Persistencia:** Implementación de DAOs sobre MySQL con un repositorio centralizado.
 
 #### Dashboard de Escritorio (JavaFX)
-
-> [Describe el dashboard: acceso por roles (Gerente/Admin), gestión de incidencias, gestión de operarios, registro de empresas/usuarios, el simulador E2E, etc.]
+Herramienta de administración orientada a la eficiencia del gerente.
+- **Navegación:** Vistas desacopladas para la gestión de incidencias, operarios y datos corporativos.
+- **UI Moderna:** Estética minimalista con tema oscuro y feedback visual inmediato.
+- **Simulador:** Incluye un modo de pruebas E2E para validar flujos de trabajo sin depender de la app móvil.
 
 #### Aplicación Móvil (Flutter)
-
-> [Describe la app móvil: roles (Cliente y Operario), pantallas principales, comunicación via Sockets, gestión de fotos con Firebase Storage, notificaciones, etc.]
+Interfaz móvil diseñada para la portabilidad y la experiencia de usuario.
+- **Estado Reactivo:** Uso de `Provider` para sincronizar la UI con los mensajes asíncronos del socket.
+- **Gestión de Media:** Integración directa con Firebase Storage para evidencias visuales e imágenes de perfil.
+- **Roles Dinámicos:** La interfaz adapta sus funcionalidades según el perfil (Cliente o Operario).
 
 ---
 
 ## 5.3. Despliegue de la aplicación
 
-Aunque durante las pruebas nos hemos movido cómodamente en **local**, FixFinder está diseñado para volar en la **nube**. El salto a **AWS** no es solo por estética tecnológica; es lo que permite que el sistema sea real, accesible desde cualquier red y capaz de aguantar el ritmo de una empresa de verdad. El entorno local ha sido nuestro laboratorio, pero AWS es el mundo real.
+Aunque durante las pruebas nos hemos movido cómodamente en **local** con Docker, FixFinder está diseñado para volar en la **nube**. El salto a **AWS** no es solo por estética tecnológica; es lo que permite que el sistema sea real, accesible desde cualquier red y capaz de aguantar el ritmo de una empresa de real y hacerlo escalable. El entorno local ha sido nuestro laboratorio, pero AWS es el mundo real.
 
 ---
 
 ## 5.4. Capturas de pantalla y ejemplos de código
 
-No hay mejor forma de ver cómo funciona FixFinder que con imágenes reales. Aquí se puede ver el servidor procesando peticiones, el gerente organizando el trabajo y la app móvil lista para la acción. Es el resultado de meses de trabajo resumido en pantallas funcionales.
+> 💡 **Nota técnica:** Los fragmentos de código presentados a continuación son **extractos simplificados** de la implementación real. Se ha omitido el manejo de excepciones, logs y lógica auxiliar para facilitar la comprensión de la arquitectura y la lógica central del sistema.
 
-> **Nota:** Los fragmentos de código relevantes se encuentran en el Anexo A (código fuente completo).
+A continuación se presentan los fragmentos de código que representan el "corazón" técnico del sistema, resolviendo los retos de concurrencia y comunicación:
+
+#### 1. Gestión del Protocolo de Red (Java)
+El servidor utiliza un prefijo de 4 bytes (Big Endian) para indicar la longitud del mensaje JSON. Esto evita el problema de la fragmentación de paquetes TCP.
+
+```java
+// Fragmento de GestorConexion.java
+int length = entrada.readInt(); // Lee los 4 bytes de cabecera
+if (length > 0 && length < 1024 * 1024) {
+    byte[] bytes = new byte[length];
+    entrada.readFully(bytes); // Lee exactamente N bytes
+    String mensaje = new String(bytes, StandardCharsets.UTF_8);
+    // Procesamiento del JSON...
+}
+```
+
+#### 2. Patrón Broadcaster para Tiempo Real (Java)
+Para notificar a los clientes sin que ellos pregunten, se implementó un sistema de suscripción que filtra los mensajes por rol o ID de empresa.
+
+```java
+// Fragmento de Broadcaster.java
+public void difundirEventoTrabajo(String subtipo, int idTrabajo, int idCliente, int idEmpresa) {
+    ObjectNode payload = crearPayloadBase("TRABAJO");
+    // ... relleno de datos ...
+    for (GestorConexion con : conexionesControlladas) {
+        Usuario u = con.getUsuario();
+        if (u == null) continue;
+        // Solo enviamos al cliente afectado o a los gerentes de su empresa
+        if (u.getId() == idCliente || "GERENTE".equals(u.getRol().name())) {
+            con.enviarPush(payload);
+        }
+    }
+}
+```
+
+#### 3. Recomposición de Buffer (Flutter/Dart)
+En el cliente móvil, los datos llegan por fragmentos. Este algoritmo reconstruye los mensajes completos basándose en la cabecera recibida.
+
+```dart
+// Fragmento de socket_service.dart
+void _procesarBuffer() {
+  while (_bufferBytes.length >= 4) {
+    int longitud = (_bufferBytes[0] << 24) | (_bufferBytes[1] << 16) | 
+                   (_bufferBytes[2] << 8) | _bufferBytes[3];
+    if (_bufferBytes.length < 4 + longitud) return; // Esperar más datos
+    
+    final mensajeBytes = _bufferBytes.sublist(4, 4 + longitud);
+    _bufferBytes.removeRange(0, 4 + longitud);
+    final String jsonStr = utf8.decode(mensajeBytes);
+    _controladorRespuestas.add(jsonDecode(jsonStr));
+  }
+}
+```
 
 ---
 
@@ -503,7 +579,7 @@ No hay mejor forma de ver cómo funciona FixFinder que con imágenes reales. Aqu
 
 ## 6.1. Evaluación del proyecto respecto a los objetivos iniciales
 
-Haciendo balance, FixFinder ha superado lo que imaginamos al principio. El flujo de trabajo funciona como un reloj: desde que el cliente pulsa "enviar" hasta que el operario marca como "terminado". Hemos conseguido integrar tres plataformas distintas con un protocolo propio, algo que parecía un mundo al empezar. Aunque siempre se puede mejorar (¡nunca se termina de programar del todo!), la base es sólida, profesional y cumple con todos los objetivos técnicos que nos marcamos.
+FixFinder ha superado lo que imaginaba al principio. El flujo de trabajo funciona como un reloj: desde que el cliente pulsa "enviar" hasta que el operario marca como "terminado". He conseguido integrar tres plataformas distintas con un protocolo propio, algo que parecía un mundo al empezar. Aunque siempre se puede mejorar (¡nunca se termina de programar del todo!), la base es sólida, profesional y cumple con todos los objetivos técnicos que me marqué.
 
 ---
 
@@ -511,23 +587,32 @@ Haciendo balance, FixFinder ha superado lo que imaginamos al principio. El flujo
 
 No voy a mentir: ha habido momentos difíciles. Sincronizar los hilos para que la pantalla no se quedara congelada mientras el servidor pensaba fue un reto (lo solucionamos con `Platform.runLater` y `Futures`), y entenderse con los sockets byte a byte nos llevó más tiempo de lo esperado (el protocolo de 4 bytes fue la clave). Pero cada problema ha servido para que el sistema sea hoy mucho más robusto.
 
-| Problema                    | Solución aplicada                                                       |
-| --------------------------- | ----------------------------------------------------------------------- |
-| Congelación de UI por red   | Desplazamiento de tareas a hilos secundarios y actualización asíncrona. |
-| Corrupción de mensajes JSON | Implementación de cabecera de 4 bytes para prefijo de longitud.         |
-| Carga lenta de imágenes     | Integración de Firebase Storage con carga directa vía URL.              |
-| Desconexiones inesperadas   | Sistema de reconexión automática en el cliente (SocketService).         |
+| Problema                           | Solución aplicada                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| **Congelación de UI (JavaFX)**     | Arquitectura de 3 hilos: **Lector Avaro**, Procesador y Hilo de UI.       |
+| **Fragmentación de paquetes TCP**  | Protocolo binario de cabecera fija de 4 bytes (Big-Endian).               |
+| **Colisiones en DB multihilo**     | Aislamiento de conexiones para que cada usuario tenga su propia vía.      |
+| **Saturación del Servidor**        | Implementación de un **Semáforo** que limita cuánta gente entra a la vez. |
+| **Inconsistencia de Presupuestos** | Sistema que rechaza automáticamente las ofertas rivales al elegir una.    |
+| **Parpadeo en Splash (Flutter)**   | Uso de un Splash nativo para que la entrada a la App sea fluida.          |
+| **Desbordamiento de UI**           | Uso de bloques de colores para que la información no se amontone.         |
+| **Cruces de mensajes asíncronos**  | Uso de **IDs de transacción** para saber qué respuesta es de cada envío.  |
+| **Código difícil de mantener**     | Troceado de clases gigantes en piezas pequeñas y especializadas.          |
 
 ---
 
 ## 6.3. Futuras mejoras y ampliaciones
 
-FixFinder es solo el principio. Lo siguiente sería añadir notificaciones "push" reales que te avisen al móvil al momento, un chat integrado para no depender de llamadas externas y, por qué no, una versión web para que el gerente pueda trabajar desde cualquier navegador sin instalar nada. El sistema está preparado para crecer.
+FixFinder es un proyecto académico terminado, pero la arquitectura que he diseñado permite que el sistema siga escalando. Algunas de las funcionalidades que se podrían implementar en una futura versión comercial serían:
 
-- [ ] Notificaciones Push nativas.
-- [ ] Sistema de Chat interno Cliente-Operario.
-- [ ] Dashboard administrativo en formato Web.
-- [ ] Generación automática de facturas en PDF.
+- [ ] **Notificaciones Push nativas (FCM):** Para que el cliente reciba alertas en el móvil incluso con la App cerrada (usando Firebase Cloud Messaging).
+- [ ] **Pasarela de Pagos integrada:** Cobro automático de facturas mediante Stripe o PayPal directamente desde la App tras finalizar el servicio.
+- [ ] **Geolocalización en tiempo real:** Mapa interactivo en el Dashboard para ver la ubicación GPS de los operarios y optimizar las rutas de trabajo.
+- [ ] **Sistema de Chat interno:** Canal de comunicación directa entre Cliente, Operario y Gerente para evitar llamadas externas.
+- [ ] **Diagnóstico por IA:** Análisis automático de las fotos subidas por el cliente para clasificar la avería o estimar la gravedad.
+- [ ] **Modo Offline:** Permitir que los operarios consulten sus tareas en zonas sin cobertura y sincronicen los cambios al recuperar la red.
+- [ ] **Versión Web del Dashboard:** Migrar la lógica de JavaFX a un entorno web para permitir la gestión desde cualquier dispositivo.
+- [ ] **Analítica Avanzada:** Gráficos de rendimiento, tiempos medios de respuesta y estadísticas de facturación para el gerente.
 
 ---
 
@@ -535,62 +620,71 @@ FixFinder es solo el principio. Lo siguiente sería añadir notificaciones "push
 
 ## 7.1. Relación con los contenidos de los módulos
 
-Este proyecto ha sido el examen final perfecto. He tenido que poner en práctica todo lo aprendido en clase: desde cómo conectar una base de datos segura (Acceso a Datos) hasta cómo diseñar una interfaz que no confunda al usuario (DI y PMDM), pasando por la gestión de servidores y procesos en tiempo real (PSP y SGE). FixFinder no es solo código; es la suma de todo lo aprendido en estos dos años.
+FixFinder ha sido la culminación práctica de todo el ciclo de DAM. No ha sido un ejercicio de "copiar y pegar", sino de integrar conocimientos de múltiples áreas para resolver problemas reales:
+
+- **PSP (Programación de Servicios y Procesos):** Es el corazón del proyecto. He aplicado todo lo aprendido sobre multihilo (modelo Dispatcher-Worker), sockets TCP a bajo nivel y sincronización para el sistema Broadcaster. Gestionar la concurrencia para que el servidor no se bloquee ha sido el mayor reto de la asignatura.
+- **Acceso a Datos (AD):** Toda la persistencia es manual mediante JDBC y MySQL. He tenido que diseñar DAOs robustos y gestionar el aislamiento de conexiones con `ThreadLocal` para evitar que las transacciones de diferentes usuarios chocaran entre sí.
+- **PMDM (Programación Multimedia y Dispositivos Móviles):** El desarrollo de la App en Flutter me ha permitido aplicar el consumo asíncrono de datos y el estado reactivo (Providers), además de integrar servicios nativos como la cámara y Firebase Storage.
+- **DI (Desarrollo de Interfaces):** En el Dashboard de JavaFX he aplicado técnicas avanzadas de diseño con CSS y una arquitectura modular de controladores para que la interfaz sea profesional, intuitiva y, sobre todo, no se bloquee al recibir ráfagas de datos.
+- **SGE (Sistemas de Gestión Empresarial):** La lógica de negocio (presupuestos, gestión de operarios, flujos de trabajo) sigue los principios de un ERP/CRM real, adaptando los procesos administrativos a una solución técnica.
+- **Digitalización:** El proyecto es un ejemplo puro de transformación digital, pasando la gestión de averías tradicional (basada en llamadas y papeles) a un entorno 100% digital que centraliza toda la información.
+- **Sostenibilidad:** Al optimizar la gestión de incidencias y permitir el seguimiento remoto, se reducen desplazamientos innecesarios. Además, la eliminación del papel en presupuestos y facturas contribuye a una gestión más ecológica y eficiente.
+- **Computación en la nube:** La infraestructura en **AWS (EC2 y RDS)** y el uso de **Firebase Storage** demuestran la capacidad de desplegar servicios escalables, seguros y accesibles desde cualquier lugar del mundo.
 
 ---
 
 ## 7.2. Valoración personal del proyecto
 
-Personalmente, FixFinder ha sido un reto increíble que me ha hecho crecer como programador. Me ha servido para darme cuenta de que lo más difícil no es escribir código, sino planificar cómo se van a hablar todas las partes de un sistema tan grande. Me voy con la satisfacción de haber creado algo que funciona de verdad, que resuelve un problema real y con muchas ganas de seguir puliendo el sistema. Ha sido, sin duda, la mejor forma de cerrar esta etapa.
+Si algo he aprendido con FixFinder es que **la programación es solo la mitad del trabajo**. La otra mitad es la arquitectura y la planificación. Al principio me frustraba que los sockets se "pisaran" o que la interfaz se congelara, pero entender el porqué (el síndrome del embudo TCP o las colisiones de hilos) y encontrar la solución técnica adecuada ha sido lo más gratificante de estos meses.
+
+Me siento especialmente orgulloso de no haber usado frameworks que "lo hacen todo solo". Hacerlo a mano me ha obligado a entender cómo funciona la red byte a byte y cómo se sincronizan dos plataformas tan distintas como Java y Flutter. 
+
+Este proyecto me ha dado una confianza que no tenía al empezar el ciclo. Me voy con la satisfacción de haber creado un ecosistema completo que funciona de verdad, desde el servidor en la nube hasta el móvil del usuario, y con la convicción de que lo más valioso que me llevo es la capacidad de enfrentarme a un problema complejo y no parar hasta que el código "cante" como yo quiero. Sin duda, es el cierre perfecto para estos dos años de aprendizaje.
 
 ---
 
 # 8. Bibliografía y recursos utilizados
 
-- [Documentación oficial de JavaFX — openjfx.io](https://openjfx.io/)
-- [Documentación oficial de Flutter — flutter.dev](https://flutter.dev/docs)
-- [Firebase Documentation — firebase.google.com](https://firebase.google.com/docs)
-- [MySQL 8.0 Reference Manual — dev.mysql.com](https://dev.mysql.com/doc/)
-- [Jackson Databind Documentation — FasterXML](https://github.com/FasterXML/jackson-databind)
-- [AWS Free Tier Documentation — aws.amazon.com](https://aws.amazon.com/free/)
-- [Escribe aquí otros recursos consultados...]
+Para el desarrollo de FixFinder se han consultado las siguientes fuentes técnicas y documentaciones oficiales:
+
+- **[Documentación de JavaFX](https://openjfx.io/):** Utilizada para el diseño de la interfaz del Dashboard, gestión de FXML y controladores.
+- **[Documentación de Flutter](https://flutter.dev/docs):** Guía principal para la construcción de la App móvil, manejo de estados y consumo de Sockets en Dart.
+- **[Firebase Admin SDK](https://firebase.google.com/docs/admin/setup):** Referencia para la integración del almacenamiento de imágenes en la nube desde el servidor Java.
+- **[Manual de MySQL 8.0](https://dev.mysql.com/doc/):** Consulta para la optimización de consultas SQL, gestión de claves foráneas y transacciones.
+- **[Jackson Databind](https://github.com/FasterXML/jackson-databind):** Biblioteca fundamental para el mapeo de objetos Java a formato JSON en la comunicación por Sockets.
+- **[AWS EC2 & RDS](https://aws.amazon.com/documentation/):** Guías de despliegue para la configuración del servidor remoto y la base de datos gestionada.
+- **[Spring Security Crypto](https://docs.spring.io/spring-security/site/docs/):** Utilizada para implementar el algoritmo BCrypt, garantizando que las contraseñas nunca se guarden en texto plano.
 
 ---
 
 # 9. Anexos
 
-### Anexo A — Código Fuente
+## Anexo A — Guía de Instalación y Uso
 
-Anexo A — Código Fuente completa.
+FixFinder está diseñado para ser desplegado tanto en entorno de producción como de desarrollo. A continuación se detallan los pasos para ambas situaciones:
 
-### Anexo B — Guía de Instalación y Configuración
+#### 1. Uso para el Usuario Final (Producción)
+- **Dashboard (PC):** Descargar el ejecutable `FixFinder_Dashboard.exe` desde el repositorio, instalar y ejecutar. Se conectará automáticamente al servidor en la nube (AWS).
+- **App Móvil (Android):** Instalar el fichero `FixFinder.apk` en el dispositivo móvil. Al iniciar, se sincronizará con los servicios remotos.
 
-> [Referencia o texto de la guía de instalación del sistema: requisitos previos (JDK 21, Flutter, MySQL 8, Firebase), pasos de configuración de la base de datos (SCHEMA.sql), variables de configuración (puerto, host, credenciales), arranque del servidor y de los clientes.]
+#### 2. Uso para el Desarrollador (Entorno Local)
+Si se desea ejecutar el código fuente en local, se deben cumplir los siguientes requisitos:
+- **Backend:** JDK 21 instalado. Ejecutar `./gradlew runServer` para iniciar el servidor.
+- **Frontend:** Flutter SDK estable. Ejecutar `flutter run` para lanzar la App.
+- **Base de Datos:** Importar el archivo `ESQUEMA_BD.sql` en una instancia local de MySQL.
+- **Red:** Asegurarse de que el puerto **5000** esté abierto para la comunicación TCP.
 
-### Anexo C — Esquema de Base de Datos
+---
 
-> [Referencia al script SQL de creación del esquema de la base de datos (`SCHEMA.sql` o equivalente), incluyendo la creación de todas las tablas, índices y relaciones.]
+## Anexo B — Esquema de Base de Datos
 
-### Anexo D — Códigos Mermaid de los Diagramas
+Aunque el diseño se ha explicado a lo largo de la memoria, se incluye este anexo como referencia técnica rápida. El corazón de FixFinder reside en un esquema relacional que garantiza la integridad de los datos:
 
-Los ficheros `.txt` con el código fuente completo de todos los diagramas se encuentran en la carpeta `DOCS/diagramas/`:
-
-| Fichero                           | Diagrama                                  |
-| --------------------------------- | ----------------------------------------- |
-| `diagrama_backend.txt`            | Arquitectura del Backend por capas        |
-| `diagrama_casos_de_uso_UML.txt`   | Casos de uso UML                          |
-| `diagrama_casos_de_uso_FLUJO.txt` | Flujo de casos de uso                     |
-| `diagrama_clases_completo.txt`    | Diagrama de clases completo (definitivo)  |
-| `diagrama_clases_simple.txt`      | Diagrama de clases simplificado (inicial) |
-| `diagrama_componentes_app.txt`    | Componentes de la app Flutter             |
-| `diagrama_despliege_aws.txt`      | Despliegue en AWS (producción)            |
-| `diagrama_despliegue_local.txt`   | Despliegue local (desarrollo)             |
-| `diagrama_entidad_relacion.txt`   | Entidad-Relación de la base de datos      |
-| `diagrama_flujo_completo.txt`     | Flujo completo del sistema                |
-| `diagrama_navegacion.txt`         | Navegación de la app móvil                |
-| `diagrama_secuencia_sockets.txt`  | Secuencia de comunicación por sockets     |
+- **Estructura:** El sistema se organiza en tablas de Usuarios, Empresas, Trabajos, Presupuestos y Facturas.
+- **Persistencia:** Las imágenes no se guardan en la base de datos, sino que se almacenan en Firebase, guardando en MySQL únicamente las URLs para optimizar el rendimiento.
+- **Referencia Completa:** El script SQL con todos los índices, disparadores y relaciones se puede consultar en: [ESQUEMA_BD.sql](file:///c:/Users/USUARIO/FixFinder/docs/diseno/ESQUEMA_BD.sql).
 
 ---
 
 _Documento generado en Markdown — preparado para conversión a PDF._  
-_Última actualización: marzo 2026._
+_Última actualización: abril 2026._

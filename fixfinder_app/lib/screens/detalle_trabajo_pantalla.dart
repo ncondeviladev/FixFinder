@@ -238,12 +238,12 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DetalleInfoCard(trabajo: trabajoActual),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 if (esCliente &&
                     (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
                         trabajoActual.estado == EstadoTrabajo.PRESUPUESTADO))

@@ -28,13 +28,13 @@ class DetalleInfoCard extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(trabajo.titulo,
                 style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const Divider(),
             Row(
               children: [
@@ -45,7 +45,7 @@ class DetalleInfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             DatoFila(etiqueta: 'Categoría', valor: trabajo.categoria.name),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             DatoFila(
                 etiqueta: 'Fecha solicitud',
                 valor: DateFormatUtils.formatIsoString(trabajo.fechaCreacion)),
@@ -68,11 +68,11 @@ class DetalleInfoCard extends StatelessWidget {
             const SizedBox(height: 12),
             const SizedBox(height: 8),
             BloquesDescripcion(descripcion: trabajo.descripcion),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             if (trabajo.urlsFotos.isNotEmpty) ...[
               GaleriaFotos(urls: trabajo.urlsFotos),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             if (context.watch<UsuarioProvider>().usuario?.rol == Rol.OPERARIO &&
                 trabajo.cliente != null)
               TarjetaContacto(

@@ -42,6 +42,7 @@ public class DialogoGestionIncidencia {
 
     public Optional<Resultado> mostrar() {
         Dialog<Resultado> dialog = new Dialog<>();
+        dialog.setResizable(true);
         String estado = trabajo.getEstado();
 
         // Título dinámico

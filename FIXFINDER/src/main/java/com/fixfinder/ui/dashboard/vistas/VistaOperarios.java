@@ -212,13 +212,21 @@ public class VistaOperarios extends VBox {
                 img.progressProperty().addListener((obs, old, progress) -> {
                     if (progress.doubleValue() == 1.0) {
                         Platform.runLater(() -> {
-                            circuloFoto.setFill(new ImagePattern(img));
+                            if (!img.isError()) {
+                                circuloFoto.setFill(new ImagePattern(img));
+                            } else {
+                                mostrarIniciales(av, nombre, size);
+                            }
                         });
                     }
                 });
 
                 if (img.getProgress() == 1.0) {
-                    circuloFoto.setFill(new ImagePattern(img));
+                    if (!img.isError()) {
+                        circuloFoto.setFill(new ImagePattern(img));
+                    } else {
+                        mostrarIniciales(av, nombre, size);
+                    }
                 }
 
                 av.getChildren().add(circuloFoto);

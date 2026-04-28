@@ -146,3 +146,11 @@ jar {
         exclude "META-INF/*.RSA"
     }
 }
+
+
+task runUploadFoto(type: JavaExec) {
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.fixfinder.UploadFoto'
+}
+
