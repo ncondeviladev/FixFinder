@@ -91,9 +91,13 @@ public class DialogoGestionIncidencia {
 
         ScrollPane scrollDesc = new ScrollPane(contenedorBloques);
         scrollDesc.setFitToWidth(true);
-        scrollDesc.setPrefHeight(250);
-        scrollDesc.setMinHeight(250);
-        scrollDesc.getStyleClass().add("scroll-transparente"); // Clase CSS ya existente para scrollbars oscuros
+        scrollDesc.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        scrollDesc.setMaxHeight(300); // Límite para no desbordar, pero encoge si está vacío
+        scrollDesc.getStyleClass().add("scroll-transparente");
+
+        // Solo mostrar la sección de evolución si realmente hay contenido
+        descBox.managedProperty().bind(contenedorBloques.visibleProperty());
+        descBox.visibleProperty().bind(contenedorBloques.visibleProperty());
 
         descBox.getChildren().addAll(lblDesc, scrollDesc);
         mainBox.getChildren().add(descBox);

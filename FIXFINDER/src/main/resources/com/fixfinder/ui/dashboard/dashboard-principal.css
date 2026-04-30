@@ -907,6 +907,12 @@
   -fx-border-width: 1 0 0 0;
 }
 
+.titulo-modal {
+  -fx-text-fill: #f8fafc;
+  -fx-font-size: 18px;
+  -fx-font-weight: bold;
+}
+
 .etiqueta-modal {
   -fx-text-fill: #94a3b8;
   -fx-font-size: 12px;

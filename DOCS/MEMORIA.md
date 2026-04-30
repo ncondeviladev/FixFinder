@@ -21,10 +21,6 @@
 
 ---
 
----
-**Repositorio Oficial:** [github.com/ncondeviladev/FixFinder](https://github.com/ncondeviladev/FixFinder.git)
----
-
 # 1. Introducción
 
 ## 1.1. Presentación y motivación del proyecto
@@ -259,6 +255,14 @@ Implementé un sistema de avisos instantáneos basado en el patrón **Observer**
 > _Este diagrama muestra toda la arquitectura del backend, desde el servidor central que acepta conexiones TCP hasta el acceso a la base de datos MySQL, pasando por los procesadores de cada acción y la capa de servicios de negocio. Tanto el cliente ocmo la app acceden al servidor de la misma forma y el gestor de conexiones se encarga de distribuir las peticiones a los procesadores correspondientes que a su vez decide a que clase de servicio llamar y ejecutar su accion sobre el mismo repositorio de la capa de datos, y este hace la misma funcion que en la capa de datos._
 
 ![Diagrama de Arquitectura del Backend](diagramas/diagrama_backend.png)
+
+---
+
+#### Diagrama de Componentes Dashboard
+
+> _Diagrama de los componentes internos de la aplicación JavaFX. Muestra cómo la pantalla principal (DashboardController) organiza las diferentes vistas (Dashboard, Incidencias, Operarios) y gestiona la comunicación con el servidor a través de la capa de red._
+
+![Diagrama de Componentes del Dashboard](diagramas/diagrama_componentes_dashboard.png)
 
 ---
 
@@ -664,7 +668,7 @@ Para el desarrollo de FixFinder se han consultado las siguientes fuentes técnic
 FixFinder está diseñado para ser desplegado tanto en entorno de producción como de desarrollo. A continuación se detallan los pasos para ambas situaciones:
 
 #### 1. Uso para el Usuario Final (Producción)
-- **Dashboard (PC):** Descargar el ejecutable `FixFinder_Dashboard.exe` desde el repositorio, instalar y ejecutar. Se conectará automáticamente al servidor en la nube (AWS).
+- **Dashboard (PC):** Descargar el ejecutable `FixFinder_Dashboard.exe` desde el repositorio y ejecutar. Se conectará automáticamente al servidor en la nube (AWS).
 - **App Móvil (Android):** Instalar el fichero `FixFinder.apk` en el dispositivo móvil. Al iniciar, se sincronizará con los servicios remotos.
 
 #### 2. Uso para el Desarrollador (Entorno Local)
@@ -682,9 +686,8 @@ Aunque el diseño se ha explicado a lo largo de la memoria, se incluye este anex
 
 - **Estructura:** El sistema se organiza en tablas de Usuarios, Empresas, Trabajos, Presupuestos y Facturas.
 - **Persistencia:** Las imágenes no se guardan en la base de datos, sino que se almacenan en Firebase, guardando en MySQL únicamente las URLs para optimizar el rendimiento.
-- **Referencia Completa:** El script SQL con todos los índices, disparadores y relaciones se puede consultar en: [ESQUEMA_BD.sql](file:///c:/Users/USUARIO/FixFinder/docs/diseno/ESQUEMA_BD.sql).
+- **Referencia Completa:** El script SQL con todos los índices, disparadores y relaciones se puede consultar en: "FixFinder\DOCS\diseno\ESQUEMA_BD.sql"
 
 ---
 
-_Documento generado en Markdown — preparado para conversión a PDF._  
-_Última actualización: abril 2026._
+
