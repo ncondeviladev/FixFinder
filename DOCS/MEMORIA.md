@@ -129,7 +129,11 @@ Los requerimientos no funcionales se centran en que el sistema sea seguro, efici
 
 #### Análisis de costes y viabilidad del proyecto
 
-FixFinder es un proyecto totalmente viable porque aprovecha lo mejor del software libre. Además, el sistema está diseñado para vivir en la capa gratuita de AWS y Firebase hasta cierto punto siendo escalable bajo demanda, lo que significa que una empresa podría empezar a usarlo mañana mismo con un coste de infraestructura de cero euros. El valor real está en las horas de desarrollo para que todas las piezas encajen.
+La viabilidad de FixFinder se sustenta en el uso estratégico de tecnologías de código abierto y servicios en la nube con modelos de pago por uso. El análisis se desglosa en los siguientes puntos:
+
+Costes de Infraestructura (Cloud): El proyecto aprovecha la capa gratuita (Free Tier) de servicios líderes en la industria. Actualmente, el coste operativo es de 0€ gracias a la instancia EC2 de AWS para el backend, la base de datos gestionada en RDS y el almacenamiento multimedia en Firebase Storage. Este modelo permite validar la solución sin inversión inicial.
+Licenciamiento y Software: Al haber optado por un stack tecnológico basado en Java, Flutter y MySQL, los costes de licencias son inexistentes. El uso de herramientas "Hand-made" en lugar de frameworks comerciales pesados elimina cualquier dependencia económica de terceros.
+Valor del Desarrollo (Activo Intelectual): Dado el carácter académico y el desarrollo intermitente a lo largo de 6 meses, no se pretende tasar el software con un precio comercial cerrado. El valor real de FixFinder reside en la propiedad intelectual y el dominio técnico adquirido. La arquitectura es escalable; si la demanda creciera, el paso a una infraestructura de pago se vería compensado por un modelo de negocio SaaS (Software as a Service), haciendo que el proyecto sea sostenible y rentable a largo plazo.
 
 ---
 
@@ -308,9 +312,9 @@ He conseguido que cada entidad (como un Trabajo o un Presupuesto) sepa exactamen
 
 #### Diagrama de Secuencia y Flujo de Hilos
 
-> _Diagrama de secuencia avanzado que detalla la interacción multihilo entre todos los componentes del sistema. Muestra el ciclo de vida completo de una incidencia: desde la gestión de fotos en Firebase, el protocolo binario de red (cabecera de 4 bytes), hasta la recepción asíncrona mediante el "Lector Avaro" en el Dashboard y el Event Loop en Flutter, garantizando una interfaz fluida sin bloqueos de red._
+> _Diagrama maestro que unifica la ingeniería del sistema. Detalla la interacción multihilo y el flujo integral de datos: desde la gestión multimedia en Firebase y el protocolo de red con cabecera de 4 bytes, hasta la persistencia transaccional ACID en la base de datos. Se destaca la sincronización en tiempo real mediante el Broadcaster, la recepción asíncrona mediante el "Lector Avaro" en el Dashboard y el modelo reactivo basado en Providers en Flutter, garantizando una arquitectura fluida y sin bloqueos de red._
 
-![Diagrama de Secuencia de Sockets](diagramas/diagrama_flujo_hilos.png)
+![Diagrama de Secuencia de Sockets](diagramas/diagrama_maestro_ciclo_vida.png)
 
 ---
 

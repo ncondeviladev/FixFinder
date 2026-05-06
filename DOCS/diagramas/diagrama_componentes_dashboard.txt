@@ -5,60 +5,60 @@ config:
   look: neo
 ---
 flowchart TB
- subgraph subGraph0["1. Control Principal"]
+ subgraph subGraph0["1. Control Principal (Mediador)"]
         App["AppDashboardPrincipal"]
         MainCtrl["DashboardController"]
         Sidebar["Sidebar"]
-        Header["HeaderBar"]
   end
- subgraph subGraph1["2. Interfaz de Usuario (UI Thread)"]
+ subgraph Vistas["Vistas"]
+    direction LR
         VDash["VistaDashboard"]
         VIncid["VistaIncidencias"]
         VOpe["VistaOperarios"]
         VEmp["VistaEmpresa"]
-        DIncid["DialogoGestionIncidencia"]
-        DOpe["DialogoGestionOperario"]
+  end
+ subgraph Dialogs["Diálogos"]
+    direction LR
+        DIncid["DialogoIncidencia"]
+        DOpe["DialogoOperario"]
+  end
+ subgraph subGraph1["2. Interfaz de Usuario (UI Thread)"]
+        Vistas
+        Dialogs
   end
  subgraph subGraph2["3. Capa de Red (Background Threads)"]
-        Router["ManejadorRespuestas<br>Router de Eventos"]
-        Avaro["LectorMensajes<br>Hilo Avaro"]
-        Socket["ConexionCliente<br>Socket TCP"]
-  end
- subgraph subGraph3["Dashboard JavaFX (App Cliente)"]
-        subGraph0
-        subGraph1
-        subGraph2
+        Router["ManejadorRespuestas<br>(Router de Eventos)"]
+        Avaro["LectorMensajes<br>(Hilo Avaro)"]
+        Socket["ConexionCliente<br>(Socket TCP)"]
   end
     App --> MainCtrl
-    MainCtrl --> Sidebar & Header
-    Socket --> Avaro
-    Avaro --> Router
-    Sidebar --> VDash & VIncid & VOpe & VEmp
+    MainCtrl --> Sidebar
+    MainCtrl -- Control y Envío --> Socket
+    MainCtrl -- Configura --> Router
+    Vistas -- Acciones (Callbacks) --> MainCtrl
+    Dialogs -- Acciones (Callbacks) --> MainCtrl
+    Sidebar -. Navegación .-> Vistas
     VIncid --> DIncid
     VOpe --> DOpe
-    VDash -. Petición JSON .-> Socket
-    VIncid -. Petición JSON .-> Socket
-    VOpe -. Petición JSON .-> Socket
-    VEmp -. Petición JSON .-> Socket
-    DIncid -. Petición JSON .-> Socket
-    DOpe -. Petición JSON .-> Socket
-    Router -- Actualiza UI --> VDash & VIncid & VOpe & VEmp & DIncid & DOpe
-    Socket <== Red TCP ==> Server(("Servidor Central<br>FixFinder"))
+    Socket -- Bytes --> Avaro
+    Avaro -- JSON --> Router
+    Router -- "Actualiza UI (Platform.runLater)" --> subGraph1
+    Socket <== Red TCP ==> Server(("Servidor Central"))
 
     style App fill:#FFF9C4
-    style MainCtrl fill:#FFF9C4
+    style MainCtrl fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px
     style Sidebar fill:#FFF9C4
-    style Header fill:#FFF9C4
     style VDash fill:#BBDEFB
     style VIncid fill:#BBDEFB
     style VOpe fill:#BBDEFB
     style VEmp fill:#BBDEFB
     style DIncid fill:#E1BEE7
     style DOpe fill:#E1BEE7
-    style Router fill:#C8E6C9
+    style Vistas fill:#E3F2FD,stroke:#2196F3
+    style Dialogs fill:#F3E5F5,stroke:#9C27B0
+    style Router fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px
     style Avaro fill:#C8E6C9
     style Socket fill:#C8E6C9
-    style subGraph0 fill:transparent
-    style subGraph1 fill:transparent
-    style subGraph2 fill:transparent
     style Server fill:#FFE0B2
+    style subGraph2 fill:#d1ffd3
+    style subGraph0 fill:#FFE0B2

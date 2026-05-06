@@ -1,0 +1,130 @@
+---
+config:
+  themeVariables:
+    fontSize: '16px'
+    fontFamily: 'Inter, sans-serif'
+---
+sequenceDiagram
+    autonumber
+
+    box "App Móvil (Flutter)" #DEEBF7
+        participant AU as UI (Widgets)
+        participant AP as Provider (Estado)
+        participant AS as SocketService
+    end
+
+    box "Nube (Firebase / AWS)" #f2f2f2
+        participant FB as Firebase Storage
+        participant DB as MySQL (RDS)
+    end
+
+    box "Backend Java (Servidor)" #E2F0D9
+        participant SC as Servidor (Dispatcher)
+        participant SW as GestorConexion (Worker)
+        participant TS as "Procesador + ServiceImpl + DAO"
+    end
+
+    box "Dashboard PC (JavaFX)" #FFF2CC
+        participant DA as Hilo Red (Avaro)
+        participant DP as Hilo Procesador
+        participant DU as Hilo UI (Pintor)
+    end
+
+    box "App Operario (Flutter)" #E8F5E9
+        participant OP as "UI + SocketService"
+    end
+
+    Note over AU, OP: FLUJO INTEGRAL - Datos, Concurrencia y Ciclo de Vida del Negocio
+
+    %% --- FASE 1: MULTIMEDIA -----------------------------------------------
+    rect rgb(245, 245, 245)
+        Note right of AU: 1. Fase Multimedia (Upload Bypass)
+        AU->>FB: Sube imágenes (HTTPS directo)
+        FB-->>AU: Retorna URLs públicas
+    end
+
+    %% --- FASE 2: RED Y CONCURRENCIA --------------------------------------
+    rect rgb(230, 240, 255)
+        Note right of AS: 2. Red y Concurrencia (Arquitectura 1+N)
+        AS->>SC: Petición TCP (Puerto 5000)
+        SC->>SW: LANZA nuevo Hilo Worker (Semáforo: máx 10)
+        AS->>SW: [Cabecera 4B] + [JSON: accion, token, URLs]
+    end
+
+    %% --- FASE 3: TRANSACCIÓN ACID -----------------------------------------
+    rect rgb(235, 250, 235)
+        Note right of SW: 3. Transacción y Persistencia (ACID)
+        SW->>TS: switch(accion) -> procesarCrearTrabajo()
+        TS->>DB: BEGIN TRANSACTION
+        TS->>DB: INSERT INTO trabajo (estado: PENDIENTE)
+        loop Por cada URL en el array
+            TS->>DB: INSERT INTO foto_trabajo (id_trabajo, url)
+        end
+        DB-->>TS: CONFIRMA ID generado (FK)
+        TS->>DB: COMMIT
+        TS-->>SW: Respuesta exitosa
+        SW-->>AS: [Cabecera 4B] + {status: 201}
+    end
+
+    %% --- FASE 4: TIEMPO REAL - BROADCASTER -------------------------------
+    rect rgb(255, 245, 220)
+        Note right of SW: 4. Tiempo Real - Sistema Broadcaster (patrón Observer)
+
+        SW->>DA: [TCP PUSH Global] Broadcaster notifica al Dashboard
+        Note over DA: Lector Avaro vacía el buffer TCP
+        DA->>DP: Transfiere JSON a la Cola Interna
+        Note over DP: Procesa y mapea datos a TrabajoFX
+        DP->>DU: Platform.runLater(() -> Actualizar UI)
+        DU->>DU: Refresco tabla de incidencias + KPIs
+
+        SW-->>AS: [TCP PUSH Global] Broadcaster notifica a la App
+        AS->>AP: Stream de datos asíncronos
+        AP->>AU: notifyListeners() (Provider)
+        AU->>AU: Reconstrucción del Widget Tree
+    end
+
+    %% --- FASE 5: NEGOCIACIÓN - PRESUPUESTO -------------------------------
+    rect rgb(255, 240, 245)
+        Note right of DA: 5. Negociación - Presupuesto y Aceptación
+        DU->>SW: {accion: GENERAR_PRESUPUESTO, monto: X}
+        SW->>TS: procesarGenerarPresupuesto()
+        TS->>DB: UPDATE trabajo (estado: PRESUPUESTADO)
+        SW-->>AS: [PUSH] Notifica presupuesto recibido al cliente
+        AS->>AP: Actualiza estado reactivo
+        AP->>AU: notifyListeners()
+
+        AU->>SW: {accion: ACEPTAR_PRESUPUESTO}
+        SW->>TS: procesarAceptarPresupuesto()
+        TS->>DB: UPDATE trabajo (estado: ACEPTADO)
+        SW->>DA: [PUSH] Notifica aceptación al Dashboard
+        DA->>DP: Cola interna
+        DP->>DU: Platform.runLater()
+    end
+
+    %% --- FASE 6: ASIGNACIÓN Y EJECUCIÓN - OPERARIO -----------------------
+    rect rgb(235, 255, 240)
+        Note right of DA: 6. Asignación y Ejecución (Operario)
+        DU->>SW: {accion: ASIGNAR_OPERARIO, idOperario: Y}
+        SW->>TS: procesarAsignarOperario()
+        TS->>DB: UPDATE trabajo (estado: ASIGNADO)
+        SW-->>OP: [PUSH] Notifica nueva tarea asignada
+
+        OP->>SW: {accion: FINALIZAR_TRABAJO, informe: "..."}
+        SW->>TS: procesarFinalizarTrabajo()
+        TS->>DB: UPDATE trabajo (estado: REALIZADO)
+        SW-->>AS: [PUSH] Notifica trabajo terminado al cliente
+        AS->>AP: Stream asíncrono
+        AP->>AU: notifyListeners()
+    end
+
+    %% --- FASE 7: VALORACIÓN Y CIERRE -------------------------------------
+    rect rgb(255, 252, 235)
+        Note right of AU: 7. Valoración y Cierre
+        AU->>SW: {accion: VALORAR_TRABAJO, valoracion: 5}
+        SW->>TS: procesarValorarTrabajo()
+        TS->>DB: UPDATE trabajo (estado: FINALIZADO)
+        SW->>DA: [PUSH] Notifica cierre al Dashboard (dispara facturación)
+        DA->>DP: Cola interna
+        DP->>DU: Platform.runLater()
+        DU->>DU: Refresco final + registro en histórico
+    end

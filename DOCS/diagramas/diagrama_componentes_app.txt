@@ -1,59 +1,75 @@
 ---
 config:
-  layout: elk
+  layout: fixed
+  theme: redux
+  look: neo
 ---
-flowchart TD
-    classDef ui fill:#E2E8F0,stroke:#64748B,stroke-width:2px,color:#0F172A
-    classDef estado fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E
-    classDef core fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A
-    classDef persist fill:#F3F4F6,stroke:#374151,stroke-width:2px,color:#111827,stroke-dasharray: 5 5
-
-    subgraph UI ["📱 Capa de Vistas (Pantallas UI)"]
-        direction TB
-        L[Login / Registro]:::ui
-        Dash[Dashboard Pantalla]:::ui
-        Detalle[Detalle Trabajo Pantalla]:::ui
-        Crear[Crear Trabajo Pantalla]:::ui
-        Perfil[Perfil Pantalla]:::ui
-    end
-
-    subgraph STATE ["🧠 Capa de Estado (Providers)"]
-        direction TB
-        ProvTrabajo[TrabajoProvider]:::estado
-        ProvUsuario[UsuarioProvider]:::estado
-    end
-
-    subgraph SERVICES ["⚙️ Capa de Servicios"]
-        direction TB
-        S_Auth[AuthService]:::core
-        S_Img[ImagenService]:::core
-        S_Job[TrabajoApiService]:::core
-        S_Launch[ExtLauncherService]:::core
-        S_Sock[SocketService TCP]:::core
-    end
-
-    subgraph EXTERNO ["🌐 Conexiones Externas"]
-        direction LR
-        Java[Servidor Java TCP]:::persist
-        FB[Firebase Storage]:::persist
-        Apps[Apps del SO]:::persist
-    end
-
+flowchart TB
+ subgraph UI["📱 Capa de Vistas (Escuchan al Estado)"]
+    direction TB
+        L["Login / Registro"]
+        Dash["Dashboard Pantalla"]
+        Detalle["Detalle Trabajo Pantalla"]
+        Crear["Crear Trabajo Pantalla"]
+        Perfil["Perfil Pantalla"]
+  end
+ subgraph STATE["🧠 Capa de Estado (Providers / Mediadores)"]
+    direction TB
+        ProvTrabajo["TrabajoProvider"]
+        ProvUsuario["UsuarioProvider"]
+  end
+ subgraph SERVICES["⚙️ Capa de Servicios"]
+    direction TB
+        S_Auth["AuthService"]
+        S_Job["JobApiService"]
+        S_Img["ImageService"]
+        S_Launch["ExtLauncherService"]
+        S_Sock["SocketService TCP"]
+  end
+ subgraph EXTERNO["🌐 Conexiones Externas"]
+    direction LR
+        Java["Servidor Java TCP"]
+        FB["Firebase Storage"]
+        Apps["Apps del SO"]
+  end
     L --> S_Auth
-    Dash --> ProvTrabajo
-    Detalle --> ProvTrabajo
-    Crear --> ProvTrabajo
-    Perfil --> ProvUsuario
-    
-    Dash -.->|Foto Perfil| S_Img
-    Crear -.->|Fotos Avería| S_Img
-    Perfil -.->|Edición Foto| S_Img
-    
-    Detalle -.->|Llamar/Ruta| S_Launch
-    S_Launch -->|Abrir Maps/Tlf| Apps
+    S_Auth -- Actualiza --> ProvUsuario
+    Dash -- Comandos --> ProvTrabajo
+    Detalle -- Comandos --> ProvTrabajo
+    Crear -- Comandos --> ProvTrabajo
+    Perfil -- Acciones --> ProvUsuario
+    ProvTrabajo <--> S_Job
+    S_Job <--> S_Sock
+    S_Auth <--> S_Sock
+    S_Sock -- STREAM de Eventos --> ProvTrabajo
+    ProvTrabajo -- notifyListeners() --> UI
+    ProvUsuario -- notifyListeners() --> UI
+    Crear --> S_Img
+    Perfil --> S_Img
+    S_Img --> FB
+    Detalle --> S_Launch
+    S_Launch --> Apps
+    S_Sock <== JSON + 4 Bytes ==> Java
 
-    S_Img -->|Sube archivos| FB
-    ProvTrabajo --> S_Job
-    S_Auth --> S_Sock
-    S_Job --> S_Sock
-    S_Sock <-->|JSON + 4 Bytes| Java
+     L:::ui
+     Dash:::ui
+     Detalle:::ui
+     Crear:::ui
+     Perfil:::ui
+     ProvTrabajo:::estado
+     ProvUsuario:::estado
+     S_Auth:::core
+     S_Job:::core
+     S_Img:::core
+     S_Launch:::core
+     S_Sock:::core
+     Java:::extern
+     FB:::extern
+     Apps:::extern
+    classDef ui fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#0D47A1
+    classDef estado fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px,color:#F57F17
+    classDef core fill:#F3F4F6,stroke:#374151,stroke-width:2px,color:#111827
+    classDef extern fill:#ECEFF1,stroke:#455A64,stroke-width:2px,stroke-dasharray: 5 5
+    style UI fill:#BBDEFB
+    style STATE fill:#FFFDE7,stroke:#FBC02D,stroke-dasharray: 5 5
+    style SERVICES fill:#C8E6C9

@@ -1,0 +1,73 @@
+---
+config:
+  themeVariables:
+    fontSize: '18px'
+    fontFamily: 'Inter, sans-serif'
+---
+sequenceDiagram
+    autonumber
+
+    box "App Móvil (Flutter)" #DEEBF7
+        participant AU as UI (Widgets)
+        participant AP as Provider (Estado)
+        participant AS as SocketService
+    end
+
+    box "Nube (AWS/Firebase)" #f2f2f2
+        participant FB as Firebase Storage
+        participant DB as MySQL (RDS)
+    end
+
+    box "Backend Java (Servidor)" #E2F0D9
+        participant SC as Servidor (Dispatcher)
+        participant SW as Gestor (Hilo Worker)
+        participant TS as Lógica negocio Servicios y procesadores 
+    end
+
+    box "Dashboard PC (JavaFX)" #FFF2CC
+        participant DA as Hilo Red (Avaro)
+        participant DP as Hilo Procesador
+        participant DU as Hilo UI (Pintor)
+    end
+
+    Note over AU, DU: FLUJO INTEGRAL DE DATOS Y CONCURRENCIA
+
+    rect rgb(245, 245, 245)
+        Note right of AU: 1. Fase Multimedia
+        AU->>FB: Sube imágenes (HTTPS)
+        FB-->>AU: Retorna URLs públicas
+    end
+
+    rect rgb(230, 240, 255)
+        Note right of AS: 2. Red y Concurrencia
+        AS->>SC: Petición TCP (Puerto 5000)
+        SC->>SW: LANZA nuevo Hilo (Arquitectura 1+N)
+        AS->>SW: [Cabecera 4B] + [JSON con datos]
+    end
+
+    rect rgb(235, 250, 235)
+        Note right of SW: 3. Transacción y Persistencia
+        SW->>TS: Procesa acción CREAR_TRABAJO
+        TS->>DB: BEGIN TRANSACTION (Inicio ACID)
+        TS->>DB: INSERT Incidencia + Fotos
+        DB-->>TS: CONFIRMA ID generado (FK)
+        TS->>DB: COMMIT (Persistencia final)
+        TS-->>SW: Respuesta Exitosa
+        SW-->>AS: [Cabecera 4B] + {status: 201}
+    end
+
+    rect rgb(255, 245, 230)
+        Note right of SW: 4. Tiempo Real - Dashboard
+        SW->>DA: [Broadcaster] TCP PUSH Global
+        DA->>DP: Transfiere JSON a la cola
+        DP->>DU: Platform.runLater(Actualizar)
+        DU->>DU: Refresco visual inmediato
+    end
+
+    rect rgb(230, 255, 250)
+        Note left of AS: 5. Tiempo Real - App (Reactividad)
+        SW-->>AS: [Broadcaster] TCP PUSH Global
+        AS->>AP: Stream de datos asíncronos
+        AP->>AU: notifyListeners() (Estado)
+        AU->>AU: Reconstrucción Widget Tree
+    end
