@@ -1,6 +1,8 @@
 package com.fixfinder.modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fixfinder.modelos.enums.Rol;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -9,20 +11,37 @@ import java.time.LocalDateTime;
  * Contiene los atributos comunes: ID, credenciales, datos personales básicos.
  * Es extendida por {@link Operario} y {@link Cliente}.
  */
-public abstract class Usuario {
+@Entity
+@Table(name = "usuario")
+@Inheritance(strategy = InheritanceType.JOINED)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class Usuario {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
+
+    @Column(name = "nombre_completo")
     protected String nombreCompleto;
+
+    @Column(unique = true)
     protected String email;
+
+    @Column(name = "password_hash")
     protected String passwordHash;
+
+    @Column(name = "url_foto")
     protected String urlFoto;
+
+    @Column(name = "fecha_registro", insertable = false, updatable = false)
     protected LocalDateTime fechaRegistro;
+
     protected String telefono;
     protected String direccion;
+
+    @Column(unique = true)
     protected String dni;
 
-    /**
-     * Rol del usuario en el sistema (ADMIN, GERENTE, OPERARIO, CLIENTE).
-     */
+    @Enumerated(EnumType.STRING)
     protected Rol rol;
 
     public Usuario() {

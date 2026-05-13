@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: fixfinder
+  profiles:
+    active: local
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/fixfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: user
+    password: user
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+spring:
+  config:
+    activate:
+      on-profile: cloud
+  datasource:
+    url: jdbc:mysql://ffrds.cle4w4mummno.eu-south-2.rds.amazonaws.com:3306/fixfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ffrds
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver

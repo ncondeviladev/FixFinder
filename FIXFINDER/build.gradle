@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'eclipse'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.fixfinder'
@@ -17,8 +19,14 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot Core, Web, JPA y WebSockets
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     // Driver de MySQL
-    implementation 'mysql:mysql-connector-java:8.0.33'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     
     // JavaFX (Dependencias explícitas para Windows)
     implementation 'org.openjfx:javafx-controls:21:win'
@@ -26,21 +34,17 @@ dependencies {
     implementation 'org.openjfx:javafx-graphics:21:win'
     implementation 'org.openjfx:javafx-base:21:win'
     
-    // JUnit
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.5.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'com.h2database:h2'
     
-    // JSON (Jackson)
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-    
-    // Firebase Admin SDK (Para limpieza automatizada en tests)
+    // Firebase Admin SDK
     implementation 'com.google.firebase:firebase-admin:9.2.0'
-    
-    // Google Cloud Storage (necesario para DbClean)
-    implementation 'com.google.cloud:google-cloud-storage:2.30.1'
 }
 
 application {
@@ -49,55 +53,28 @@ application {
 
 test {
     useJUnitPlatform()
-    testLogging {
-        showStandardStreams = true
-        events "passed", "skipped", "failed", "standardOut", "standardError"
-        exceptionFormat "full"
-    }
-    afterTest { desc, result -> 
-        logger.lifecycle "Ejecutando Test: ${desc.className}.${desc.name} -> ${result.resultType}"
-    }
 }
 
 task runServer(type: JavaExec) {
     group = 'application'
-    description = 'Runs the Server'
+    description = 'Arranca el Servidor Spring Boot'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.fixfinder.red.ServidorCentral'
 }
 
-task runClient(type: JavaExec) {
-    group = 'application'
-    description = 'Runs the Client'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.Main'
-}
-
-
-
-task runSchemaUpdater(type: JavaExec) {
-    group = 'application'
-    description = 'Runs the Schema Updater'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.utilidades.SchemaUpdater'
-}
-
 task runSeeder(type: JavaExec) {
     group = 'application'
-    description = 'Runs the Data Seeder for Testing'
+    description = 'Poblar la base de datos con datos de prueba'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.DbClean'
-    standardInput = System.in
+    mainClass = 'com.fixfinder.utilidades.DataSeeder'
 }
 
 task runDashboard(type: JavaExec) {
     group = 'application'
-    description = 'Arranca el Panel de Gestión Principal (Gerente/Admin)'
+    description = 'Arranca el Panel de Gestión Principal (JavaFX)'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.fixfinder.ui.dashboard.AppDashboardPrincipal'
     
-    // Filtramos solo los JARs de JavaFX para el module-path
-    // Las demás dependencias se quedan en el classpath para evitar conflictos de módulos duplicados
     doFirst {
         def javafxJars = configurations.runtimeClasspath.filter { it.name.contains('javafx') }
         jvmArgs = [
@@ -107,50 +84,8 @@ task runDashboard(type: JavaExec) {
     }
 }
 
-task runPanelPrototipo(type: JavaExec) {
-    group = 'application'
-    description = 'Arranca el Panel de Pruebas Independiente'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.LanzadorPanelPrototipo'
-}
-
-task dashboardJar(type: Jar) {
-    group = 'build'
-    description = 'Generates a Fat JAR for the Dashboard'
-    archiveFileName = 'fixfinder-dashboard.jar'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes 'Main-Class': 'com.fixfinder.ui.dashboard.LauncherDashboard'
-    }
-    from sourceSets.main.output
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
-}
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes 'Main-Class': 'com.fixfinder.red.ServidorCentral'
-    }
-    from sourceSets.main.output
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
-}
-
-
-task runUploadFoto(type: JavaExec) {
-    group = 'application'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fixfinder.UploadFoto'
+bootJar {
+    mainClass = 'com.fixfinder.red.ServidorCentral'
+    archiveFileName = 'fixfinder-server.jar'
 }
 

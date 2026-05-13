@@ -123,9 +123,8 @@ public class DialogoRegistroEmpresa {
 
             new Thread(() -> {
                 try {
-                    if (!servicioCliente.isConectado()) {
-                        servicioCliente.conectar(GlobalConfig.getServerIp(), GlobalConfig.PORT);
-                    }
+                    // Iniciar conexión WebSocket/STOMP si no está abierta
+                    servicioCliente.conectar(GlobalConfig.getServerIp(), GlobalConfig.PORT);
 
                     servicioCliente.setOnMensajeRecibido(json -> {
                         Platform.runLater(() -> {
@@ -163,10 +162,10 @@ public class DialogoRegistroEmpresa {
                         txtDniGerente.getText().trim(),
                         txtTelefonoGerente.getText().trim()
                     );
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     Platform.runLater(() -> {
                         lblFeedback.getStyleClass().setAll("estado-ppto-modal-error");
-                        lblFeedback.setText("Error de red: No se pudo contactar con el Servidor.");
+                        lblFeedback.setText("Error de red: " + ex.getMessage());
                         btnRegistrar.setDisable(false);
                     });
                 }

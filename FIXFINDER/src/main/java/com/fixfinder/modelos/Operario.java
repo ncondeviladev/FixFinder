@@ -1,8 +1,10 @@
 package com.fixfinder.modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fixfinder.modelos.componentes.EstadoOperarioConverter;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.Rol;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -10,16 +12,26 @@ import java.time.LocalDateTime;
  *
  * Extiende de {@link Usuario} e incluye datos laborales.
  */
+@Entity
+@Table(name = "operario")
+@PrimaryKeyJoinColumn(name = "id_usuario")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Operario extends Usuario {
 
-    // Vinculación laboral
+    @Column(name = "id_empresa")
     private int idEmpresa;
 
-    // Datos profesionales específicos
+    @Enumerated(EnumType.STRING)
     private CategoriaServicio especialidad;
+    
+    @Column(name = "estado")
+    @Convert(converter = EstadoOperarioConverter.class)
     private boolean estaActivo; // Representa estado DISPONIBLE/OCUPADO
+    
     private double latitud;
     private double longitud;
+    
+    @Column(name = "ultima_actualizacion")
     private LocalDateTime ultimaActualizacion;
 
     public Operario() {

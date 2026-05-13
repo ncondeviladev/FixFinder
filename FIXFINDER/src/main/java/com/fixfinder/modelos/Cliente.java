@@ -1,6 +1,9 @@
 package com.fixfinder.modelos;
 
 import com.fixfinder.modelos.enums.Rol;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 
 /**
  * Representa a un cliente final que solicita trabajos.
@@ -9,6 +12,9 @@ import com.fixfinder.modelos.enums.Rol;
  * pero se mantiene como entidad separada para futura expansión (ej: métodos de
  * pago, fidelización).
  */
+@Entity
+@Table(name = "cliente")
+@PrimaryKeyJoinColumn(name = "id_usuario")
 public class Cliente extends Usuario {
 
     public Cliente() {

@@ -1,5 +1,6 @@
 package com.fixfinder.modelos;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -8,15 +9,30 @@ import java.time.LocalDateTime;
  * Contiene los cálculos económicos (Base, IVA, Total) y la referencia
  * al archivo PDF generado físicamente en el servidor.
  */
+@Entity
+@Table(name = "factura")
 public class Factura {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_trabajo")
     private Trabajo trabajo;
+    
+    @Column(name = "numero_factura", unique = true)
     private String numeroFactura;
+    @Column(name = "base_imponible")
     private double baseImponible;
     private double iva;
     private double total;
+    
+    @Column(name = "fecha_emision", insertable = false, updatable = false)
     private LocalDateTime fechaEmision;
+    
+    @Column(name = "ruta_pdf")
     private String rutaPdf;
+    
     private boolean pagada;
 
     public Factura() {

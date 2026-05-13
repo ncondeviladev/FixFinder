@@ -1,18 +1,35 @@
 package com.fixfinder.modelos;
 
 import com.fixfinder.modelos.enums.EstadoPresupuesto;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
  * Representa una oferta económica previa a la realización del trabajo.
  */
+@Entity
+@Table(name = "presupuesto")
 public class Presupuesto {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_trabajo")
     private Trabajo trabajo;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_empresa")
     private Empresa empresa;
+    
     private double monto;
+    
+    @Column(name = "fecha_envio", insertable = false, updatable = false)
     private LocalDateTime fechaEnvio;
+    
+    @Enumerated(EnumType.STRING)
     private EstadoPresupuesto estado;
+    
     private String notas;
 
     public Presupuesto() {
@@ -75,5 +92,6 @@ public class Presupuesto {
     }
 
     // Campo informativo estático (No persistido)
+    @Transient
     public static final String NOTAS_ESTANDAR = "El precio es orientativo y puede estar sujeto a modificaciones por material o reparación.";
 }

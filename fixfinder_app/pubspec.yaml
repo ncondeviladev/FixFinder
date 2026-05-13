@@ -20,6 +20,7 @@ dependencies:
   image_picker: ^1.0.7
   url_launcher: ^6.2.5
   flutter_dotenv: ^5.1.0
+  stomp_dart_client: ^3.0.1
 
 dev_dependencies:
   flutter_test:

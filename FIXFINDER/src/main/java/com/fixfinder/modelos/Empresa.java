@@ -1,6 +1,7 @@
 package com.fixfinder.modelos;
 
 import com.fixfinder.modelos.enums.CategoriaServicio;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,17 +13,30 @@ import java.util.List;
  * reparaciones
  * de forma aislada (SaaS).
  */
+@Entity
+@Table(name = "empresa")
 public class Empresa {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String nombre;
     private String cif;
     private String direccion;
     private String telefono;
+    @Column(name = "email_contacto")
     private String emailContacto;
+    
+    @Column(name = "url_foto")
     private String urlFoto;
+    
+    @Column(name = "fecha_alta", insertable = false, updatable = false)
     private String fechaAlta;
 
     // Lista de servicios que ofrece la empresa (Multiservicio)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "empresa_especialidad", joinColumns = @JoinColumn(name = "id_empresa"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "especialidad")
     private List<CategoriaServicio> especialidades = new ArrayList<>();
 
     public Empresa() {

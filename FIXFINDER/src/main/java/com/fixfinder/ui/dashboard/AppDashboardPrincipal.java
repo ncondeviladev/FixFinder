@@ -177,27 +177,19 @@ public class AppDashboardPrincipal extends Application {
     }
 
     private void conectarAServer(Circle dot) {
-        if (!GlobalConfig.MODO_NUBE) {
-            dot.setFill(javafx.scene.paint.Color.DODGERBLUE);
-            return;
+        if (GlobalConfig.MODO_NUBE) {
+            dot.setFill(javafx.scene.paint.Color.web("#22C55E")); // Verde para Cloud
+        } else {
+            dot.setFill(javafx.scene.paint.Color.web("#3B82F6")); // Azul para Local
         }
-        new Thread(() -> {
-            try (java.net.Socket socket = new java.net.Socket()) {
-                socket.connect(new java.net.InetSocketAddress(GlobalConfig.getServerIp(), GlobalConfig.PORT), 2000);
-                Platform.runLater(() -> dot.setFill(javafx.scene.paint.Color.web("#22C55E")));
-            } catch (Exception e) {
-                Platform.runLater(() -> dot.setFill(javafx.scene.paint.Color.GRAY));
-            }
-        }).start();
     }
 
     private void realizarLogin(String email, String pass,
             Label lblError, Button btnEntrar, Label lblConexion) {
         new Thread(() -> {
             try {
-                if (!servicioCliente.isConectado()) {
-                    servicioCliente.conectar(GlobalConfig.getServerIp(), GlobalConfig.PORT);
-                }
+                // Iniciar conexión WebSocket/STOMP si no está abierta
+                servicioCliente.conectar(GlobalConfig.getServerIp(), GlobalConfig.PORT);
 
                 servicioCliente.setOnMensajeRecibido(json -> Platform.runLater(() -> {
                     try {
@@ -245,9 +237,9 @@ public class AppDashboardPrincipal extends Application {
 
                 servicioCliente.enviarLogin(email, pass);
 
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 Platform.runLater(() -> {
-                    lblError.setText("No se pudo conectar con el servidor.");
+                    lblError.setText("Error de comunicación: " + ex.getMessage());
                     btnEntrar.setDisable(false);
                     lblConexion.setVisible(false);
                 });

@@ -136,45 +136,35 @@ public class DashboardPrincipalController {
      * Refresca Incidencias, Perfil de Empresa y Lista de Operarios.
      */
     public void sincronizarTodo() {
-        try {
-            // Refresco total de datos
-            servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
-            if (idEmpresa > 0) {
-                servicioCliente.obtenerDatosEmpresa(idEmpresa);
-                servicioCliente.solicitarListaOperarios(idEmpresa);
-            }
-        } catch (IOException e) { logError("sincronización total", e); }
+        // Refresco total de datos
+        servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
+        if (idEmpresa > 0) {
+            servicioCliente.obtenerDatosEmpresa(idEmpresa);
+            servicioCliente.solicitarListaOperarios(idEmpresa);
+        }
     }
 
     private void enviarAsignacionOperario(TrabajoFX t, int idOp) {
-        try {
-            servicioCliente.enviarAsignarOperario(t.getId(), idOp, usuarioId);
-            registrarActividad("⚙️ Operario asignado a Incidencia #" + t.getId());
-        } catch (IOException e) { logError("asignación", e); }
+        servicioCliente.enviarAsignarOperario(t.getId(), idOp, usuarioId);
+        registrarActividad("⚙️ Operario asignado a Incidencia #" + t.getId());
     }
 
     private void enviarPresupuesto(TrabajoFX t, double monto, String desc) {
-        try {
-            servicioCliente.enviarCrearPresupuesto(t.getId(), idEmpresa, monto, desc);
-            registrarActividad("💰 Presupuesto de " + monto + "€ enviado para #" + t.getId());
-        } catch (IOException e) { logError("presupuesto", e); }
+        servicioCliente.enviarCrearPresupuesto(t.getId(), idEmpresa, monto, desc);
+        registrarActividad("💰 Presupuesto de " + monto + "€ enviado para #" + t.getId());
     }
 
     // --- GESTIÓN DE OPERARIOS ---
 
     public void registrarNuevoOperario(DialogoGestionOperario.ResultadoOperario op, int idEmp) {
-        try {
-            servicioCliente.enviarRegistroUsuario(true, op.nombre(), op.dni(), op.email(),
-                    op.password(), op.telefono(), "", String.valueOf(idEmp), op.especialidad());
-            registrarActividad("Nuevo operario registrado: " + op.nombre());
-        } catch (IOException e) { logError("registro op", e); }
+        servicioCliente.enviarRegistroUsuario(true, op.nombre(), op.dni(), op.email(),
+                op.password(), op.telefono(), "", String.valueOf(idEmp), op.especialidad());
+        registrarActividad("Nuevo operario registrado: " + op.nombre());
     }
 
     public void actualizarOperario(int id, DialogoGestionOperario.ResultadoOperario op, boolean activo) {
-        try {
-            servicioCliente.enviarModificarOperario(id, op.nombre(), op.dni(), op.email(), op.telefono(), op.especialidad(), activo);
-            registrarActividad("⚙️ Solicitada actualización: " + op.nombre());
-        } catch (IOException e) { logError("edición op", e); }
+        servicioCliente.enviarModificarOperario(id, op.nombre(), op.dni(), op.email(), op.telefono(), op.especialidad(), activo);
+        registrarActividad("⚙️ Solicitada actualización: " + op.nombre());
     }
 
     public void cambiarEstadoOperario(OperarioFX operario, boolean nuevoEstado) {
@@ -190,10 +180,8 @@ public class DashboardPrincipalController {
         String path = "perfiles/" + operario.getId() + "_op_" + System.currentTimeMillis() + file.getName();
         backgroundService.subirImagen(file, path,
                 url -> {
-                    try {
-                        servicioCliente.enviarActualizarFotoPerfil(operario.getId(), url);
-                        registrarActividad("📸 Actualizada foto de " + operario.getNombre());
-                    } catch (IOException e) { logError("foto op", e); }
+                    servicioCliente.enviarActualizarFotoPerfil(operario.getId(), url);
+                    registrarActividad("📸 Actualizada foto de " + operario.getNombre());
                 },
                 err -> logError("subida imagen", (Exception) err));
     }
@@ -208,11 +196,9 @@ public class DashboardPrincipalController {
             String path = "perfiles/" + usuarioId + "_ger_" + System.currentTimeMillis() + file.getName();
             backgroundService.subirImagen(file, path,
                     url -> {
-                        try {
-                            servicioCliente.enviarActualizarFotoPerfil(usuarioId, url);
-                            registrarActividad("📸 Foto de gerente actualizada");
-                            if (sidebar != null) Platform.runLater(() -> sidebar.actualizarFoto(url));
-                        } catch (IOException e) { logError("foto gerente", e); }
+                        servicioCliente.enviarActualizarFotoPerfil(usuarioId, url);
+                        registrarActividad("📸 Foto de gerente actualizada");
+                        if (sidebar != null) Platform.runLater(() -> sidebar.actualizarFoto(url));
                     },
                     err -> logError("subida gerente", (Exception) err));
         }
@@ -228,19 +214,17 @@ public class DashboardPrincipalController {
             String path = "logos/" + idEmpresa + "_logo_" + System.currentTimeMillis() + file.getName();
             backgroundService.subirImagen(file, path,
                     url -> {
-                        try {
-                            // Usamos el comando atómico enviando la nueva URL y el resto de info actual
-                            servicioCliente.enviarModificarEmpresa(
-                                idEmpresa,
-                                (String) infoEmpresaActual.getOrDefault("nombre", ""),
-                                (String) infoEmpresaActual.getOrDefault("cif", ""),
-                                (String) infoEmpresaActual.getOrDefault("email", ""),
-                                (String) infoEmpresaActual.getOrDefault("telefono", ""),
-                                (String) infoEmpresaActual.getOrDefault("direccion", ""),
-                                url
-                            );
-                            registrarActividad("🏢 Logo corporativo actualizado");
-                        } catch (IOException e) { logError("logo empresa", e); }
+                        // Usamos el comando atómico enviando la nueva URL y el resto de info actual
+                        servicioCliente.enviarModificarEmpresa(
+                            idEmpresa,
+                            (String) infoEmpresaActual.getOrDefault("nombre", ""),
+                            (String) infoEmpresaActual.getOrDefault("cif", ""),
+                            (String) infoEmpresaActual.getOrDefault("email", ""),
+                            (String) infoEmpresaActual.getOrDefault("telefono", ""),
+                            (String) infoEmpresaActual.getOrDefault("direccion", ""),
+                            url
+                        );
+                        registrarActividad("🏢 Logo corporativo actualizado");
                     },
                     err -> logError("subida logo", (Exception) err));
         }
@@ -249,18 +233,16 @@ public class DashboardPrincipalController {
     public void abrirDialogoGestionEmpresa() {
         DialogoGestionEmpresa diag = new DialogoGestionEmpresa(infoEmpresaActual, cssUrl);
         diag.mostrar().ifPresent(res -> {
-            try {
-                servicioCliente.enviarModificarEmpresa(
-                    idEmpresa,
-                    res.nombre(),
-                    res.cif(),
-                    res.email(),
-                    res.telefono(),
-                    res.direccion(),
-                    (String) infoEmpresaActual.getOrDefault("url_foto", "")
-                );
-                registrarActividad("⚙️ Solicitada actualización de datos de empresa");
-            } catch (IOException e) { logError("edición empresa", e); }
+            servicioCliente.enviarModificarEmpresa(
+                idEmpresa,
+                res.nombre(),
+                res.cif(),
+                res.email(),
+                res.telefono(),
+                res.direccion(),
+                (String) infoEmpresaActual.getOrDefault("url_foto", "")
+            );
+            registrarActividad("⚙️ Solicitada actualización de datos de empresa");
         });
     }
 

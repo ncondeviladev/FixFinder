@@ -1,8 +1,11 @@
 package com.fixfinder.modelos.componentes;
 
+import jakarta.persistence.Embeddable;
+
 /**
  * Clase auxiliar para manejar coordenadas geográficas (Latitud/Longitud).
  */
+@Embeddable
 public class Ubicacion {
     private double latitud;
     private double longitud;

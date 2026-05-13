@@ -1,9 +1,11 @@
 package com.fixfinder.modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fixfinder.modelos.componentes.FotoTrabajo;
 import com.fixfinder.modelos.componentes.Ubicacion;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,22 +19,49 @@ import java.util.List;
  * - Una {@link CategoriaServicio} de servicio.
  * - Una {@link Ubicacion} y dirección.
  */
+@Entity
+@Table(name = "trabajo")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Trabajo {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_cliente")
     private Usuario cliente;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_operario_asignado")
     private Operario operarioAsignado;
+    
+    @Enumerated(EnumType.STRING)
     private CategoriaServicio categoria;
+    
     private String titulo;
     private String descripcion;
+    
+    @Embedded
     private Ubicacion ubicacion;
+    
     private String direccion;
+    
+    @Enumerated(EnumType.STRING)
     private EstadoTrabajo estado;
+    
+    @Column(name = "fecha_creacion", insertable = false, updatable = false)
     private LocalDateTime fechaCreacion;
+    
+    @Column(name = "fecha_finalizacion")
     private LocalDateTime fechaFinalizacion;
 
     // Componentes nuevos
     private int valoracion; // 0-5
+    
+    @Column(name = "comentario_cliente")
     private String comentarioCliente;
+    
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_trabajo")
     private List<FotoTrabajo> fotos = new ArrayList<>();
 
     public Trabajo() {

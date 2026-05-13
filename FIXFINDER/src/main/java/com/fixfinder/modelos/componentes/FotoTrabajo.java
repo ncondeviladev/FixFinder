@@ -1,11 +1,19 @@
 package com.fixfinder.modelos.componentes;
 
+import jakarta.persistence.*;
+
 /**
  * Representa una foto asociada a un trabajo.
  * Se almacena la URL/Ruta local, no la imagen en sí.
  */
+@Entity
+@Table(name = "foto_trabajo")
 public class FotoTrabajo {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    @Column(name = "id_trabajo")
     private int idTrabajo; // Usamos ID aquí para evitar ciclos infinitos al serializar, aunque podría ser
                            // objeto Trabajo.
     private String url;

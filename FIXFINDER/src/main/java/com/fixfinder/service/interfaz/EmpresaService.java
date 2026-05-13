@@ -2,6 +2,7 @@ package com.fixfinder.service.interfaz;
 
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.utilidades.ServiceException;
+import java.util.Map;
 import java.util.List;
 
 /**
@@ -9,6 +10,11 @@ import java.util.List;
  * Gestiona el alta, baja y modificación de empresas proveedoras.
  */
 public interface EmpresaService {
+
+    /**
+     * Registra una nueva empresa y crea automáticamente el primer usuario con rol GERENTE.
+     */
+    void registrarEmpresaConGerente(Map<String, Object> datos) throws ServiceException;
 
     /**
      * Registra una nueva empresa en el sistema.
@@ -41,6 +47,11 @@ public interface EmpresaService {
      * @throws ServiceException Error de acceso.
      */
     List<Empresa> listarTodas() throws ServiceException;
+
+    /**
+     * Obtiene una empresa por su ID.
+     */
+    Empresa obtenerPorId(Integer id) throws ServiceException;
 
     /**
      * Obtiene estadísticas o datos agregados de la empresa.

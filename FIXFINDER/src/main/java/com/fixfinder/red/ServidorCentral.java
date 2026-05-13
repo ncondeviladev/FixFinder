@@ -1,109 +1,21 @@
 package com.fixfinder.red;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.Semaphore;
-import com.fixfinder.data.DataRepositoryImpl; // Importar para probar conexión
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * Servidor Central de Sockets.
- * Escucha conexiones en el puerto 5000 y delega cada cliente a un hilo
- * independiente.
- * 
- * Implementa control de concurrencia mediante Semáforos (Requisito PSP).
+ * Servidor Central de FixFinder.
+ * Migrado de Sockets TCP puros a Spring Boot Application.
  */
+@SpringBootApplication(scanBasePackages = "com.fixfinder")
+@EntityScan(basePackages = "com.fixfinder.modelos")
+@EnableJpaRepositories(basePackages = "com.fixfinder.repository")
 public class ServidorCentral {
 
-    private static final int PUERTO = 5000;
-    private static final int MAX_CONEXIONES = 10; // Limitamos a 10 clientes simultáneos
-
-    private boolean ejecutando = true;
-    private final Semaphore semaforo; // Control de acceso concurrente
-
-    // Jackson ObjectMapper para parsear JSON (Singleton para toda la app)
-    public static final ObjectMapper jsonMapper = new ObjectMapper();
-
-    public ServidorCentral() {
-        // Inicializamos el semáforo con los permisos máximos
-        this.semaforo = new Semaphore(MAX_CONEXIONES);
-    }
-
-    public void iniciar() {
-        System.out.println("🚀 Iniciando Servidor FIXFINDER en puerto " + PUERTO + "...");
-
-        // Esperar a que la Base de Datos esté lista (Docker)
-        esperarBaseDeDatos();
-
-        System.out.println("ℹ️ Máximo de conexiones simultáneas: " + MAX_CONEXIONES);
-
-        try (ServerSocket serverSocket = new ServerSocket(PUERTO)) {
-            System.out.println("✅ Servidor esperando conexiones...");
-
-            while (ejecutando) {
-                // 1. Esperar a que llegue un cliente (se bloquea aquí hasta que alguien se
-                // conecta)
-                // Socket es como el "cable" virtual que nos une a ese cliente específico.
-                Socket socketCliente = serverSocket.accept();
-
-                // 2. Intentar adquirir permiso del semáforo
-                if (semaforo.tryAcquire()) {
-                    System.out.println("🔌 Nuevo cliente conectado: " + socketCliente.getInetAddress());
-                    System.out.println("📊 Conexiones activas: " + (MAX_CONEXIONES - semaforo.availablePermits()) + "/"
-                            + MAX_CONEXIONES);
-
-                    // 3. Crear el Runnable (GestorCliente)
-                    // Le pasamos el socket para que hable con el cliente y el semáforo para que
-                    // avise al salir.
-                    GestorConexion gestor = new GestorConexion(socketCliente, semaforo);
-
-                    // 4. Lanzar el Hilo manualmente (Requisito académico)
-                    // Creamos un nuevo hilo de ejecución para que el servidor pueda volver a
-                    // escuchar
-                    // mientras este hilo atiende al cliente.
-                    Thread hiloCliente = new Thread(gestor);
-                    hiloCliente.start();
-                } else {
-                    System.err
-                            .println("⛔ Servidor saturado. Rechazando conexión de: " + socketCliente.getInetAddress());
-                    socketCliente.close();
-                }
-            }
-
-        } catch (IOException e) {
-            System.err.println("🔥 Error crítico en el servidor: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Intenta conectar a la BBDD repetidamente hasta tener éxito.
-     * Útil cuando Docker está arrancando.
-     */
-    private void esperarBaseDeDatos() {
-        boolean conectada = false;
-        System.out.println("⏳ Verificando conexión a Base de Datos...");
-        while (!conectada) {
-            try {
-                // Intentamos instanciar el repositorio.
-                // Si la BBDD no responde, esto suele fallar al intentar obtener conexión en el
-                // constructor o pool.
-                new DataRepositoryImpl();
-                conectada = true;
-                System.out.println("✅ Base de Datos ONLINE.");
-            } catch (Exception e) {
-                System.out.println("⚠️ BBDD no disponible aún (" + e.getMessage() + "). Reintentando en 3s...");
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return; // Salir si interrumpen el hilo principal
-                }
-            }
-        }
-    }
-
     public static void main(String[] args) {
-        new ServidorCentral().iniciar();
+        SpringApplication.run(ServidorCentral.class, args);
+        System.out.println("🚀 Servidor FIXFINDER (Spring Boot) Iniciado!");
     }
 }

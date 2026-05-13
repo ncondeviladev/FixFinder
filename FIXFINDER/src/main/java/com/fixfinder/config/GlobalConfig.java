@@ -10,7 +10,15 @@ public class GlobalConfig {
     // --- CONFIGURACIÓN DE RED (IPs y Puertos) ---
     public static final String LOCAL_IP = "127.0.0.1";
     public static final String CLOUD_IP = "51.48.89.85";
-    public static final int PORT = 5000;
+    public static final int PORT = 8080; // Puerto por defecto de Spring Boot
+
+    public static String getApiUrl() {
+        return "http://" + getServerIp() + ":" + PORT + "/api";
+    }
+
+    public static String getWsUrl() {
+        return "ws://" + getServerIp() + ":" + PORT + "/ws";
+    }
 
     // --- CONFIGURACIÓN DE BASE DE DATOS (Local vs RDS) ---
     private static final String DB_LOCAL_URL = "jdbc:mysql://localhost:3306/fixfinder?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
