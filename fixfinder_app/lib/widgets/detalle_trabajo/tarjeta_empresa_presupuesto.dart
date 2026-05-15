@@ -53,12 +53,27 @@ class TarjetaEmpresaPresupuesto extends StatelessWidget {
               presupuesto.nombreEmpresa ?? "Empresa",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            trailing: Text(
-              '${presupuesto.monto.toStringAsFixed(2)}€',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: FixFinderTheme.successColor),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (presupuesto.telefonoEmpresa != null &&
+                    presupuesto.telefonoEmpresa!.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.phone,
+                        color: FixFinderTheme.successColor, size: 20),
+                    onPressed: () => ExternalLauncherService.llamarTelefono(
+                        presupuesto.telefonoEmpresa),
+                    tooltip: 'Llamar a la empresa',
+                  ),
+                const SizedBox(width: 4),
+                Text(
+                  '${presupuesto.monto.toStringAsFixed(2)}€',
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: FixFinderTheme.successColor),
+                ),
+              ],
             ),
           ),
 

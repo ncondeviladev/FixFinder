@@ -64,13 +64,23 @@ public class Broadcaster {
      * @param idEmpresa ID de la empresa involucrada (para notificar a sus gerentes).
      * @param info Mensaje adicional.
      */
-    public void difundirEventoTrabajo(String subtipo, int idTrabajo, int idCliente, int idEmpresa, String info) {
+    /**
+     * Notifica un cambio en un trabajo a los interesados.
+     * @param subtipo NUEVO, ASIGNACION, FINALIZADO, etc.
+     * @param idTrabajo ID del trabajo afectado.
+     * @param idCliente ID del cliente dueño (para notificarle).
+     * @param idOperario ID del operario asignado (para notificarle).
+     * @param idEmpresa ID de la empresa involucrada (para notificar a sus gerentes).
+     * @param info Mensaje adicional.
+     */
+    public void difundirEventoTrabajo(String subtipo, int idTrabajo, int idCliente, int idOperario, int idEmpresa, String info) {
         ObjectNode payload = crearPayloadBase("TRABAJO");
         ObjectNode datos = (ObjectNode) payload.get("datos");
 
         datos.put("subtipo", subtipo);
         datos.put("idTrabajo", idTrabajo);
         datos.put("idCliente", idCliente);
+        datos.put("idOperario", idOperario);
         datos.put("idEmpresa", idEmpresa);
         if (info != null) datos.put("info", info);
         System.out.println("📢 [BROADCAST] Evento TRABAJO (" + subtipo + ") difundido.");
@@ -81,10 +91,11 @@ public class Broadcaster {
             if (u == null) continue;
 
             boolean esClienteInteresado = (idCliente > 0 && u.getId() == idCliente);
+            boolean esOperarioInteresado = (idOperario > 0 && u.getId() == idOperario);
             // Sincronización Global para Gerentes: Todos necesitan ver los cambios de estado en tiempo real
             boolean esGerente = "GERENTE".equals(u.getRol().name());
 
-            if (esClienteInteresado || esGerente) {
+            if (esClienteInteresado || esOperarioInteresado || esGerente) {
                 con.enviarPush(payload);
             }
         }
@@ -197,25 +208,22 @@ public class Broadcaster {
     }
 
     /**
-     * Notifica cambios en el perfil de un usuario (Nombre, Foto, etc).
+     * Notifica cambios en el perfil de un usuario (Nombre, Foto, Email, etc).
      */
-    public void difundirEventoUsuario(String subtipo, int idUsuario, String info, String urlFoto, String nombre) {
+    public void difundirEventoUsuario(String subtipo, int idUsuario, String info, String urlFoto, String nombre, String email, String telefono, String direccion) {
         ObjectNode payload = crearPayloadBase("USUARIO");
         ObjectNode datos = (ObjectNode) payload.get("datos");
         datos.put("subtipo", subtipo);
         datos.put("idUsuario", idUsuario);
         datos.put("info", info);
-        if (urlFoto != null)
-            try {
-                datos.put("url_foto", urlFoto);
-            } catch (Exception ignored) {
-            }
-        if (nombre != null)
-            try {
-                datos.put("nombre", nombre);
-            } catch (Exception ignored) {
-            }
-        enviarATodos(payload);
+        if (urlFoto != null) datos.put("url_foto", urlFoto);
+        if (nombre != null) datos.put("nombre", nombre);
+        if (email != null) datos.put("email", email);
+        if (telefono != null) datos.put("telefono", telefono);
+        if (direccion != null) datos.put("direccion", direccion);
+        
+        // CORRECCIÓN: Solo notificar al usuario afectado (evita SPAM global)
+        enviarAUsuario(idUsuario, payload);
     }
 
     /**

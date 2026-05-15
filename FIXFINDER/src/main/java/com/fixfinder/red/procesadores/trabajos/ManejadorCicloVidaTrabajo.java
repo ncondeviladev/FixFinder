@@ -56,7 +56,7 @@ public class ManejadorCicloVidaTrabajo {
             respuesta.putObject("datos").put("id", nuevo.getId());
 
             // NUEVO TRABAJO: Se notifica a todos los gerentes para que puedan presupuestar
-            Broadcaster.getInstancia().difundirEventoTrabajo("NUEVO", nuevo.getId(), idCliente, -1, "Nueva incidencia registrada");
+            Broadcaster.getInstancia().difundirEventoTrabajo("NUEVO", nuevo.getId(), idCliente, 0, -1, "Nueva incidencia registrada");
 
         } catch (ServiceException e) {
             error(respuesta, 400, e.getMessage());
@@ -82,7 +82,7 @@ public class ManejadorCicloVidaTrabajo {
             int idCliente = t.getCliente() != null ? t.getCliente().getId() : 0;
             int idEmpresa = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getIdEmpresa() : 0;
             
-            Broadcaster.getInstancia().difundirEventoTrabajo("ASIGNACION", idT, idCliente, idEmpresa, "Operario asignado");
+            Broadcaster.getInstancia().difundirEventoTrabajo("ASIGNACION", idT, idCliente, idO, idEmpresa, "Operario asignado");
         } catch (Exception e) {
             error(respuesta, 400, "Error asignación: " + e.getMessage());
         }
@@ -105,7 +105,9 @@ public class ManejadorCicloVidaTrabajo {
             int idCliente = t.getCliente() != null ? t.getCliente().getId() : 0;
             int idEmpresa = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getIdEmpresa() : 0;
 
-            Broadcaster.getInstancia().difundirEventoTrabajo("FINALIZADO", idT, idCliente, idEmpresa, "Trabajo finalizado");
+            int idOperario = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getId() : 0;
+
+            Broadcaster.getInstancia().difundirEventoTrabajo("FINALIZADO", idT, idCliente, idOperario, idEmpresa, "Trabajo finalizado");
         } catch (Exception e) {
             error(respuesta, 500, "Error al finalizar: " + e.getMessage());
         }
@@ -120,7 +122,8 @@ public class ManejadorCicloVidaTrabajo {
 
             trabajoService.cancelarTrabajo(idT, datos.path("motivo").asText("Cancelado"));
             respuesta.put("status", 200);
-            Broadcaster.getInstancia().difundirEventoTrabajo("CANCELACION", idT, idCliente, idEmpresa, "Incidencia cancelada");
+            int idOperario = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getId() : 0;
+            Broadcaster.getInstancia().difundirEventoTrabajo("CANCELACION", idT, idCliente, idOperario, idEmpresa, "Incidencia cancelada");
         } catch (Exception e) {
             error(respuesta, 400, e.getMessage());
         }
@@ -147,7 +150,8 @@ public class ManejadorCicloVidaTrabajo {
             int idEmpresa = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getIdEmpresa() : 0;
 
             respuesta.put("status", 200);
-            Broadcaster.getInstancia().difundirEventoTrabajo("MODIFICACION", idT, idCliente, idEmpresa, "Datos actualizados");
+            int idOperario = t.getOperarioAsignado() != null ? t.getOperarioAsignado().getId() : 0;
+            Broadcaster.getInstancia().difundirEventoTrabajo("MODIFICACION", idT, idCliente, idOperario, idEmpresa, "Datos actualizados");
         } catch (Exception e) {
             error(respuesta, 400, e.getMessage());
         }

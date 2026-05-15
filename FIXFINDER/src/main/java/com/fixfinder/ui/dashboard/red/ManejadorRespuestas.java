@@ -178,7 +178,7 @@ public class ManejadorRespuestas {
             }
         }
 
-        // 3. Lógica específica por categoría
+        // 3. Lógica específica por categoría (Filtrada por interés)
         if ("USUARIO".equals(categoria)) {
             int idEvent = datos.path("idUsuario").asInt();
             if (idEvent == idUsuarioLogueado) {
@@ -194,27 +194,37 @@ public class ManejadorRespuestas {
 
         switch (categoria) {
             case "TRABAJO":
-                alRegistrarActividad.accept("🔔 " + info);
+                if (esParaMiEmpresa || esParaMiUsuario || esNuevoGlobal) {
+                    alRegistrarActividad.accept("🔔 " + info);
+                }
                 alSolicitarRefresco.run(); // Refrescamos tablas para ver la nueva incidencia o el cambio
                 break;
             
             case "PRESUPUESTO":
-                alRegistrarActividad.accept("💰 " + info);
+                if (esParaMiEmpresa || esParaMiUsuario) {
+                    alRegistrarActividad.accept("💰 " + info);
+                }
                 alSolicitarRefresco.run();
                 break;
 
             case "VALORACION":
-                alRegistrarActividad.accept("⭐ " + info);
+                if (esParaMiEmpresa) {
+                    alRegistrarActividad.accept("⭐ " + info);
+                }
                 alSolicitarRefresco.run(); // Refrescar KPIs y panel de empresa
                 break;
 
             case "EMPRESA":
-                alRegistrarActividad.accept("🏢 " + info);
+                if (esParaMiEmpresa) {
+                    alRegistrarActividad.accept("🏢 " + info);
+                }
                 alSolicitarRefresco.run(); // Refrescar datos corporativos
                 break;
 
             case "OPERARIO":
-                alRegistrarActividad.accept("🔧 " + info);
+                if (esParaMiEmpresa) {
+                    alRegistrarActividad.accept("🔧 " + info);
+                }
                 alSolicitarRefresco.run(); // Refrescar tabla de personal
                 break;
 

@@ -197,4 +197,13 @@ class AuthService {
       return {'status': 500, 'mensaje': 'Error de conexión: $e'};
     }
   }
+
+  /// Sincroniza el usuario local con nuevos datos recibidos externamente (ej: Sockets).
+  void actualizarUsuarioLocal(Usuario usuario) async {
+    _usuarioActual = usuario;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userData', jsonEncode(_usuarioActual!.toJson()));
+    } catch (_) {}
+  }
 }

@@ -87,6 +87,28 @@ class Usuario {
     );
   }
 
+  /// Genera una copia del usuario con los campos especificados actualizados.
+  Usuario copyWith({
+    String? email,
+    String? nombreCompleto,
+    String? telefono,
+    String? direccion,
+    String? urlFoto,
+  }) {
+    return Usuario(
+      id: this.id,
+      email: email ?? this.email,
+      nombreCompleto: nombreCompleto ?? this.nombreCompleto,
+      rol: this.rol,
+      token: this.token,
+      telefono: telefono ?? this.telefono,
+      direccion: direccion ?? this.direccion,
+      dni: this.dni,
+      urlFoto: urlFoto ?? this.urlFoto,
+      fechaRegistro: this.fechaRegistro,
+    );
+  }
+
   /// Serializa el objeto a JSON para persistencia local o envío al servidor.
   Map<String, dynamic> toJson() {
     return {

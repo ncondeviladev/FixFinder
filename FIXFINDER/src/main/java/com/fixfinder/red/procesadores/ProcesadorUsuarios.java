@@ -111,6 +111,10 @@ public class ProcesadorUsuarios {
 
                 // BROADCAST: Sincronizar cambios en el personal (Solo a su empresa)
                 Broadcaster.getInstancia().difundirEventoOperario("MODIFICACION", id, op.getIdEmpresa(), "Datos de operario actualizados");
+                
+                // BROADCAST DIRIGIDO: Notificar al propio operario para que su App se actualice al instante
+                Broadcaster.getInstancia().difundirEventoUsuario("DATOS", id, "Tu empresa ha actualizado tu perfil", 
+                    op.getUrlFoto(), op.getNombreCompleto(), op.getEmail(), op.getTelefono(), "");
             } catch (ServiceException e) {
                 respuesta.put("status", 400);
                 respuesta.put("mensaje", e.getMessage());
@@ -144,7 +148,8 @@ public class ProcesadorUsuarios {
                 respuesta.put("mensaje", "Foto de perfil actualizada correctamente");
 
                 // BROADCAST: Cambio silencioso de foto de perfil
-                Broadcaster.getInstancia().difundirEventoUsuario("FOTO", idUsuario, "Foto de perfil actualizada", urlFoto, u.getNombreCompleto());
+                Broadcaster.getInstancia().difundirEventoUsuario("FOTO", idUsuario, "Foto de perfil actualizada", 
+                    u.getUrlFoto(), u.getNombreCompleto(), u.getEmail(), u.getTelefono(), u.getDireccion());
             } catch (Exception e) {
                 e.printStackTrace();
                 respuesta.put("status", 500);
@@ -179,7 +184,8 @@ public class ProcesadorUsuarios {
                 respuesta.put("mensaje", "Datos actualizados correctamente");
                 
                 // BROADCAST: Notificar cambio de nombre/datos silenciosamente
-                Broadcaster.getInstancia().difundirEventoUsuario("DATOS", id, "Perfil actualizado", u.getUrlFoto(), u.getNombreCompleto());
+                Broadcaster.getInstancia().difundirEventoUsuario("DATOS", id, "Perfil actualizado", 
+                    u.getUrlFoto(), u.getNombreCompleto(), u.getEmail(), u.getTelefono(), u.getDireccion());
             } catch (ServiceException e) {
                 respuesta.put("status", 400);
                 respuesta.put("mensaje", e.getMessage());

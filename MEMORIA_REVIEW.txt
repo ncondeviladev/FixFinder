@@ -1,0 +1,1574 @@
+       FixFinder
+Sistema de Gestión de Incidencias
+                 y
+ Reparaciones Multiplataforma
+
+
+
+
+       Autor: Noé Conde Vila
+        Fecha: Mayo de 2026
+          Curso: DAM
+     Centro: IES Maria Enríquez
+FixFinder: Memoria Técnica                                                                                                  Noé Conde Vila
+
+
+
+
+Índice
+1. Introducción .......................................................................................................................... 4
+  1.1. Presentación y motivación del proyecto ......................................................................... 4
+  1.2. Factor diferenciador del proyecto ................................................................................... 4
+  1.3.Análisis de la situación de partida ................................................................................... 4
+  1.4. Objetivos a conseguir con el proyecto ........................................................................... 5
+  1.5. Relación con los contenidos de los módulos ................................................................. 6
+2. Presentación de las tecnologías .......................................................................................... 7
+  2.1. Justificación de la elección de las tecnologías ............................................................... 7
+     Stack tecnológico utilizado ............................................................................................... 8
+3. Análisis del proyecto ............................................................................................................ 9
+  3.1. Requerimientos funcionales y no funcionales ................................................................ 9
+    Requerimientos funcionales ............................................................................................... 9
+    Requerimientos no funcionales ........................................................................................ 10
+    Análisis de costes y viabilidad del proyecto ..................................................................... 10
+  3.2. Temporalización del proyecto ...................................................................................... 11
+   Hitos del proyecto ............................................................................................................. 11
+   Diagrama de Gantt ........................................................................................................... 12
+  3.3. Casos de uso ............................................................................................................... 12
+    Descripción de los casos de uso ...................................................................................... 12
+    Diagrama de Casos de Uso (UML) .................................................................................. 13
+    Diagrama de Flujo de Casos de Uso ............................................................................... 14
+  3.4. Diagrama de clases inicial ........................................................................................... 15
+    Descripción de las clases (diseño inicial) ......................................................................... 15
+    Diagrama de Clases Simplificado (Inicial) ........................................................................ 15
+    Diagrama Entidad-Relación ............................................................................................. 16
+  3.6. Otros diagramas y descripciones ................................................................................. 16
+    Diagrama de Flujo Completo del Sistema ........................................................................ 17
+4. Diseño del proyecto ........................................................................................................... 18
+  4.1. Arquitectura del sistema ............................................................................................... 18
+    Descripción de la arquitectura .......................................................................................... 18
+      A. Gestión de hilos en el Servidor (Dispatcher-Worker) ............................................... 18
+      B. Protocolo de comunicación propio (Cabecera y TxID) ............................................. 19
+       C. Soluciones a bloqueos de red y concurrencia ......................................................... 19
+       D. Notificaciones en Tiempo Real (Sistema Broadcaster) ............................................ 19
+     Diagrama de Arquitectura del Backend ........................................................................... 19
+     Diagrama de Componentes Dashboard .......................................................................... 21
+     Diagrama de Componentes de la App Móvil ................................................................... 22
+     Diagrama de Despliegue Local ........................................................................................ 22
+     Diagrama de Despliegue AWS (Producción) ................................................................... 24
+
+
+IES Maria Enríquez                                                                                                                 Página 2
+FixFinder: Memoria Técnica                                                                                                  Noé Conde Vila
+
+
+
+
+  4.2. Diagrama de clases definitivo ...................................................................................... 25
+    Descripción de las clases (diseño final) ........................................................................... 25
+    Diagrama de Clases Completo (Definitivo) ...................................................................... 25
+  4.3. Arquitectura de Red y Concurrencia ............................................................................ 26
+    Diagrama de Secuencia y Flujo de Hilos ......................................................................... 26
+    Diagrama de Clases de Red (Infraestructura) .................................................................. 27
+  4.4. Diseño de la interfaz de usuario ................................................................................... 28
+    Diagrama de Navegación del Ecosistema (Flutter y JavaFX) .......................................... 28
+    Mockups y pantallas principales ....................................................................................... 29
+    Panel prototipo ................................................................................................................. 29
+    Panel Dashboard .............................................................................................................. 30
+    App Móvil (Flutter) ............................................................................................................ 33
+    Infraestructura Cloud ........................................................................................................ 35
+5. Implementación del proyecto ............................................................................................. 36
+  5.1. Estructura del proyecto ................................................................................................ 36
+    Arquitectura de despliegue en producción (AWS) ........................................................... 37
+  5.2. Descripción de los módulos y componentes principales ............................................. 37
+    Servidor Java (Backend) ................................................................................................. 37
+    Dashboard de Escritorio (JavaFX) .................................................................................. 38
+    Aplicación Móvil (Flutter) ................................................................................................. 38
+  5.3. Despliegue de la aplicación ......................................................................................... 38
+  5.4. Capturas de pantalla y ejemplos de código ................................................................. 39
+    1. Gestión del Protocolo de Red (Java) ........................................................................... 39
+    2. Patrón Broadcaster para Tiempo Real (Java) .............................................................. 39
+    3. Recomposición de Buffer (Flutter/Dart) ........................................................................ 40
+6. Estudio de los resultados obtenidos ................................................................................... 40
+  6.1. Evaluación del proyecto respecto a los objetivos iniciales ........................................... 40
+  6.2. Problemas encontrados y soluciones aplicadas .......................................................... 41
+  6.3. Futuras mejoras y ampliaciones ................................................................................... 42
+7. Conclusiones .......................................................................................................................43
+  7.1. Relación con los contenidos de los módulos ............................................................... 43
+  7.2. Valoración personal del proyecto ................................................................................. 44
+8. Bibliografía y recursos utilizados ........................................................................................ 44
+9. Anexos ............................................................................................................................... 45
+  Anexo A — Guía de Instalación y Uso ................................................................................ 45
+    1. Uso para el Usuario Final (Producción) ....................................................................... 45
+ 2. Uso para el Desarrollador (Entorno Local) ........................................................................ 45
+    Anexo B — Esquema de Base de Datos ......................................................................... 45
+
+
+
+
+IES Maria Enríquez                                                                                                                 Página 3
+ FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+
+ 1. Introducción
+1.1. Presentación y motivación del proyecto
+
+FixFinder surge de la necesidad de dar un paso adelante en la modernización y digitalización
+del servicio técnico y reparaciones. Muchas pequeñas y medianas empresas en el sector del
+mantenimiento utilizan sistemas antiguos y poco eficientes, como procesos manuales,
+publicidad en diferentes canales (radio, rrss, etc), llamadas telefónicas constantes y partes de
+trabajo en papel. Esto provoca ineficiencias y falta de transparencia y comodidad para el cliente
+final.
+FixFinder es una plataforma completa que integra a clientes, operarios y gerentes de empresas
+en tiempo real. Permite dar soporte a todas las actividades involucradas en una reparación
+doméstica, desde que el cliente avisa una avería en su teléfono móvil, pasando por la
+presupuestación del gerente en su sistema de empresa, hasta la ejecución por parte del
+operario. El objetivo es dar con una herramienta profesional que ayude a mejorar la eficiencia
+interna y la satisfacción del cliente en cuanto a la búsqueda de servicios de reparaciones
+domésticas.
+
+
+1.2. Factor diferenciador del proyecto
+
+Lo que destaca de FixFinder no es su tecnología, ni frameworks ni librerias, es cómo le da la
+vuelta al modelo tradicional de buscqueda de servicios técnicos. Tradicionalmente es el cliente
+el que busca en internet empresas, contacta con ellas una a una y gestiona la comunicación de
+forma individual. En FixFinder el cliente sube a la plataforma el problema como si de una red
+social se tratara, y las empresas son las que valoran y presupuestan el servicio. Dando a los
+clientes una comodidad estando a la espera en lugar de hacer una búsqueda activa, y a las
+empresas un abanico de potenciales clientes sin necesidad de invertir en publicidad.
+
+
+
+1.3. Análisis de la situación de partida
+
+Todos conocemos a alguien, y si no, ese alguien seguramente seas tú, que cuando se rompe el
+grifo de la cocina y no conce a ningñun fontanero, se pone a preguntar a amgiso y familiares si
+conocen alguno fiable, o bien buscar en google sin ningún criterio ni seguridad de que sea un
+buen profesional. En lugar de buscar anuncios de empresas de servicios, ahora el anuncio lo
+pone el cliente y son las empresas las que te ofrecen el servicio con un presupuesto directo,
+mientras las empresas tienen una fuente mas para aumentar su cartera de clientes por otra via.
+
+
+
+
+ IES Maria Enríquez                                                                       Página 4
+ FixFinder: Memoria Técnica                                                            Noé Conde Vila
+
+
+
+
+1.4. Objetivos a conseguir con el proyecto
+
+Con este proyecto he marcado unas metas muy claras:
+
+
+1.Flujo de trabajo completo: Que todo el flujo de trabajo, desde la creación de la incidencia
+por el cliente, pasando por la gestión del gerente y la ejecución por parte del operario, se realice
+de forma fluida y sin interrupciones.
+
+2.Hacerlo fácil desde el móvil: Que el cliente pueda pedir una reparación en segundos y
+quedarse a la espera a recibir presupuestos de empresas, y para el operario sea sencillo
+gestionar las incidencias que le llegan con toda su información.
+
+3.Controlar el negocio de un vistazo: Que el gerente tenga en su pantalla todas las
+herramientas para presupuestar y asignar tareas sin perderse en menús complicados.
+
+4.Construir algo sólido: Aprovechar la potencia y bajo costo de AWS y Firebase para que el
+sistema funcione de verdad y sea capaz de crecer si las empresas lo necesita.
+
+
+5.Seguridad ante todo: Garantizar que los presupuestos y datos de los clientes estén a buen
+recaudo y con un sistema de seguridad delegado a aws para los datos y cifrado con tokens
+para la autenticación de usuarios.
+
+
+
+
+ IES Maria Enríquez                                                                          Página 5
+FixFinder: Memoria Técnica                                                                   Noé Conde Vila
+
+
+ 1.5. Relación con los contenidos de los módulos
+
+        Módulo                                  Relación con el proyecto
+
+
+                             Aplicación de patrones DAO y Repository para la persistencia en
+       Acceso a              MySQL. Uso de JDBC para la gestión de conexiones y consultas
+        Datos                complejas, garantizando la integridad referencial y la eficiencia en la
+                             persistencia de datos.
+
+
+                             Diseño y desarrollo del Dashboard administrativo utilizando JavaFX.
+    Desarrollo de
+                             Uso de estilos CSS para una interfaz profesional y componentes
+     Interfaces
+                             personalizados para visualización de datos.
+
+
+   Programación              Desarrollo de la aplicación dual para el cliente y operario con Flutter.
+    Multimedia y             Integración de cámaras para fotos de incidencias, consumo de
+    Dispositivos             servicios de red y uso de Firebase para almacenamiento de
+      Móviles                contenido multimedia.
+
+
+                             Arquitectura cliente-servidor mediante sockets TCP. Implementación
+   Programación              de una arquitectura orientada a eventos mediante un sistema de
+   de Servicios y            Broadcaster global. Gestión avanzada de la concurrencia con hilos
+     Procesos                dedicados y sincronización de streams de salida para permitir
+                             actualizaciones en tiempo real (Push) entre clientes.
+
+
+     Sistemas de             Modelado del ciclo de vida transaccional de una incidencia, desde el
+       Gestión               estado Pendiente hasta Finalizado, integrando flujos de aprobación
+     Empresarial             de presupuestos y asignación dinámica de recursos humanos.
+
+
+                             Arquitectura de despliegue híbrida y desacoplada: cómputo en AWS
+                             EC2, persistencia relacional en AWS RDS y almacenamiento de
+   Optativa Nube
+                             objetos multimedia en Firebase Storage, garantizando alta
+                             disponibilidad y escalabilidad de los recursos.
+
+
+                             Contribución a la reducción del consumo de papel y transporte
+   Sostenibilidad            innecesario mediante la digitalización de partes de trabajo y la
+                             optimización de la comunicación remota entre actores.
+
+
+                             Transformación de procesos tradicionales de mantenimiento en flujos
+    Digitalización           de trabajo 100% digitales, permitiendo el análisis de datos para la
+                             mejora de la eficiencia operativa.
+
+
+
+
+IES Maria Enríquez                                                                                 Página 6
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+
+
+
+2. Presentación de las tecnologías
+2.1. Justificación de la elección de las tecnologías
+
+Siendo sincero, empecé este proyecto a principio de curso queriendo anticiparme a la falta de
+tiempo futura, por lo que desarrollé toda la base de la forma que sabiamos en ese momento,
+de forma manual, sin frameworks ni librerias externas. Cuando finalizando el año y
+conocimos frameworks como Spring Boot, me di cuenta de que podria haberlo hecho de
+forma mas sencilla, pero ya era tarde para cambiar, así que aproveché para aprender como
+funcionan las cosas por debajo aunque requiera de mas trabajo, pero a la vez mayor
+aprendizaje.
+
+
+Por ejemplo, en el servidor he pasado de los frameworks automáticos para gestionarlo
+directamente con Sockets de forma manual. Creando toda la lógica de comunicación y
+concurrencia desde cero. Para las interfaces, JavaFX me daba la seguridad por ser un entorno
+que ya conociamos, mientras que Flutter me permitia tener una app móvil moderna y rápida.
+Con MySQL aseguramos que nada se pierda y con Firebase nos quitamos el dolor de cabeza
+de gestionar la transmisión de imágenes pesadas.
+
+
+
+
+IES Maria Enríquez                                                                   Página 7
+FixFinder: Memoria Técnica                                                           Noé Conde Vila
+
+
+Stack tecnológico utilizado
+
+     Componente                 Tecnología                      Justificación
+
+
+                                                Gestión de dependencias y construcción del
+    Dependencias             Gradle
+                                                proyecto.
+
+
+                                                Control absoluto sobre el protocolo binario y
+                             Java (Sockets      gestión de concurrencia de alto rendimiento
+        Servidor
+                             TCP)               mediante Pool de hilos (Workers) y
+                                                comunicación bidireccional asíncrona.
+
+
+                                                Formato de datos ligero y fácil de leer y
+        Protocolo            JSON
+                                                escribir por humanos y máquinas.
+
+
+                                                Estándar de base de datos relacional para
+    Base de Datos            MySQL + JDBC       persistencia de datos con integración nativa
+                                                en Java.
+
+
+                             Patrón DAO y       Patrones de diseño para la persistencia de
+      Persistencia
+                             Repository         datos sin ORM.
+
+
+                                                Algoritmo de hashing para la encriptación de
+       Seguridad             bcrypt
+                                                contraseñas.
+
+
+                                                Interfaz nativa potente y personalizada.
+                                                Distribución profesional mediante Bundle
+         Cliente
+                             JavaFX + CSS       Nativo (Portable EXE) generado con
+        Escritorio
+                                                jpackage, eliminando la necesidad de que el
+                                                cliente instale Java manualmente.
+
+
+                                                Desarrollo multiplataforma con UI de alta
+       App Móvil             Flutter / Dart
+                                                calidad y rendimiento nativo.
+
+
+                                                Almacenamiento escalable de imágenes con
+                             Firebase Storage
+   Almacenamiento                               acceso directo desde los clientes mediante
+                             y AWS EC2 +
+        Nube                                    URL, servidor en la nube y base de datos
+                             RDS
+                                                relacional para persistencia de datos.
+
+
+       Control de                               Gestión eficiente de cambios y versiones
+                             Git + GitHub
+       Versiones                                durante todo el desarrollo.
+
+
+IES Maria Enríquez                                                                          Página 8
+FixFinder: Memoria Técnica                                                            Noé Conde Vila
+
+
+
+
+3. Análisis del proyecto
+3.1. Requerimientos funcionales y no funcionales
+Requerimientos funcionales
+
+FixFinder tiene que ser capaz de llevar una reparación de principio a fin cubriendo cada
+proceso. Por eso, se han definido unos requisitos que aseguran que tanto el cliente que tiene
+una gotera como el gerente que tiene que gestionar la reparación, tengan todo lo que
+necesitan.
+
+
+     ID                                  Requerimiento                               Prioridad
+
+
+               Registro e inicio de sesión de usuarios (Clientes, Operarios,
+  RF-01                                                                                 Alta
+               Gerentes).
+
+
+               Creación de incidencias por parte del cliente con descripción y
+  RF-02                                                                                 Alta
+               fotos.
+
+
+  RF-03        Visualización del listado de trabajos en tiempo real según el rol.       Alta
+
+
+               Emisión de presupuestos por parte del gerente para incidencias
+  RF-04                                                                                 Alta
+               pendientes.
+
+
+               Aceptación o rechazo de presupuestos por parte del cliente.              Alta
+  RF-05
+
+
+  RF-06        Asignación de operarios específicos a trabajos aceptados.                Alta
+
+
+               Reporte de finalización de trabajo por parte del operario con
+  RF-07                                                                                 Alta
+               informe.
+
+
+               Valoración del servicio recibido por parte del cliente (estrellas y
+  RF-08                                                                               Media
+               comentario).
+
+
+  RF-09        Gestión de perfil de usuario (edición de datos de contacto y foto).     Baja
+
+
+
+
+IES Maria Enríquez                                                                         Página 9
+ FixFinder: Memoria Técnica                                                                Noé Conde Vila
+
+
+
+Requerimientos no funcionales
+Los requerimientos no funcionales se centran en que el sistema sea seguro, eficiente y capaz
+de aguantar a muchos usuarios a la vez sin perder rendimiento.
+
+     ID          Requerimiento                                 Prioridad
+
+
+                                      El servidor debe ser capaz de gestionar al menos 100
+   RF-01              Concurrencia
+                                      conexiones simultáneas sin pérdida de datos.
+
+
+                                      Las contraseñas deben almacenarse mediante hash
+   RF-02               Seguridad      (BCrypt) y la comunicación debe ser mediante protocolo
+                                      JSON.
+
+
+                                      El sistema debe estar preparado para su despliegue en la
+   RF-03          Disponibilidad
+                                      nube con un tiempo de actividad del 99%.
+
+
+                                      La arquitectura debe permitir añadir nuevos tipos de
+   RF-04              Escalabilidad
+                                      procesadores de red sin afectar al núcleo del servidor.
+
+
+                                      La App móvil debe funcionar con fluidez incluso en
+                       Usabilidad
+   RF-05                              dispositivos de gama media-baja.
+
+
+Análisis de costes y viabilidad del proyecto
+La viabilidad de FixFinder se sustenta en el uso estratégico de tecnologías de código abierto y
+servicios en la nube con modelos de pago por uso. El análisis se desglosa en los siguientes
+puntos:
+Costes de Infraestructura (Cloud): El proyecto aprovecha la capa gratuita (Free Tier) de
+servicios líderes en la industria. Actualmente, el coste operativo es de 0€ gracias a la instancia
+EC2 de AWS para el backend, la base de datos gestionada en RDS y el almacenamiento
+multimedia en Firebase Storage. Este modelo permite validar la solución sin inversión inicial.
+Licenciamiento y Software: Al haber optado por un stack tecnológico basado en Java, Flutter y
+MySQL, los costes de licencias son inexistentes. El uso de herramientas «Hand-made» en lugar
+de frameworks comerciales pesados elimina cualquier dependencia económica de terceros.
+Valor del Desarrollo (Activo Intelectual): Dado el carácter académico y el desarrollo intermitente
+a lo largo de 6 meses, no se pretende tasar el software con un precio comercial cerrado.
+El valor real de FixFinder reside en la propiedad intelectual y el dominio técnico adquirido. La
+arquitectura es escalable; si la demanda creciera, el paso a una infraestructura de pago se vería
+compensado por un modelo de negocio SaaS (Software as a Service), haciendo que el proyecto
+sea sostenible y rentable a largo plazo.
+
+
+
+ IES Maria Enríquez                                                                             Página 10
+FixFinder: Memoria Técnica                                                        Noé Conde Vila
+
+
+3.2. Temporalización del proyecto
+
+Hitos del proyecto
+Durante todo el desarrollo me he enfrentado a auténticos retos tanto de diseño como de
+implementación.
+
+              Hito                             Descripción                        Fecha
+
+
+                             Creación del proyecto base, diseño del modelo
+       1. Cimientos y
+                             de datos y DAOs para persistencia manual en         Dic 2025
+          Modelos
+                             MySQL.
+
+
+                             Implementación de Sockets TCP, protocolo de 4
+       2. Protocolo y                                                            Ene­-Feb
+                             bytes y encriptación BCrypt para autenticación
+         Seguridad                                                                2026
+                             segura.
+
+
+      3. Desarrollo de       Construcción del Dashboard (JavaFX) y la App        Feb­-Mar
+          Clientes           móvil (Flutter) con lógica compartida simultánea.    2026
+
+
+                             Refactorización de controladores y limpieza de
+   4. Estabilización v1
+                             código para una versión 100% funcional en red       Mar 2026
+          Local
+                             local.
+
+
+     5. Despliegue en        Migración del servidor a instancias EC2 con IP
+                                                                                 Abr 2026
+           AWS               elástica y base de datos gestionada en RDS.
+
+
+                             Implementación del sistema de difusión en
+         6. Sistema
+                             tiempo real para sincronizar clientes               Abr 2026
+        Broadcaster
+                             asíncronamente.
+
+
+                             Creación de mapeadores de datos seguros y
+       7. Robustez y
+                             generación de binarios nativos (EXE/APK) para       Abr 2026
+        Distribución
+                             producción.
+
+
+                             Pruebas integrales del ecosistema (Cloud-Móvil-
+   8. Auditoría y Cierre     Desktop) y redacción de la memoria técnica          May 2026
+                             final.
+
+
+
+
+IES Maria Enríquez                                                                     Página 11
+FixFinder: Memoria Técnica                                                        Noé Conde Vila
+
+
+
+Diagrama de Gantt
+El cronograma del proyecto muestra una carga de trabajo intensiva en la fase de
+integración (marzo), donde se sincronizaron los tres módulos del sistema.
+
+
+
+
+                                Figura 1: Diagrama de Gantt
+
+
+
+
+3.3. Casos de uso
+
+Descripción de los casos de uso
+En FixFinder cada uno tiene su papel: el cliente es quien pone la rueda en marcha, el gerente
+es el director de orquesta que organiza y presupuesta, y el operario es quien soluciona el
+problema sobre el terreno. Todos están conectados para que la información fluya sin
+interrupciones.
+
+
+Actores principales:
+ • Cliente: Usuario final que demanda servicios de mantenimiento.
+ • Operario: Técnico especialista encargado de ejecutar las reparaciones.
+ • Gerente: Supervisor de operaciones y responsable de gestión de la empresa.
+
+
+
+
+IES Maria Enríquez                                                                     Página 12
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+
+
+
+Diagrama de Casos de Uso (UML)
+
+   Este diagrama muestra los actores del sistema y sus interacciones con las
+   funcionalidades princi­pales, siguiendo la notación UML estándar.
+
+
+
+
+                             Figura 2: Diagrama de Casos de Uso UML
+IES Maria Enríquez                                                                  Página 13
+FixFinder: Memoria Técnica                                                             Noé Conde Vila
+
+
+
+
+Diagrama de Flujo de Casos de Uso
+
+   Este diagrama representa el flujo completo de un proceso de incidencia, siguiendo la
+   línea mas gruesa del diagrama, desde la creación por el cliente hasta el cierre y
+   valoración, mostrando las transiciones de estado y los actores involucrados en cada
+   paso.
+
+
+
+
+                             Figura 3: Diagrama de Flujo de Casos de Uso
+
+
+
+
+IES Maria Enríquez                                                                          Página 14
+ FixFinder: Memoria Técnica                                                           Noé Conde Vila
+
+
+
+3.4. Diagrama de clases inicial
+
+Descripción de las clases (diseño inicial)
+Desde el principio tuve claro que la estructura debía ser sólida. Empecé con un diseño de
+clases sencillo donde todo gira alrededor del Trabajo (la avería). Quería que la herencia entre
+usuarios fuera limpia y que cada paso, desde el presupuesto hasta el pago final, quedara atado
+para no dejar cabos sueltos en la base de datos.
+
+Diagrama de Clases Simplificado (Inicial)
+
+  Visión simplificada del modelo de clases que sirvió de punto de partida para el
+  desarrollo, mostrando las relaciones de herencia y asociación entre las entidades
+  principales.
+
+
+
+
+                              Figura 4: Diagrama de Clases Simplificado
+
+
+
+ IES Maria Enríquez                                                                        Página 15
+ FixFinder: Memoria Técnica                                                             Noé Conde Vila
+
+
+
+  Diagrama Entidad­Relación
+
+    Modelo relacional de la base de datos, mostrando todas las tablas, sus atributos
+    principales y las relaciones (claves primarias y foráneas) entre ellas.
+
+
+
+
+                                Figura 5: Diagrama Entidad-Relación
+
+
+
+
+3.6. Otros diagramas y descripciones
+Hasta yo mismo durante le desarrollo me he perdido en el flujo de datos, por lo que este
+diagrama es fundamental para entender el sistema. Desde que se crea la incidencia, pasa por
+el gerente que presupuesta, vuelve al cliente que la acepta, el gerente asigna operario, este
+finaliza la reparación, el cliente envia valoración, y mientras tanto el sistema trata y modifica
+todos los datos, el flujo puede perderse en cualquier momento.
+
+
+
+
+ IES Maria Enríquez                                                                          Página 16
+FixFinder: Memoria Técnica                                                        Noé Conde Vila
+
+
+
+
+Diagrama de Flujo Completo del Sistema
+
+   Representa el ciclo de vida completo de una incidencia en FixFinder, desde que el cliente
+   la reporta hasta que se cierra.
+
+
+
+
+                                Figura 6: Diagrama de Flujo Completo
+
+
+
+
+IES Maria Enríquez                                                                     Página 17
+ FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+
+
+4. Diseño del proyecto
+
+4.1. Arquitectura del sistema
+
+Descripción de la arquitectura
+Como he mencionado antes, la arquitectura es de alto nivel sin usar frameworks pesados,
+aplicando patrones de diseño de bajo nivel para maximizar el control y la eficiencia. El
+sistema se sustenta sobre tres pilares de ingeniería concurrente:
+
+
+A. Gestión de hilos en el Servidor (Dispatcher­Worker)
+El servidor Java opera mediante una arquitectura de hilos desacoplados para garantizar que el
+sistema nunca se detenga:
+  - Hilo de escucha (Dispatcher): Es el encargado de recibir a los clientes. Está siempre
+esperando nuevas conexiones y, en cuanto llega una, la pasa a un hilo trabajador para seguir
+libre.
+  - Hilos de trabajo (Workers): Cada cliente tiene su propio hilo que se encarga de todo: leer
+sus mensajes, hablar con la base de datos y enviarle las respuestas.
+  - Control de seguridad (Semáforo): He limitado el servidor a 10 hilos simultáneos (en
+desarrollo) para evitar que el ordenador se bloquee si hay demasiadas peticiones a la vez,
+actuando como un seguro de memoria.
+
+
+
+
+B. Protocolo de comunicación propio (Cabecera y TxID)
+Como no usamos una API estándar, tuve que diseñar cómo se «hablan» las aplicaciones:
+  - Cabecera de 4 bytes: Para que los mensajes no se corten por el camino, cada envío lleva
+delante 4 bytes que dicen cuánto mide el mensaje. Así, la App sabe exactamente cuánta
+información debe leer.
+  - Identificadores de transacción (txid): Cada petición lleva un ID único. Esto permite que el
+servidor responda de forma asíncrona y la App sepa a qué pregunta corresponde cada
+respuesta, evitando que los datos se mezclen.
+
+
+
+
+ IES Maria Enríquez                                                                      Página 18
+ FixFinder: Memoria Técnica                                                           Noé Conde Vila
+
+
+
+
+C. Soluciones a bloqueos de red y concurrencia
+
+Uno de los mayores retos fue el «Síndrome del Embudo TCP», que hacía que el servidor se
+quedara colgado al enviar listados muy grandes. Lo resolví con dos estrategias diferentes
+según la plataforma:
+• En el Dashboard (Arquitectura de 3 hilos): Diseñé un sistema de tres capas para que la
+interfaz nunca se congele. Primero, el Hilo Lector Avaro vacía la red a toda velocidad y guarda
+los mensajes en una cola interna. Segundo, un Hilo Procesador saca los mensajes de esa cola
+y los interpreta. Finalmente, el Hilo de UI se encarga de pintar los datos. Al estar separados, el
+servidor nunca tiene que esperar a que el Dashboard termine de pintar para seguir enviando.
+• En el Servidor (Aislamiento con ThreadLocal): Para evitar errores en la base de datos al tener
+muchos clientes a la vez, utilicé ThreadLocal. Esto hace que cada hilo de trabajo tenga su
+propia conexión privada a MySQL, evitando que las operaciones de un usuario interfieran con
+las de otro.
+
+
+Para el tratamiento de imágenes y evitar saturar el servidor con archivos pesados, integré
+Firebase Storage. Los clientes suben las imágenes a la nube y el servidor solo guarda los
+enlaces, lo que hace que todo el sistema sea mucho más ágil.
+
+
+
+
+D. Notificaciones en Tiempo Real (Sistema Broadcaster)
+
+Implementé un sistema de avisos instantáneos basado en el patrón Observer. La clase
+Broadcaster gestiona una «centralita» de hilos que avisa a los clientes (como nuevos
+trabajos o presupuestos) al momento, asegurando que todos vean lo mismo sin tener que
+refrescar a mano.
+
+
+
+
+Diagrama de Arquitectura del Backend
+Este diagrama muestra toda la arquitectura del backend, desde el servidor central que
+acepta conexiones TCP hasta el acceso a la base de datos MySQL, pasando por los
+procesadores de cada acción y la capa de servicios de negocio. Tanto el cliente ocmo
+la app acceden al servidor de la misma forma y el gestor de conexiones se encarga de
+distribuir las peticiones a los procesadores correspondientes que a su vez decide a que
+clase de servicio llamar y ejecutar su accion sobre el mismo repositorio de la capa de
+datos, y este hace la misma funcion que en la capa de datos.
+
+
+
+ IES Maria Enríquez                                                                        Página 19
+FixFinder: Memoria Técnica                                                    Noé Conde Vila
+
+
+
+
+                             Figura 7: Diagrama de Arquitectura del Backend
+IES Maria Enríquez                                                                 Página 20
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+
+Diagrama de Componentes Dashboard
+
+Diagrama de los componentes internos de la aplicación JavaFX. Muestra cómo la
+pantalla prin­ cipal (DashboardController) organiza las diferentes vistas (Dashboard,
+Incidencias, Operarios) y gestiona la comunicación con el servidor a través de la capa de
+red.
+
+
+
+
+                             Figura 8: Diagrama de Componentes del Dashboard
+
+
+
+
+IES Maria Enríquez                                                                  Página 21
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+
+
+
+  Diagrama de Componentes de la App Móvil
+
+   Diagrama de la arquitectura lógica de la aplicación Flutter. Muestra cómo las distintas
+   pantallas (UI) interactúan con la capa de estado (Providers) y la capa de servicios
+   (Services), delegando la persistencia y conectividad externa al Servidor Java y a
+   Firebase.
+
+
+
+
+                             Figura 9: Diagrama de Componentes de la App
+
+
+
+
+Diagrama de Despliegue Local
+
+Muestra la configuración de red local del sistema durante el desarrollo y las pruebas: el
+servidor Java corriendo en el PC de desarrollo, conectado a MySQL, y siendo accedido
+tanto por el Dashboard (misma máquina) como por los emuladores Android y
+dispositivos físicos en la misma red Wi­Fi.
+
+
+
+
+IES Maria Enríquez                                                                  Página 22
+FixFinder: Memoria Técnica                                             Noé Conde Vila
+
+
+
+
+                             Figura 10: Diagrama de Despliegue Local
+IES Maria Enríquez                                                          Página 23
+FixFinder: Memoria Técnica                                               Noé Conde Vila
+
+
+Diagrama de Despliegue AWS (Producción)
+
+Arquitectura de producción planificada en AWS Free Tier: instancia EC2 corriendo el
+servidor Java en un contenedor Docker, base de datos en RDS MySQL, y comunicación
+con los clientes a través de una IP elástica pública.
+
+
+
+
+                             Figura 11: Diagrama de Despliegue AWS
+IES Maria Enríquez                                                            Página 24
+ FixFinder: Memoria Técnica                                                       Noé Conde Vila
+
+
+
+
+4.2. Diagrama de clases definitivo
+
+Descripción de las clases (diseño final)
+He conseguido que cada entidad (como un Trabajo o un Presupuesto) sepa exactamente qué
+tiene que hacer. La jerarquía de usuarios me permite tratar a todos por igual en la base, pero
+darles «habilidades» distintas según si eres cliente, operario o gerente. Todo está atado con
+estados claros que controlan que un trabajo no se salte pasos.
+
+Diagrama de Clases Completo (Definitivo)
+Modelo de clases completo del sistema con todas las relaciones de herencia, composición y
+asocia­ción entre las capas de Presentación, Servicios, DAO y Modelos del dominio.
+
+
+
+
+ IES Maria Enríquez                                                                    Página 25
+                              Figura 12: Diagrama de Clases Completo
+FixFinder: Memoria Técnica                                                        Noé Conde Vila
+
+
+
+
+4.3. Arquitectura de Red y Concurrencia
+
+Diagrama de Secuencia y Flujo de Hilos
+
+Diagrama maestro que unifica la ingeniería del sistema. Detalla la interacción multihilo y el
+flujo integral de datos: desde la gestión multimedia en Firebase y el protocolo de red con
+cabecera de 4 bytes, hasta la persistencia transaccional ACID en la base de datos. Se
+destaca la sincronización en tiempo real mediante el Broadcaster, la recepción asíncrona
+mediante el «Lector Avaro» en el Dashboard y el modelo reactivo basado en Providers en
+Flutter, garantizando una arquitectura fluida y sin bloqueos de red.
+
+
+
+
+                             Figura 13: Diagrama de Secuencia de Sockets
+
+
+
+
+IES Maria Enríquez                                                                     Página 26
+FixFinder: Memoria Técnica                                                  Noé Conde Vila
+
+
+
+
+Diagrama de Clases de Red (Infraestructura)
+
+Este diagrama detalla las clases encargadas de la comunicación multihilo y el protocolo
+propio. Se observa el patrón Worker representado por el GestorConexion y el sistema de
+difusión asíncrona mediante el Broadcaster. También se destaca el uso de ThreadLocal en
+ConexionDB para garan­tizar la seguridad de hilos en el acceso a datos.
+
+
+
+
+                             Figura 14: Diagrama de Clases de Red
+
+
+
+
+IES Maria Enríquez                                                               Página 27
+ FixFinder: Memoria Técnica                                                   Noé Conde Vila
+
+
+
+
+4.4. Diseño de la interfaz de usuario
+Para el diseño de las interfaces me he decantado por un tema oscuro y elegante con el
+naranja como énfasis como marca de la aplicación FF, paneles simples e intuitivos para el
+usuario, con un diseño moderno y limpio.
+
+
+Diagrama de Navegación del Ecosistema (Flutter y JavaFX)
+
+Mapa de navegación completo del sistema, mostrando los flujos y pantallas disponibles
+según el rol de acceso (Gerente en Dashboard, Cliente u Operario en App Móvil) y las
+transiciones entre ellas.
+
+
+
+
+                              Figura 15: Diagrama de Navegación
+
+
+
+
+ IES Maria Enríquez                                                                Página 28
+FixFinder: Memoria Técnica                                                           Noé Conde Vila
+
+
+
+Mockups y pantallas principales
+
+Panel prototipo
+🛠️ Panel de Pruebas de Desarrollo El primer panel que creé fue el de pruebas, muy sencillo
+que nos permitía probar la conexión con el servidor, crear incidencias, verlas, editarlas,
+valorarlas y eliminarlas al igual que gestionar los usuarios de forma rápida para testear todo
+el flujo de datos.
+
+               Conexión                     Crear                       Incidencia
+
+
+
+
+⚡ Simulador (God Mode) Por ultimo creé el panel «dios» con botones para todo tipo de
+acciones de cualquier perfil, así comprobar todo el funcionamiento de principio a fin antes de
+crear las interfaces definitivas de ambas aplicaciones cliente y app.
+
+
+
+
+IES Maria Enríquez              Figura 16: Simulador God Mode                             Página 29
+FixFinder: Memoria Técnica                                                 Noé Conde Vila
+
+
+
+Panel Dashboard
+
+       Acceso Seguro: Panel de entrada para la aplicación de escritorio.
+
+
+
+
+                                 Figura 17: Login Dashboard
+
+
+
+
+IES Maria Enríquez                                                              Página 30
+FixFinder: Memoria Técnica                                                       Noé Conde Vila
+
+ 📊 Centro de Control principal En el dashboard para las empresas tenemos un panel
+ principal con las métricas de la empresa, un panel de incidencias, un panel de operarios y
+ el apartado de la empresa y su información además de un histórico de operaciones.
+
+
+
+
+                                  Figura 18: Panel Dashboard
+
+     👷 Gestión de Recursos Humanos El panel de operarios nos permite tanto crear nuevos
+     operarios como ver y editar nuestros trabajadores, cambiar su foto o ponerlos de baja por
+     cualquier circuns­tancia.
+
+
+
+
+                                 Figura 19: Operarios Dashboard
+IES Maria Enríquez                                                                    Página 31
+FixFinder: Memoria Técnica                                                   Noé Conde Vila
+
+🏢 Datos Corporativos En el panel de empresa tenemos todos nuestros datos como
+empresa y gerente de la misma ademas de un pequeño apartado de las valoraciones de los
+clientes.
+
+
+
+
+  Figura 20: Empresa Dashboard
+
+
+
+  📋 Control de Incidencias Tenemos
+  tambien varias tarjetas como la de
+  clientes y esta de inciden­cias para
+  previsualizar toda la información de
+  cada una.
+
+
+
+
+                     Figura 21: Incidencia Dashboard
+
+IES Maria Enríquez                                                                Página 32
+FixFinder: Memoria Técnica                                                           Noé Conde Vila
+
+
+App Móvil (Flutter)
+
+📱 Arquitectura Inteligente La app es muy sencilla pero inteligente al mismo tiempo, su
+contenido cambia dependiendo del rol, aun así solo tiene 4 pantallas, la principal donde
+vemos las tarjetas de nuestras incidencias y su estado actual, la vista de incidencia donde
+vemos todos los detalles de una incidencia, la vista de perfil donde vemos nuestros datos y
+un pequeño apartado para valorar
+a un el trabajo realizado.
+                     Vista Login Móvil                   Vista Principal (Cliente)
+
+
+
+
+IES Maria Enríquez                                                                        Página 33
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+              Vista Perfil          Vista Incidencia (Cliente)   Vista Principal (Operario)
+
+
+
+
+  Vista Incidencia (Operario)   Vista Finalización (Operario)       Vista Valoración
+
+
+
+
+IES Maria Enríquez                                                                  Página 34
+FixFinder: Memoria Técnica                                                     Noé Conde Vila
+
+
+
+Infraestructura Cloud
+☁️ Monitorización AWS Por último, como hemos desplegado nuestro servicio en AWS,
+podemos ver las métricas de nuestro servidor en la consola para controlar su
+funcionamiento.
+
+
+
+
+                                  Figura 22: Métricas AWS
+
+
+
+
+IES Maria Enríquez                                                                  Página 35
+    FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+
+5. Implementación del proyecto
+5.1. Estructura del proyecto
+El proyecto se organiza en tres grandes bloques desacoplados:
+1.Módulo Central (Java): Contiene tanto el servidor de sockets como el código compartido de
+modelos y lógica de negocio y la interfaz dashboard.
+2.App Móvil (Flutter): Proyecto Dart independiente que implementa la lógica de cliente para
+Android.
+3.Documentación: Carpeta centralizada con diagramas, esquemas SQL y la memoria técnica.
+           FF/
+├── FIXFINDER/                                # Módulo Java Principal (Maven/Gradle)
+│      ├── src/main/java/com/fixfinder/
+│      │     ├── red/                         # [SERVIDOR BACKEND]
+│      │     │     ├── ServidorCentral.java   # Receptor de conexiones
+│      │     │     ├── GestorConexion.java    # Gestor de conexiones individuales
+│      │     │     ├── Broadcaster.java       # Push en tiempo real
+│      │     │     └── procesadores/          # Procesadores de paquetes JSON
+│      │     │
+│      │     ├── ui/dashboard/                # [DASHBOARD GESTIÓN]
+│      │                                      # Pantallas (Panel, Incidencias...)
+             │     ├── vistas/
+│      │                                      # Elementos UI (Sidebar, Tarjetas)
+             │     ├── componentes/
+│      │                                      # Ventanas modales
+             │     ├── dialogos/
+│      │                                      # Cliente socket del dashboard
+             │     └── red/
+│      │     │
+│      │     ├── data/                        # [CAPA DE DATOS - COMÚN]
+│      │
+             │     ├── ConexionDB.java        # Pool de conexiones MySQL
+│      │
+             │     └── dao/                   # CRUDs persistencia
+│      │
+             │
+│      │
+             ├── modelos/ ├──                 # [ENTIDADES - COMÚN]
+│      │
+             service/            └──          # [LÓGICA DE NEGOCIO]
+│      │
+             utilidades/                      # [AUXILIARES]
+│      │
+│      └── src/main/resources/
+│                                             # Assets (FXML, CSS)
+
+├── fixfinder_app/
+│                                             # Módulo Flutter (Android/iOS)
+       ├── lib/
+│      │
+             ├──     screens/                 # Pantallas (Login, Home, Detalle)
+│      │
+             ├── widgets/                     # Componentes reutilizables
+│      │     ├── providers/                   # Estado global (ChangeNotifier)
+│      │     ├── services/                     # Sockets y Firebase Storage
+│      │     └── models/                       # Mapeo JSON-Dart
+│      └── assets/                             # Iconos y fuentes
+│
+└── DOCS/                                      # Documentación Técnica
+       ├── ../diagramas/                       # Diagramas arquitectura/flujo
+       ├── ../capturas/                        # Pantallazos memoria
+       └── ESQUEMA_BD.sql                      # Script SQL de la base de datos
+
+
+
+
+IES Maria Enríquez                                                                          Página 36
+FixFinder: Memoria Técnica                                                            Noé Conde Vila
+
+
+
+Arquitectura de despliegue en producción (AWS)
+Para el despliegue en producción, el sistema está planificado sobre la capa gratuita de
+Amazon Web Services (AWS Free Tier):
+
+    Componente                Servicio AWS                       Descripción
+
+
+                                                Instancia Linux con Docker que ejecuta el
+     Servidor de                                servidor Java (Socket Server en puerto 5000).
+                             EC2 (t3.micro)
+     aplicaciones                               Se conecta a RDS para persistencia. IP elástica
+                                                pública para acceso externo.
+
+
+                                                Instancia MySQL gestionada por AWS.
+                                                Accesible desde EC2 vía endpoint interno.
+   Base de datos             RDS (MySQL 8)
+                                                Separada del servidor para mayor seguridad y
+                                                escalabilidad.
+
+
+                                                Las imágenes de perfil y fotos de trabajo se
+  Almacena­miento
+                             Firebase Storage   suben directamente desde los clientes (App
+     de media
+                                                Flutter) a Firebase, sin pasar por EC2.
+
+
+                             App Flutter +
+                                                Se conectan directamente a la IP elástica de
+        Clientes             Dashboard
+                                                EC2 en el puerto 5000 mediante sockets TCP.
+                             JavaFX
+
+
+
+ 5.2. Descripción de los módulos y componentes principales
+
+ El ecosistema de FixFinder se divide en tres pilares fundamentales que trabajan de forma
+ coordinada:
+
+ Servidor Java (Backend)
+ Es el núcleo del sistema, encargado de la persistencia y la lógica de negocio.
+
+     Protocolo de Red: Comunicación basada en cabeceras de control (4 bytes) y payloads
+     JSON.
+     Concurrencia: Modelo Thread-per-client que permite gestionar múltiples conexiones
+     simultáneas.
+     Sincronización: Sistema asíncrono de difusión de eventos mediante el patrón
+     Broadcaster.
+     Persistencia: Implementación de DAOs sobre MySQL con un repositorio centralizado.
+
+
+
+IES Maria Enríquez                                                                         Página 37
+FixFinder: Memoria Técnica                                                        Noé Conde Vila
+
+
+
+
+Dashboard de Escritorio (JavaFX)
+Herramienta de administración orientada a la eficiencia del gerente.
+     Navegación: Vistas desacopladas para la gestión de incidencias, operarios y datos
+     corporativos.
+     UI Moderna: Estética minimalista con tema oscuro y feedback visual inmediato.
+     Simulador: Incluye un modo de pruebas E2E para validar flujos de trabajo sin depender de
+     la app móvil.
+
+Aplicación Móvil (Flutter)
+ Interfaz móvil diseñada para la portabilidad y la experiencia de usuario.
+      Estado Reactivo: Uso de Provider para sincronizar la UI con los mensajes asíncronos del
+      socket.
+      Gestión de Media: Integración directa con Firebase Storage para evidencias visuales e
+      imágenes de perfil.
+      Roles Dinámicos: La interfaz adapta sus funcionalidades según el perfil (Cliente o
+      Operario).
+
+
+
+5.3. Despliegue de la aplicación
+
+Aunque durante las pruebas nos hemos movido cómodamente en local con Docker, FixFinder
+está diseñado para volar en la nube. El salto a AWS no es solo por estética tecnológica; es lo
+que permite que el sistema sea real, accesible desde cualquier red y capaz de aguantar el ritmo
+de una empresa de real y hacerlo escalable. El entorno local ha sido nuestro laboratorio, pero
+AWS es el mundo real. Así lo he implementado como se ha visto en páginas anteriores.
+
+
+
+
+IES Maria Enríquez                                                                     Página 38
+     FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+    5.4. Capturas de pantalla y ejemplos de código
+      💡 Nota técnica: Los fragmentos de código presentados a continuación son extractos
+      simplifi­cados de la implementación real. Se ha omitido el manejo de excepciones, logs
+      y lógica auxiliar para facilitar la comprensión de la arquitectura y la lógica central del
+      sistema.
+
+    A continuación se presentan los fragmentos de código que representan el «corazón» técnico del
+    sistema, resolviendo los retos de concurrencia y comunicación:
+
+1. Gestión del Protocolo de Red (Java)
+El servidor utiliza un prefijo de 4 bytes (Big Endian) para indicar la longitud del mensaje
+JSON. Esto evita el problema de la fragmentación de paquetes TCP.
+
+
+// Fragmento de GestorConexion.java
+int length = entrada.readInt(); // Lee los 4 bytes de cabecera
+if (length > 0 && length < 1024 * 1024) {
+       byte[] bytes = new byte[length];
+       entrada.readFully(bytes); // Lee exactamente N bytes
+       String mensaje = new String(bytes, StandardCharsets.UTF_8);
+       // Procesamiento del JSON...
+}
+
+
+2. Patrón Broadcaster para Tiempo Real (Java)
+Para notificar a los clientes sin que ellos pregunten, se implementó un sistema de suscripción
+que filtra los mensajes por rol o ID de empresa.
+// FragmentodeBroadcaster.java
+public voiddifundirEventoTrabajo(String subtipo, int idTrabajo, int idCliente, int
+idEmpresa) {
+       ObjectNode payload = crearPayloadBase("TRABAJO");
+       //    ...rellenode         datos ...
+       for    (GestorConexion       con : conexionesControlladas) {
+              Usuario u = con.getUsuario();
+              if (u == null) continue;
+              //   Soloenviamosal cliente afectado o a los gerentes de su empresa
+              if   (u.getId()==idCliente || "GERENTE".equals(u.getRol().name())) {
+                    con.enviarPush(payload);
+              }
+       }
+}
+
+
+
+
+     IES Maria Enríquez                                                                       Página 39
+    FixFinder: Memoria Técnica                                                      Noé Conde Vila
+
+
+
+
+3. Recomposición de Buffer (Flutter/Dart)
+En el cliente móvil, los datos llegan por fragmentos. Este algoritmo reconstruye los mensajes
+completos basándose en la cabecera recibida.
+// Fragmento de socket_service.dart
+void _procesarBuffer() {
+while (_bufferBytes.length >= 4) {
+
+         int longitud = (_bufferBytes[0] << 24) | (_bufferBytes[1] << 16) |
+                             (_bufferBytes[2] << 8) | _bufferBytes[3];
+         if (_bufferBytes.length < 4 + longitud) return; // Esperar más datos
+         final mensajeBytes = _bufferBytes.sublist(4, 4 + longitud);
+         _bufferBytes.removeRange(0, 4 + longitud);
+         final String jsonStr = utf8.decode(mensajeBytes);
+         _controladorRespuestas.add(jsonDecode(jsonStr));
+
+     }
+}
+
+
+
+
+6. Estudio de los resultados obtenidos
+
+6.1. Evaluación del proyecto respecto a los objetivos iniciales
+FixFinder ha superado lo que imaginaba al principio. El flujo de trabajo funciona como un reloj:
+desde que el cliente pulsa «enviar» hasta que el operario marca como «terminado». He
+conseguido integrar tres plataformas distintas con un protocolo propio, algo que parecía un
+mundo al empezar. Aunque siempre se puede mejorar (¡nunca se termina de programar del
+todo!), la base es sólida, profesional y cumple con todos los objetivos técnicos que me
+marqué.
+
+
+
+
+    IES Maria Enríquez                                                                   Página 40
+FixFinder: Memoria Técnica                                                          Noé Conde Vila
+
+
+
+6.2. Problemas encontrados y soluciones aplicadas
+No voy a mentir: ha habido momentos difíciles. Sincronizar los hilos para que la pantalla no se
+quedara congelada mientras el servidor pensaba fue un reto (lo solucionamos con
+Platform.runLater y Futures), y entenderse con los sockets byte a byte me llevó más tiempo de
+lo esperado (el protocolo de 4 bytes fue la clave). Pero cada problema ha servido para que el
+sistema sea hoy mucho más robusto.
+
+
+
+          Problema                                 Solución aplicada
+
+
+    Congelación de UI
+                             Arquitectura de 3 hilos: Lector Avaro, Procesador y Hilo de UI.
+        (JavaFX)
+
+
+    Fragmentación de
+                             Protocolo binario de cabecera fija de 4 bytes (Big-Endian).
+      paquetes TCP
+
+
+    Colisiones en DB
+                             Aislamiento de conexiones para que cada usuario tenga su
+   multihilo Saturación
+                             propia vía.
+      del Servidor
+
+
+       Saturación de         Implementación de un Semáforo que limita cuánta gente entra
+         servidor            a la vez.
+
+
+     Inconsistencia de       Sistema que rechaza automáticamente las ofertas rivales al
+       Presupues­tos         elegir una.
+
+
+   Parpadeo en Splash        Uso de un Splash nativo para que la entrada a la App sea
+        (Flutter)            fluida.
+
+
+    Desbordamiento de        Uso de bloques de colores para que la información no se
+           UI                amontone.
+
+
+   Cruces de mensajes        Uso de IDs de transacción para saber qué respuesta es de
+       asíncro­nos           cada envío.
+
+
+      Código difícil de      Troceado de clases       gigantes   en   piezas   pequeñas        y
+        mantener             especializadas.
+
+
+
+
+                                                                                         Página 41
+ FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+
+
+6.3. Futuras mejoras y ampliaciones
+FixFinder es un proyecto académico terminado, pero la arquitectura que he diseñado
+permite que el sistema siga escalando. Algunas de las funcionalidades que se podrían
+implementar en una futura versión comercial serían:
+
+
+• Notificaciones Push nativas (FCM): Para que el cliente reciba alertas en el móvil incluso
+
+con la App cerrada (usando Firebase Cloud Messaging).
+
+• Pasarela de Pagos integrada: Cobro automático de facturas mediante Stripe o PayPal
+
+directamente desde la App tras finalizar el servicio.
+
+• Geolocalización en tiempo real: Mapa interactivo en el Dashboard para ver la ubicación
+
+GPS de los operarios y optimizar las rutas de trabajo.
+
+• Sistema de Chat interno: Canal de comunicación directa entre Cliente, Operario y Gerente
+
+para evitar llamadas externas.
+
+• Diagnóstico por IA: Análisis automático de las fotos subidas por el cliente para clasificar la
+
+avería o estimar la gravedad.
+
+• Modo Offline: Permitir que los operarios consulten sus tareas en zonas sin cobertura y
+
+sincronicen los cambios al recuperar la red.
+
+• Versión Web del Dashboard: Migrar la lógica de JavaFX a un entorno web para permitir la
+
+gestión desde cualquier dispositivo.
+
+• Analítica Avanzada: Gráficos de rendimiento, tiempos medios de respuesta y estadísticas
+
+de facturación para el gerente.
+
+
+
+
+ IES Maria Enríquez                                                                      Página 42
+FixFinder: Memoria Técnica                                                         Noé Conde Vila
+
+
+
+
+7. Conclusiones
+7.1. Relación con los contenidos de los módulos
+FixFinder ha sido la culminación práctica de todo el ciclo de DAM. No ha sido un ejercicio de
+«copiar y pegar», sino de integrar conocimientos de múltiples áreas para resolver problemas
+reales:
+
+• PSP (Programación de Servicios y Procesos): Es el corazón del proyecto. He aplicado
+todo lo aprendido sobre multihilo (modelo Dispatcher-Worker), sockets TCP a bajo nivel y
+sincronización para el sistema Broadcaster. Gestionar la concurrencia para que el servidor no
+se bloquee ha sido el mayor reto de la asignatura.
+
+
+• AD (Acceso a Datos ): Toda la persistencia es manual mediante JDBC y MySQL. He
+tenido que diseñar DAOs robustos y gestionar el aislamiento de conexiones con ThreadLocal
+para evitar que las transacciones de diferentes usuarios chocaran entre sí.
+
+• PMDM (Programación Multimedia y Dispositivos Móviles): El desarrollo de la App en
+Flutter me ha permitido aplicar el consumo asíncrono de datos y el estado reactivo
+(Providers), además de integrar servicios nativos como la cámara y Firebase Storage.
+
+
+• DI (Desarrollo de Interfaces): En el Dashboard de JavaFX he aplicado técnicas avanzadas
+de diseño con CSS y una arquitectura modular de controladores para que la interfaz sea
+profesional, intuitiva y, sobre todo, no se bloquee al recibir ráfagas de datos.
+
+• SGE (Sistemas de Gestión Empresarial): La lógica de negocio (presupuestos, gestión de
+operarios, flujos de trabajo) sigue los principios de un ERP/CRM real, adaptando los
+procesos administrativos a una solución técnica.
+
+• Digitalización: El proyecto es un ejemplo puro de transformación digital, pasando la gestión
+de averías tradicional (basada en llamadas y papeles) a un entorno 100% digital que
+centraliza toda la información.
+
+• Sostenibilidad: Al optimizar la gestión de incidencias y permitir el seguimiento remoto, se
+reducen desplazamientos innecesarios. Además, la eliminación del papel en presupuestos y
+facturas contribuye a una gestión más ecológica y eficiente.
+
+• Computación en la nube: La infraestructura en AWS (EC2 y RDS) y el uso de Firebase
+Storage demuestran la capacidad de desplegar servicios escalables, seguros y accesibles
+desde cualquier lugar del mundo.
+
+
+
+
+IES Maria Enríquez                                                                      Página 43
+FixFinder: Memoria Técnica                                                            Noé Conde Vila
+
+
+7.2. Valoración personal del proyecto
+Si algo he aprendido con FixFinder es que la programación es solo la mitad del trabajo. La
+otra mitad es la arquitectura y la planificación. Al principio me frustraba que los sockets se
+«pisaran» o que la interfaz se congelara, pero entender el porqué (el síndrome del embudo TCP
+o las colisiones de hilos) y encontrar la solución técnica adecuada ha sido lo más gratificante de
+estos meses.
+
+Me siento especialmente orgulloso de no haber usado frameworks que «lo hacen todo solo».
+Hacerlo a mano me ha obligado a entender cómo funciona la red byte a byte y cómo se
+sincronizan dos plataformas tan distintas como Java y Flutter.
+
+
+Este proyecto me ha dado una confianza que no tenía al empezar el ciclo. Me voy con la
+satisfacción de haber creado un ecosistema completo que funciona de verdad, desde el
+servidor en la nube hasta el móvil del usuario, y con la convicción de que lo más valioso que
+me llevo es la capacidad de enfrentarme a un problema complejo y no parar hasta que el
+código «cante» como yo quiero. Sin duda, es el cierre perfecto para estos dos años de
+aprendizaje.
+
+8. Bibliografía y recursos utilizados
+Para el desarrollo de FixFinder se han consultado las siguientes fuentes técnicas y
+documentaciones oficiales:
+
+
+• Documentación de JavaFX: Utilizada para el diseño de la interfaz del Dashboard, gestión de
+FXML y controladores.
+
+
+• Documentación de Flutter: Guía principal para la construcción de la App móvil, manejo de
+estados y consumo de Sockets en Dart.
+
+
+• Firebase Admin SDK: Referencia para la integración del almacenamiento de imágenes en
+la nube desde el servidor Java.
+
+• Manual de MySQL 8.0: Consulta para la optimización de consultas SQL, gestión de claves
+foráneas y transacciones.
+
+• Jackson Databind: Biblioteca fundamental para el mapeo de objetos Java a formato
+JSON en la comunicación por Sockets.
+
+• AWS EC2 & RDS: Guías de despliegue para la configuración del servidor remoto y la base de
+datos gestionada.
+
+• Spring Security Crypto: Utilizada para implementar el algoritmo BCrypt, garantizando
+que las contraseñas nunca se guarden en texto plano.
+
+IES Maria Enríquez                                                                         Página 44
+FixFinder: Memoria Técnica                                                            Noé Conde Vila
+
+
+
+
+9. Anexos
+
+Anexo A — Guía de Instalación y Uso
+FixFinder está diseñado para ser desplegado tanto en entorno de producción como de
+desarrollo. A continuación se detallan los pasos para ambas situaciones:
+
+1. Uso para el Usuario Final (Producción)
+•Dashboard (PC): Descargar el ejecutable FixFinder_Dashboard.exe desde el repositorio y
+ejecutar.
+Se conectará automáticamente al servidor en la nube (AWS).
+•App Móvil (Android): Instalar el fichero FixFinder.apk en el dispositivo móvil. Al iniciar, se
+sincronizará con los servicios remotos.
+
+
+
+2. Uso para el Desarrollador (Entorno Local)
+Si se desea ejecutar el código fuente en local, se deben cumplir los siguientes requisitos:
+- Backend: JDK 21 instalado. Ejecutar ./gradlew runServer para iniciar el servidor.
+- Frontend: Flutter SDK estable. Ejecutar flutter run para lanzar la App.
+- Base de Datos: Importar el archivo ESQUEMA_BD.sql en una instancia local de MySQL.
+- Red: Asegurarse de que el puerto 5000 esté abierto para la comunicación TCP.
+
+
+
+
+Anexo B — Esquema de Base de Datos
+Aunque el diseño se ha explicado a lo largo de la memoria, se incluye este anexo como
+referencia técnica rápida. El corazón de FixFinder reside en un esquema relacional que
+garantiza la integridad de los datos:
+•Estructura: El sistema se organiza en tablas de Usuarios, Empresas, Trabajos y
+Presupuestos.
+•Persistencia: Las imágenes no se guardan en la base de datos, sino que se almacenan en
+Firebase, guardando en MySQL únicamente las URLs para optimizar el rendimiento.
+• Referencia Completa: El script SQL con todos los índices y relaciones se puede consultar
+en el archivo: «FixFinder_BD.sql»
+
+
+
+
+IES Maria Enríquez                                                                         Página 45
+

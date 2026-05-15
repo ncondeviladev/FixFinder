@@ -46,11 +46,29 @@ class TrabajoProvider with ChangeNotifier {
 
         debugPrint('🔔 [SOCKET-BROADCAST] $categoria: $info');
 
+        // Lógica de filtrado de notificaciones visuales
+        bool mostrarNotificacion = true;
+        final usuario = _auth.usuarioActual;
+
+        if (categoria == 'USUARIO') {
+          final int idUpdate = datos['idUsuario'] ?? 0;
+          // Solo mostramos notificación de perfil si ES nuestro propio perfil
+          mostrarNotificacion = (usuario != null && idUpdate == usuario.id);
+        } else if (categoria == 'TRABAJO') {
+          final int idCli = datos['idCliente'] ?? 0;
+          final int idOp = datos['idOperario'] ?? 0;
+          // Solo notificamos si somos el cliente o el operario involucrado
+          mostrarNotificacion = (usuario != null &&
+              (usuario.id == idCli || usuario.id == idOp));
+        }
+
         // Refrescamos los trabajos en segundo plano para no bloquear la UI con spinners
         _actualizarEstadoSilencioso();
 
-        // Mostramos notificación visual en la app con el nuevo estilo corporativo
-        _mostrarNotificacionUI(categoria, info);
+        // Mostramos notificación visual solo si pasa los filtros de interés
+        if (mostrarNotificacion) {
+          _mostrarNotificacionUI(categoria, info);
+        }
       }
     });
   }

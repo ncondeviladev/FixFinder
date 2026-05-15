@@ -1,0 +1,257 @@
+Presentado por: Noé Conde Vila   DAM - IES Maria Enriquez
+                                   Gandia - 2026
+Presentado por: Noé Conde Vila   DAM - IES Maria Enriquez
+                                   Gandia - 2026
+              PROBLEMAS HABITUALES
+              PROBLEMAS HABITUALES
+
+
+
+
+Buscas empresas       Llamadas       Preguntas a
+   en internet      interminables     tu cuñado
+             SOLUCIÓN CON
+             SOLUCIÓN CON
+              FIXFINDER
+              FIXFINDER
+
+
+
+
+ Subes tu                   Las empresas
+incidencia                    te buscan
+FLUJO DE TRABAJO
+FLUJO DE TRABAJO
+FLUJO DE TRABAJO
+FLUJO DE TRABAJO
+DESPLIEGUE
+DESPLIEGUE
+EN LA NUBE
+EN LA NUBE
+APP              CLIENT
+
+
+
+
+                                AWS EC2
+
+
+
+
+      FIREBASE
+
+
+
+
+                          AWS RDS
+APP              CLIENT
+
+
+
+
+                                AWS EC2
+
+
+
+
+      FIREBASE
+
+
+
+
+                          AWS RDS
+BAJO EL CAPÓ DE
+BAJO EL CAPÓ DE
+  FIXFINDER
+  FIXFINDER
+                               Estandar
+                              profesional
+
+
+
+
+Abstracción alto nivel
+Frameworks monolíticos
+Comunicación stateless REST
+Abstracción alto nivel
+                               Estandar
+                              profesional
+
+
+
+
+                              Potencial de
+                              aprendizaje
+   Abstracción alto nivel                    Protocolo JSON/TCP personalizado
+  Frameworks monolíticos                         Servidor Sockets multihilo
+Comunicación stateless REST                      Arquitectura Broadcaster
+  Infraestructura cerrada                         Capa persistencia nativa
+EXPLICACIÓN
+EXPLICACIÓN
+  TÉCNICA
+  TÉCNICA
+   EXPLICACIÓN
+   EXPLICACIÓN
+     TÉCNICA
+     TÉCNICA
+
+
+
+- SERVIDOR -
+- SERVIDOR -
+                                          - SERVIDOR -
+                                          - SERVIDOR -
+                 Acceso y control                                       Lógica de negocio
+                           Socket TCP                                               Enrutamiento de
+                           Gestor de conexiones                                     procesadores
+
+                           Aceptación y validación                                  Ejecución de servicios
+
+                                                                                    Validación de integridad
+
+
+
+
+                                                      Abstracción con
+         Hilos dedicados
+                                                         repositorios
+    Lectura de cabecera                                Mapeo de datos
+                                                                (DAO)
+Análisis de paquete JSON                             Almacenamiento
+                                                                en bd
+
+              Concurrencia nativa                                   Persistencia robusta
+                                        - SERVIDOR -
+                                        - SERVIDOR -
+
+SERVER SOCKET                  GESTOR CONEXIÓN        LÓGICA DE NEGOCIO       PERSISTENCIA
+ Hilo receptor de conexiones    Hilo por conexión       Procesadores          DAO traduce a SQL
+ Detecta conexiones             Lee cabecera y          identifican acción    ConexionDB accede a
+ y delega los sockets           des/serializa JSON      Servicios             base de datos
+                                Broadcaster             ejecutan acción
+                                notificando cambios
+                                                        Repository accede a
+                                                        capa de datos
+- SERVIDOR -
+- SERVIDOR -
+EXPLICACIÓN
+EXPLICACIÓN
+  TÉCNICA
+  TÉCNICA
+   EXPLICACIÓN
+   EXPLICACIÓN
+     TÉCNICA
+     TÉCNICA
+
+
+
+- DASHBOARD -
+- DASHBOARD -
+                      - DASHBOARD -
+                      - DASHBOARD -
+
+  RECEPTOR               CLASIFICADOR              PINTOR
+ HILO AVARO            HILO PROCESADOR             HILO UI
+Escucha activa          Captura de cola          Recibe acciones
+
+Lectura de cabecera     Identifica acciones      Ejecuta sobre la UI
+Carga en cola           Enruta a controladores
+- DASHBOARD -
+- DASHBOARD -
+EXPLICACIÓN
+EXPLICACIÓN
+  TÉCNICA
+  TÉCNICA
+EXPLICACIÓN
+EXPLICACIÓN
+  TÉCNICA
+  TÉCNICA
+
+
+
+- APP -
+- APP -
+                              - APP -
+                              - APP -
+
+    RECEPCIÓN                  ESTADO                 MULTIMEDIA Y S.O. NATIVO
+Conexión TCP permanente   Patrón mediador Providers    Offloading de imágenes Firebase
+
+Validación de cabeceras   Sincronización de datos      Integración nativa
+                                                       (Maps & Tlf)
+Des/serializacion JSON    Reconstrucción reactiva
+- APP -
+- APP -
+EXPLICACIÓN
+EXPLICACIÓN
+  TÉCNICA
+  TÉCNICA
+     EXPLICACIÓN
+     EXPLICACIÓN
+       TÉCNICA
+       TÉCNICA
+
+
+
+- FLUJO DE DATOS -
+- FLUJO DE DATOS -
+- FLUJO DE DATOS Y CONCURRENCIA -
+- FLUJO DE DATOS Y CONCURRENCIA -
+- NAVEGACIÓN -
+- NAVEGACIÓN -
+- NAVEGACIÓN -
+- NAVEGACIÓN -
+- CAPTURAS -
+- CAPTURAS -
+- PRESUPUESTO -
+- PRESUPUESTO -
+- ACEPTACIÓN Y ASIGNACIÓN -
+- ACEPTACIÓN Y ASIGNACIÓN -
+- FINALIZACIÓN -
+- FINALIZACIÓN -
+- VALORACIÓN -
+- VALORACIÓN -
+- CONCLUSIONES -
+- CONCLUSIONES -
+      - RETOS SUPERADOS -
+      - RETOS SUPERADOS -
+ COMUNICACIÓN Y RED                  NÚCLEO CONCURRENTE
+
+
+
+
+               Protocolo 4B                      Arquitectura 1+N
+               Transaction TxID                  Aislamiento ThreadLocal
+               Semáforo de Sockets               Gestión de Sesiones
+
+
+
+
+INTEGRIDAD DE DATOS                  EXPERIENCIA DE USUARIO
+
+
+             Atomicidad ACID
+                                                 Modelo de 3 Hilos (JavaFx)
+             Broadcaster
+                                                 Estado Reactivo App
+             Offloading Multimedia
+                                                 Seguimiento visual
+            - VALOR Y ESCALABILIDAD -
+            - VALOR Y ESCALABILIDAD -
+
+MAESTRÍA TÉCNICA           TRANSICIÓN PROFESIONAL            PRÓXIMAS MEJORAS
+
+ HandMade                   Pasarela de pagos integrada   Geolocalización operarios
+ Control de protocolo       Migración                     Video en incidencias
+ Dominio de concurrencia       Spring Boot                Diagnostico IA
+ Arquitectura limpia            API Rest
+                               JPA
+Presentado por: Noé Conde Vila   DAM - IES Maria Enriquez
+                                   Gandia - 2026
+
+
+
+
+   - MUCHAS GRACIAS -
+   - MUCHAS GRACIAS -
+

@@ -229,11 +229,12 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
       appBar: AppBar(
         title: const Text('Mi Perfil'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _abrirDialogoGestionPerfil,
-            tooltip: 'Modificar perfil',
-          ),
+          if (usuario.rol != Rol.OPERARIO)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _abrirDialogoGestionPerfil,
+              tooltip: 'Modificar perfil',
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -281,24 +282,25 @@ class _PerfilPantallaState extends State<PerfilPantalla> {
                         size: 55, color: _obtenerColorRol(usuario.rol))
                     : null),
           ),
-          Positioned(
-            child: GestureDetector(
-              onTap: _subiendoFoto ? null : _gestionarFotoPerfil,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.3), blurRadius: 4)
-                  ],
+          if (usuario.rol != Rol.OPERARIO)
+            Positioned(
+              child: GestureDetector(
+                onTap: _subiendoFoto ? null : _gestionarFotoPerfil,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.3), blurRadius: 4)
+                    ],
+                  ),
+                  child: const Icon(Icons.camera_alt,
+                      color: Colors.white, size: 20),
                 ),
-                child:
-                    const Icon(Icons.camera_alt, color: Colors.white, size: 20),
               ),
             ),
-          ),
         ],
       ),
     );
