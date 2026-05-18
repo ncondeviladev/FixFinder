@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controlador REST para la gestión del personal técnico (operarios).
+ * Permite al Dashboard listar operarios de una empresa y modificar su estado o datos. Ruta base: {@code /api/operarios}.
+ */
 @RestController
 @RequestMapping("/api/operarios")
 public class OperarioController {

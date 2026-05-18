@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controlador REST para la gestión de presupuestos.
+ * Permite a las empresas enviar ofertas y a los clientes aceptarlas o rechazarlas. Ruta base: {@code /api/presupuestos}.
+ */
 @RestController
 @RequestMapping("/api/presupuestos")
 public class PresupuestoController {

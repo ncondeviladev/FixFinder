@@ -2,6 +2,7 @@ package com.fixfinder.service.impl;
 
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.repository.OperarioRepository;
+import com.fixfinder.service.NotificationService;
 import com.fixfinder.service.interfaz.OperarioService;
 import com.fixfinder.utilidades.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +12,24 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+/** Implementación del servicio de gestión de operarios: alta, baja, modificación y notificaciones en tiempo real. */
 @Service
 public class OperarioServiceImpl implements OperarioService {
 
     private final OperarioRepository operarioRepository;
+    private final NotificationService notificationService;
 
     @Autowired
-    public OperarioServiceImpl(OperarioRepository operarioRepository) {
+    public OperarioServiceImpl(OperarioRepository operarioRepository, NotificationService notificationService) {
         this.operarioRepository = operarioRepository;
+        this.notificationService = notificationService;
     }
 
+    /**
+     * Lista los operarios disponibles (activos) de una empresa.
+     * Si {@code idEmpresa} es nulo, devuelve todos los operarios activos del sistema.
+     */
     @Override
     public List<Operario> listarDisponibles(Integer idEmpresa) throws ServiceException {
         List<Operario> todos = operarioRepository.findAll();
@@ -30,6 +39,10 @@ public class OperarioServiceImpl implements OperarioService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca operarios por especialidad (ej. FONTANERIA, ELECTRICIDAD).
+     * La búsqueda es insensible a mayúsculas/minúsculas.
+     */
     @Override
     public List<Operario> buscarPorEspecialidad(String especialidad) throws ServiceException {
         if (especialidad == null || especialidad.isEmpty()) {
@@ -41,6 +54,10 @@ public class OperarioServiceImpl implements OperarioService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Actualiza los datos del operario y notifica al gerente y al propio operario
+     * para sincronizar su app en tiempo real sin necesidad de reloguear.
+     */
     @Override
     @Transactional
     public void modificarOperario(Operario operario) throws ServiceException {
@@ -55,14 +72,21 @@ public class OperarioServiceImpl implements OperarioService {
         }
 
         operarioRepository.save(operario);
+        
+        notificationService.difundirEventoOperario("MODIFICACION", operario.getId(), operario.getIdEmpresa(), "Datos de operario actualizados");
+        notificationService.difundirEventoUsuario("DATOS", operario.getId(), 
+            operario.getNombreCompleto(), operario.getUrlFoto(), "Tu empresa ha actualizado tu perfil", 
+            operario.getEmail(), operario.getTelefono(), "");
     }
 
+    /** Lista todos los operarios (activos e inactivos) pertenecientes a una empresa. */
     @Override
     public List<Operario> listarPorEmpresa(Integer idEmpresa) throws ServiceException {
         if (idEmpresa == null) throw new ServiceException("El ID de empresa es obligatorio.");
         return operarioRepository.findByIdEmpresa(idEmpresa);
     }
 
+    /** Da de alta un nuevo operario en el sistema (con validación de datos previa). */
     @Override
     @Transactional
     public void altaOperario(Operario operario) throws ServiceException {
@@ -71,6 +95,10 @@ public class OperarioServiceImpl implements OperarioService {
         operarioRepository.save(operario);
     }
 
+    /**
+     * Cambia el estado activo/inactivo del operario y notifica en tiempo real.
+     * @param disponible true para activar, false para dar de baja.
+     */
     @Override
     @Transactional
     public void establecerDisponibilidad(Integer idOperario, boolean disponible) throws ServiceException {
@@ -80,8 +108,14 @@ public class OperarioServiceImpl implements OperarioService {
 
         op.setEstaActivo(disponible);
         operarioRepository.save(op);
+        
+        notificationService.difundirEventoOperario("MODIFICACION", idOperario, op.getIdEmpresa(), "Estado de operario actualizado");
+        notificationService.difundirEventoUsuario("DATOS", idOperario, 
+            op.getNombreCompleto(), op.getUrlFoto(), "Tu empresa ha modificado tu estado", 
+            op.getEmail(), op.getTelefono(), "");
     }
 
+    /** Valida nombre, email, DNI (mín. 8 caracteres) y teléfono (9 dígitos) del operario. */
     private void validarDatosOperario(Operario op) throws ServiceException {
         if (op.getNombreCompleto() == null || op.getNombreCompleto().isEmpty()) {
             throw new ServiceException("El nombre del operario es obligatorio.");

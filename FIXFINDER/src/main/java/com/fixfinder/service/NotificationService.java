@@ -56,13 +56,20 @@ public class NotificationService {
     /**
      * Notifica eventos relacionados con usuarios.
      */
-    public void difundirEventoUsuario(String subtipo, int idUsuario, String nombre, String urlFoto, String info) {
+    public void difundirEventoUsuario(String subtipo, int idUsuario, String nombre, String urlFoto, String info, String email, String telefono, String direccion) {
         Map<String, Object> payload = crearPayload("USUARIO", subtipo, info);
         payload.put("idUsuario", idUsuario);
-        payload.put("nombre", nombre);
-        payload.put("url_foto", urlFoto);
+        if (nombre != null) payload.put("nombre", nombre);
+        if (urlFoto != null) payload.put("url_foto", urlFoto);
+        if (email != null) payload.put("email", email);
+        if (telefono != null) payload.put("telefono", telefono);
+        if (direccion != null) payload.put("direccion", direccion);
 
-        messagingTemplate.convertAndSend("/topic/usuarios", payload);
+        // A diferencia del anterior broadcast que iba a /topic/usuarios general,
+        // enviaremos un mensaje dirigido al usuario para seguridad y evitar SPAM.
+        if (idUsuario > 0) {
+            messagingTemplate.convertAndSendToUser(String.valueOf(idUsuario), "/queue/notificaciones", payload);
+        }
     }
 
     /**

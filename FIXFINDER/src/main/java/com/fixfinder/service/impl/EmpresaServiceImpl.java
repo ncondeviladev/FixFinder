@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/** Implementación del servicio de gestión de empresas: registro, modificación, baja y consultas. */
 @Service
 public class EmpresaServiceImpl implements EmpresaService {
 
@@ -27,17 +28,20 @@ public class EmpresaServiceImpl implements EmpresaService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /** Devuelve la lista completa de empresas registradas en el sistema. */
     @Override
     public List<Empresa> listarTodas() throws ServiceException {
         return empresaRepository.findAll();
     }
 
+    /** Obtiene los datos de una empresa por su ID. Lanza excepción si no existe. */
     @Override
     public Empresa obtenerPorId(Integer id) throws ServiceException {
         return empresaRepository.findById(id)
                 .orElseThrow(() -> new ServiceException("Empresa no encontrada con ID: " + id));
     }
 
+    /** Obtiene los datos de una empresa para mostrar en el panel de estadísticas del Dashboard. */
     @Override
     public Empresa obtenerEstadisticas(Integer idEmpresa) throws ServiceException {
         if (idEmpresa == null) throw new ServiceException("El ID de empresa es obligatorio.");
@@ -46,6 +50,10 @@ public class EmpresaServiceImpl implements EmpresaService {
         return empresa;
     }
 
+    /**
+     * Da de baja permanente a una empresa eliminando su registro de la BD.
+     * Esta acción es irreversible.
+     */
     @Override
     @Transactional
     public void bajaEmpresa(Integer idEmpresa) throws ServiceException {
@@ -56,6 +64,10 @@ public class EmpresaServiceImpl implements EmpresaService {
         empresaRepository.deleteById(idEmpresa);
     }
 
+    /**
+     * Registra una nueva empresa y su gerente en una única transacción atómica.
+     * Si falla alguno de los dos pasos, ninguno se persiste.
+     */
     @Override
     @Transactional
     public void registrarEmpresaConGerente(Map<String, Object> datos) throws ServiceException {
@@ -91,6 +103,7 @@ public class EmpresaServiceImpl implements EmpresaService {
         usuarioRepository.save(gerente);
     }
 
+    /** Registra una empresa a partir de un objeto ya construido. */
     @Override
     @Transactional
     public void registrarEmpresa(Empresa empresa) throws ServiceException {
@@ -98,6 +111,7 @@ public class EmpresaServiceImpl implements EmpresaService {
         empresaRepository.save(empresa);
     }
 
+    /** Actualiza los datos de una empresa existente (nombre, CIF, email de contacto, logo...). */
     @Override
     @Transactional
     public void modificarEmpresa(Empresa empresa) throws ServiceException {
@@ -111,6 +125,10 @@ public class EmpresaServiceImpl implements EmpresaService {
         empresaRepository.save(empresa);
     }
 
+    /**
+     * Valida los campos obligatorios de una empresa antes de persistirla.
+     * Comprueba nombre, CIF, formato de email y longitud de URL de foto.
+     */
     private void validarDatosEmpresa(Empresa empresa) throws ServiceException {
         if (empresa == null) throw new ServiceException("El objeto empresa no puede ser nulo.");
         if (empresa.getNombre() == null || empresa.getNombre().trim().isEmpty()) {

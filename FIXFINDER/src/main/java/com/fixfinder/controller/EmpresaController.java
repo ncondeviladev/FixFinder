@@ -2,6 +2,7 @@ package com.fixfinder.controller;
 
 import com.fixfinder.modelos.Empresa;
 import com.fixfinder.service.interfaz.EmpresaService;
+import com.fixfinder.service.interfaz.OperarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controlador REST para la gestión de empresas y sus operarios.
+ * Expone operaciones de consulta, registro, modificación y baja. Ruta base: {@code /api/empresas}.
+ */
 @RestController
 @RequestMapping("/api/empresas")
 public class EmpresaController {
@@ -17,7 +22,7 @@ public class EmpresaController {
     private EmpresaService empresaService;
 
     @Autowired
-    private com.fixfinder.service.interfaz.OperarioService operarioService;
+    private OperarioService operarioService;
 
     @GetMapping("/{id}/operarios")
     public ResponseEntity<List<com.fixfinder.modelos.Operario>> listarOperarios(@PathVariable Integer id) {

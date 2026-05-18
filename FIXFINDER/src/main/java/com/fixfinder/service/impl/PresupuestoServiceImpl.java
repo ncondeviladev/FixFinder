@@ -16,6 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Implementación del servicio de gestión de presupuestos.
+ * Maneja la creación, aceptación y rechazo de ofertas económicas emitidas por las empresas.
+ */
 @Service
 public class PresupuestoServiceImpl implements PresupuestoService {
 

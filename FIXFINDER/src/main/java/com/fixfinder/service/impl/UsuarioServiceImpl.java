@@ -17,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Implementación del servicio de gestión de usuarios (clientes y operarios).
+ * Maneja la autenticación, registro y actualización del perfil y contraseña.
+ */
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
@@ -86,7 +90,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRepository.save(usuario);
         
         // Notificar cambio de perfil
-        notificationService.difundirEventoUsuario("PERFIL_MODIFICADO", usuario.getId(), usuario.getNombreCompleto(), usuario.getUrlFoto(), "Perfil actualizado");
+        notificationService.difundirEventoUsuario("PERFIL_MODIFICADO", usuario.getId(), 
+            usuario.getNombreCompleto(), usuario.getUrlFoto(), "Perfil actualizado", 
+            usuario.getEmail(), usuario.getTelefono(), usuario.getDireccion());
     }
 
     @Override

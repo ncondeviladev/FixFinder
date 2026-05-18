@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Controlador REST para la gestión del perfil de usuario.
+ * Expone endpoints para consultar y modificar datos personales. Ruta base: {@code /api/usuarios}.
+ */
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {

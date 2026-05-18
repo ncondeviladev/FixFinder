@@ -19,6 +19,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implementación del servicio de gestión de trabajos e incidencias.
+ * Centraliza la creación de trabajos, asignación a operarios y cambios de estado a lo largo del ciclo de vida.
+ */
 @Service
 public class TrabajoServiceImpl implements TrabajoService {
 
