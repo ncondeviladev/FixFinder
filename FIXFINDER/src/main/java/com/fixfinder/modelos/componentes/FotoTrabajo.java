@@ -16,6 +16,7 @@ public class FotoTrabajo {
     @Column(name = "id_trabajo")
     private int idTrabajo; // Usamos ID aquí para evitar ciclos infinitos al serializar, aunque podría ser
                            // objeto Trabajo.
+    @Column(name = "url_archivo")
     private String url;
 
     public FotoTrabajo() {

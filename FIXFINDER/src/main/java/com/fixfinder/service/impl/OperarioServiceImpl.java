@@ -54,6 +54,45 @@ public class OperarioServiceImpl implements OperarioService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public void actualizarOperarioParcial(int idOperario, java.util.Map<String, Object> datos) throws ServiceException {
+        Operario existente = operarioRepository.findById(idOperario).orElse(null);
+        if (existente == null) {
+            throw new ServiceException("El operario a modificar no existe.");
+        }
+
+        if (datos.containsKey("nombreCompleto")) {
+            existente.setNombreCompleto((String) datos.get("nombreCompleto"));
+        }
+        if (datos.containsKey("dni")) {
+            existente.setDni((String) datos.get("dni"));
+        }
+        if (datos.containsKey("email")) {
+            existente.setEmail((String) datos.get("email"));
+        }
+        if (datos.containsKey("telefono")) {
+            existente.setTelefono((String) datos.get("telefono"));
+        }
+        if (datos.containsKey("especialidad") && datos.get("especialidad") != null) {
+            existente.setEspecialidad(com.fixfinder.modelos.enums.CategoriaServicio.valueOf((String) datos.get("especialidad")));
+        }
+        if (datos.containsKey("estaActivo")) {
+            existente.setEstaActivo((Boolean) datos.get("estaActivo"));
+        }
+        if (datos.containsKey("isEstaActivo")) {
+            existente.setEstaActivo((Boolean) datos.get("isEstaActivo"));
+        }
+
+        validarDatosOperario(existente);
+        operarioRepository.save(existente);
+
+        notificationService.difundirEventoOperario("MODIFICACION", existente.getId(), existente.getIdEmpresa(), "Datos de operario actualizados");
+        notificationService.difundirEventoUsuario("DATOS", existente.getId(), 
+            existente.getNombreCompleto(), existente.getUrlFoto(), "Tu empresa ha actualizado tu perfil", 
+            existente.getEmail(), existente.getTelefono(), "");
+    }
+
     /**
      * Actualiza los datos del operario y notifica al gerente y al propio operario
      * para sincronizar su app en tiempo real sin necesidad de reloguear.
@@ -64,14 +103,35 @@ public class OperarioServiceImpl implements OperarioService {
         if (operario == null || operario.getId() == 0) {
             throw new ServiceException("Operario inválido para modificar.");
         }
-        validarDatosOperario(operario);
 
         Operario existente = operarioRepository.findById(operario.getId()).orElse(null);
         if (existente == null) {
             throw new ServiceException("El operario a modificar no existe.");
         }
 
-        operarioRepository.save(operario);
+        // Safe Merge
+        if (operario.getNombreCompleto() != null && !operario.getNombreCompleto().trim().isEmpty()) {
+            existente.setNombreCompleto(operario.getNombreCompleto());
+        }
+        if (operario.getDni() != null && !operario.getDni().trim().isEmpty()) {
+            existente.setDni(operario.getDni());
+        }
+        if (operario.getEmail() != null && !operario.getEmail().trim().isEmpty()) {
+            existente.setEmail(operario.getEmail());
+        }
+        if (operario.getTelefono() != null && !operario.getTelefono().trim().isEmpty()) {
+            existente.setTelefono(operario.getTelefono());
+        }
+        if (operario.getEspecialidad() != null) {
+            existente.setEspecialidad(operario.getEspecialidad());
+        }
+        
+        // El Dashboard JavaFX envía isEstaActivo = false explicitamente en bajas
+        existente.setEstaActivo(operario.isEstaActivo());
+
+        validarDatosOperario(existente);
+
+        operarioRepository.save(existente);
         
         notificationService.difundirEventoOperario("MODIFICACION", operario.getId(), operario.getIdEmpresa(), "Datos de operario actualizados");
         notificationService.difundirEventoUsuario("DATOS", operario.getId(), 
@@ -129,5 +189,11 @@ public class OperarioServiceImpl implements OperarioService {
         if (op.getTelefono() != null && !op.getTelefono().matches("^\\d{9}$")) {
             throw new ServiceException("El teléfono debe tener 9 dígitos.");
         }
+    }
+
+    /** Obtiene un operario por su ID de usuario. Devuelve null si no existe (sin lanzar excepción). */
+    @Override
+    public Operario obtenerPorId(int idUsuario) throws ServiceException {
+        return operarioRepository.findById(idUsuario).orElse(null);
     }
 }

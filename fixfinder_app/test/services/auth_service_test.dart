@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fixfinder_app/services/auth_service.dart';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +11,7 @@ void main() {
     late AuthService authService;
 
     setUp(() {
+      dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
       SharedPreferences.setMockInitialValues({});
       authService = AuthService();
     });

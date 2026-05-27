@@ -49,13 +49,12 @@ public class UsuarioController {
         }
     }
 
-    @PostMapping("/{id}/foto")
+    @RequestMapping(value = "/{id}/foto", method = {RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<?> actualizarFoto(@PathVariable int id, @RequestBody Map<String, String> body) {
         try {
-            Usuario u = usuarioService.obtenerPorId(id);
-            u.setUrlFoto(body.get("url_foto"));
-            usuarioService.modificarUsuario(u);
-            return ResponseEntity.ok(Map.of("message", "Foto actualizada"));
+            String url = body.containsKey("url_foto") ? body.get("url_foto") : body.get("urlFoto");
+            usuarioService.actualizarFotoPerfil(id, url);
+            return ResponseEntity.ok(Map.of("message", "Foto actualizada", "url_foto", url, "urlFoto", url));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

@@ -1,9 +1,9 @@
 package com.fixfinder.integracion;
 
-import com.fixfinder.modelos.*;
-import com.fixfinder.modelos.enums.CategoriaServicio;
-import com.fixfinder.modelos.enums.Rol;
-import com.fixfinder.repository.*;
+import com.fixfinder.repository.EmpresaRepository;
+import com.fixfinder.repository.TrabajoRepository;
+import com.fixfinder.repository.PresupuestoRepository;
+import com.fixfinder.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +15,10 @@ import java.util.ArrayList;
 @Component
 public class TestHelper {
 
-    @Autowired private OperarioRepository operarioRepository;
     @Autowired private EmpresaRepository empresaRepository;
-    @Autowired private ClienteRepository clienteRepository;
     @Autowired private TrabajoRepository trabajoRepository;
     @Autowired private PresupuestoRepository presupuestoRepository;
     @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private FacturaRepository facturaRepository;
 
     private final Random random = new Random();
 

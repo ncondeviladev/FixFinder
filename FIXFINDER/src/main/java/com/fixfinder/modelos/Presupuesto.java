@@ -4,6 +4,8 @@ import com.fixfinder.modelos.enums.EstadoPresupuesto;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Representa una oferta económica previa a la realización del trabajo.
  */
@@ -16,6 +18,7 @@ public class Presupuesto {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_trabajo")
+    @JsonIgnore
     private Trabajo trabajo;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,6 +33,7 @@ public class Presupuesto {
     @Enumerated(EnumType.STRING)
     private EstadoPresupuesto estado;
     
+    @Column(columnDefinition = "TEXT")
     private String notas;
 
     public Presupuesto() {

@@ -42,9 +42,31 @@ class TrabajoProvider with ChangeNotifier {
       if (respuesta['accion'] == 'BROADCAST') {
         final datos = respuesta['datos'] ?? {};
         final categoria = datos['categoria'] ?? 'SISTEMA';
+        final subtipo = datos['subtipo'] ?? '';
         final info = datos['info'] ?? 'Actualización del sistema';
 
-        debugPrint('🔔 [SOCKET-BROADCAST] $categoria: $info');
+        debugPrint('📩 [SOCKET-RECEIVE] Broadcast recibido. Categoria: $categoria, Subtipo: $subtipo, idCliente: ${datos['idCliente']}, idOperario: ${datos['idOperario']}');
+
+        // Filtrado de seguridad
+        final usuario = _auth.usuarioActual;
+        if (usuario != null) {
+          if (usuario.rol.name == 'CLIENTE' && datos.containsKey('idCliente') && datos['idCliente'] != null && datos['idCliente'] != 0) {
+             if (datos['idCliente'].toString() != usuario.id.toString()) {
+               debugPrint('🛡️ [SOCKET-FILTER] Mensaje descartado (No pertenece a este cliente)');
+               return;
+             }
+          }
+          if (usuario.rol.name == 'OPERARIO' && datos.containsKey('idOperario') && datos['idOperario'] != null && datos['idOperario'] != 0) {
+             if (datos['idOperario'].toString() != usuario.id.toString()) {
+               debugPrint('🛡️ [SOCKET-FILTER] Mensaje descartado (No pertenece a este operario)');
+               return;
+             }
+          }
+        }
+
+        if (categoria == 'USUARIO') return; // Procesado por usuario_provider
+
+        debugPrint('🔔 [SOCKET-BROADCAST] Procesando evento. $categoria: $info');
 
         // Refrescamos los trabajos en segundo plano para no bloquear la UI con spinners
         _actualizarEstadoSilencioso();
@@ -53,6 +75,40 @@ class TrabajoProvider with ChangeNotifier {
         _mostrarNotificacionUI(categoria, info);
       }
     });
+  }
+
+  // --- Gestión de Refresco (Polling) ---
+
+  /// Activa un temporizador para refrescar la lista periódicamente.
+  /// Útil para capturar cambios si el socket llegara a fallar silenciosamente.
+  void iniciarSincronizacion({int intervaloSegundos = 15}) {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(
+      Duration(seconds: intervaloSegundos),
+      (_) => _actualizarEstadoSilencioso(),
+    );
+  }
+
+  /// Detiene el ciclo de refresco automático.
+  void detenerSincronizacion() {
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+  }
+
+  /// Actualiza la lista de trabajos sin disparar indicadores de carga invasivos.
+  Future<void> _actualizarEstadoSilencioso() async {
+    final usuario = _auth.usuarioActual;
+    if (usuario == null) return;
+
+    try {
+      final nuevaLista = await _api.obtenerTrabajos(usuario);
+      _trabajos = nuevaLista.where((t) => t.estado != EstadoTrabajo.CANCELADO).toList();
+      _ordenarTrabajosPorPrioridad();
+      notifyListeners();
+      debugPrint('🔄 [TrabajoProvider] Lista de trabajos actualizada en tiempo real (${_trabajos.length} trabajos)');
+    } catch (e) {
+      debugPrint('⚠️ [TrabajoProvider] Error en actualización silenciosa: $e');
+    }
   }
 
   /// Muestra un SnackBar elegante con fondo semi-transparente y borde naranja.
@@ -107,54 +163,7 @@ class TrabajoProvider with ChangeNotifier {
     );
   }
 
-  // --- Gestión de Refresco (Polling) ---
 
-  /// Activa un temporizador para refrescar la lista periódicamente.
-  /// Útil para capturar cambios si el socket llegara a fallar silenciosamente.
-  void iniciarSincronizacion({int intervaloSegundos = 15}) {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(
-      Duration(seconds: intervaloSegundos),
-      (_) => _actualizarEstadoSilencioso(),
-    );
-  }
-
-  /// Detiene el ciclo de refresco automático.
-  void detenerSincronizacion() {
-    _pollingTimer?.cancel();
-    _pollingTimer = null;
-  }
-
-  /// Actualiza la lista de trabajos sin disparar indicadores de carga invasivos.
-  /// Solo notifica si detecta cambios críticos de estado.
-  Future<void> _actualizarEstadoSilencioso() async {
-    final usuario = _auth.usuarioActual;
-    if (usuario == null) return;
-
-    try {
-      final nuevaLista = await _api.obtenerTrabajos(usuario);
-      if (_detectarCambiosRelevantes(nuevaLista)) {
-        _trabajos = nuevaLista;
-        notifyListeners();
-      }
-    } catch (_) {
-      // Ignorar errores en refresco silencioso
-    }
-  }
-
-  /// Compara la lista nueva con la actual para evitar renders innecesarios.
-  bool _detectarCambiosRelevantes(List<Trabajo> nuevaLista) {
-    if (nuevaLista.length != _trabajos.length) return true;
-    for (int i = 0; i < nuevaLista.length; i++) {
-      final nuevo = nuevaLista[i];
-      final actual =
-          _trabajos.firstWhere((t) => t.id == nuevo.id, orElse: () => nuevo);
-      if (actual.estado != nuevo.estado) return true;
-      if (actual.presupuesto?.estado != nuevo.presupuesto?.estado) return true;
-      if (actual.presupuestos.length != nuevo.presupuestos.length) return true;
-    }
-    return false;
-  }
 
   // --- Operaciones con el Servidor ---
 
@@ -307,9 +316,8 @@ class TrabajoProvider with ChangeNotifier {
       return 3;
     }
 
-    // PRIORIDAD 4: Completados y valorados o realizados
-    if (trabajo.estado == EstadoTrabajo.REALIZADO ||
-        trabajo.estado == EstadoTrabajo.FINALIZADO ||
+    // PRIORIDAD 4: Completados y valorados o finalizados
+    if (trabajo.estado == EstadoTrabajo.FINALIZADO ||
         trabajo.estado == EstadoTrabajo.PAGADO) {
       return 4;
     }

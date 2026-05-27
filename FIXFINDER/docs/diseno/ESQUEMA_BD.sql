@@ -118,7 +118,6 @@ CREATE TABLE trabajo (
         'PRESUPUESTADO',
         'ACEPTADO',
         'ASIGNADO',
-        'REALIZADO',
         'FINALIZADO',
         'PAGADO',
         'CANCELADO'

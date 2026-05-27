@@ -143,7 +143,7 @@ public class TablaIncidencias extends VBox {
             boolean coincideTab = switch (filtroTab) {
                 case "pendientes" -> "PENDIENTE".equals(trabajo.getEstado());
                 case "proceso" -> List.of("ASIGNADO", "PRESUPUESTADO", "ACEPTADO").contains(trabajo.getEstado());
-                case "finalizadas" -> List.of("FINALIZADO", "REALIZADO").contains(trabajo.getEstado());
+                case "finalizadas" -> "FINALIZADO".equals(trabajo.getEstado());
                 default -> true;
             };
             return coincideTexto && coincideTab;

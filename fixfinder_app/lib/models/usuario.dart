@@ -36,6 +36,9 @@ class Usuario {
   /// Marca de tiempo de la creación de la cuenta en formato ISO8601.
   final String? fechaRegistro;
 
+  /// ID de empresa asociada (solo para GERENTE y OPERARIO).
+  final int? idEmpresa;
+
   Usuario({
     required this.id,
     required this.email,
@@ -47,6 +50,7 @@ class Usuario {
     this.dni,
     this.urlFoto,
     this.fechaRegistro,
+    this.idEmpresa,
   });
 
   /// Factory para construir el usuario desde un mapa JSON recibido por el socket.
@@ -66,6 +70,7 @@ class Usuario {
       dni: json['dni'],
       urlFoto: _sanitizarUrl(json['url_foto'] ?? json['urlFoto']),
       fechaRegistro: json['fecha_registro'] ?? json['fechaRegistro'],
+      idEmpresa: json['idEmpresa'] != null ? (json['idEmpresa'] as num).toInt() : null,
     );
   }
 
@@ -100,6 +105,7 @@ class Usuario {
       'dni': dni,
       'urlFoto': urlFoto,
       'fechaRegistro': fechaRegistro,
+      'idEmpresa': idEmpresa,
     };
   }
 }

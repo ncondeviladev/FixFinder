@@ -71,11 +71,22 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> modificarEmpresa(@PathVariable int id, @RequestBody Empresa empresa) {
+    public ResponseEntity<?> modificarEmpresa(@PathVariable int id, @RequestBody Map<String, Object> body) {
         try {
+            Empresa empresa = new Empresa();
             empresa.setId(id);
+            if (body.containsKey("nombre")) empresa.setNombre((String) body.get("nombre"));
+            if (body.containsKey("cif")) empresa.setCif((String) body.get("cif"));
+            if (body.containsKey("emailContacto")) empresa.setEmailContacto((String) body.get("emailContacto"));
+            if (body.containsKey("email")) empresa.setEmailContacto((String) body.get("email"));
+            if (body.containsKey("telefono")) empresa.setTelefono((String) body.get("telefono"));
+            if (body.containsKey("direccion")) empresa.setDireccion((String) body.get("direccion"));
+            // Acepta urlFoto (camelCase del Dashboard) y url_foto (snake_case de la App)
+            String urlFoto = body.containsKey("urlFoto") ? (String) body.get("urlFoto")
+                           : body.containsKey("url_foto") ? (String) body.get("url_foto") : null;
+            if (urlFoto != null && !urlFoto.isBlank()) empresa.setUrlFoto(urlFoto);
             empresaService.modificarEmpresa(empresa);
-            return ResponseEntity.ok(Map.of("message", "Empresa modificada"));
+            return ResponseEntity.ok(Map.of("message", "Empresa actualizada"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

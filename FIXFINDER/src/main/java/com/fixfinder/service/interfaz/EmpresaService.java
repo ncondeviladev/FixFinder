@@ -57,8 +57,8 @@ public interface EmpresaService {
      * Obtiene estadísticas o datos agregados de la empresa.
      *
      * @param idEmpresa ID de la empresa.
-     * @return Objeto empresa con datos (podría ser un DTO en el futuro).
+     * @return Mapa con los datos de la empresa y sus estadísticas/valoraciones.
      * @throws ServiceException Error de acceso.
      */
-    Empresa obtenerEstadisticas(Integer idEmpresa) throws ServiceException;
+    Map<String, Object> obtenerEstadisticas(Integer idEmpresa) throws ServiceException;
 }

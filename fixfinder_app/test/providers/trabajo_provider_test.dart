@@ -1,8 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fixfinder_app/providers/trabajo_provider.dart';
 import 'package:fixfinder_app/models/trabajo.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
+  setUpAll(() {
+    dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
+  });
+
   group('TrabajoProvider Unit Tests', () {
     test('Al inicializar, la lista de trabajos debe estar vacía', () {
       final provider = TrabajoProvider();

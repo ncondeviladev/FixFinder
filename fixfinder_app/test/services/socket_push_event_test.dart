@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fixfinder_app/services/socket_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
   group('SocketPushEvent Tests', () {
     late SocketService socketService;
 
     setUp(() {
+      dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
       socketService = SocketService();
     });
 

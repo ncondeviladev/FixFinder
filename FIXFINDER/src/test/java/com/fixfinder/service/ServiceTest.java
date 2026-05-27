@@ -11,7 +11,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -136,7 +135,7 @@ public class ServiceTest {
 
         Trabajo t = trabajoService.solicitarReparacion(
                 idUsuarioRegistrado, "Grifo Roto", CategoriaServicio.FONTANERIA,
-                "Pierde agua", "Calle Falsa 123", 1);
+                "Pierde agua", "Calle Falsa 123", 1, null);
         
         assertNotNull(t);
         idTrabajoRegistrado = t.getId();
@@ -148,8 +147,72 @@ public class ServiceTest {
         Trabajo tAsignado = trabajoService.obtenerPorId(t.getId());
         assertEquals(EstadoTrabajo.ASIGNADO, tAsignado.getEstado());
 
-        trabajoService.finalizarTrabajo(t.getId(), "Arreglado");
+        trabajoService.finalizarTrabajo(t.getId(), "Arreglado", null);
         Trabajo tFinal = trabajoService.obtenerPorId(t.getId());
-        assertEquals(EstadoTrabajo.REALIZADO, tFinal.getEstado());
+        assertEquals(EstadoTrabajo.FINALIZADO, tFinal.getEstado());
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("Usuario: Safe Merge (Modificación Parcial)")
+    void testSafeMergeUsuarioFlow() throws ServiceException {
+        if (idUsuarioRegistrado == null) testUsuarioFlow();
+        
+        // Simular objeto parcial que envía la app móvil para cambiar la foto
+        Usuario parcial = new Usuario();
+        parcial.setId(idUsuarioRegistrado);
+        parcial.setUrlFoto("http://nueva-foto.png");
+        // Dejamos todo lo demás en null
+        
+        usuarioService.modificarUsuario(parcial);
+        
+        Usuario actualizado = usuarioService.obtenerPorId(idUsuarioRegistrado);
+        assertEquals("http://nueva-foto.png", actualizado.getUrlFoto());
+        assertNotNull(actualizado.getNombreCompleto()); // El nombre debe mantenerse
+        assertNotNull(actualizado.getPasswordHash()); // La contraseña debe mantenerse
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Empresa: Safe Merge (Modificación Parcial)")
+    void testSafeMergeEmpresaFlow() throws ServiceException {
+        ensureEmpresaExists();
+        
+        Empresa parcial = new Empresa();
+        parcial.setId(idEmpresaRegistrada);
+        parcial.setTelefono("999888777");
+        
+        empresaService.modificarEmpresa(parcial);
+        
+        Empresa actualizada = empresaService.obtenerPorId(idEmpresaRegistrada);
+        assertEquals("999888777", actualizada.getTelefono());
+        assertNotNull(actualizada.getNombre()); // El nombre debe mantenerse
+        assertNotNull(actualizada.getCif()); // El CIF debe mantenerse
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Presupuesto: Creación Dinámica y Subasta")
+    void testPresupuestoFlow() throws ServiceException {
+        ensureEmpresaExists();
+        if (idUsuarioRegistrado == null) testUsuarioFlow();
+        
+        Trabajo t = trabajoService.solicitarReparacion(
+                idUsuarioRegistrado, "Avería de prueba subasta", CategoriaServicio.ELECTRICIDAD,
+                "Sin luz", "Avenida Siempre Viva", 1, null);
+        helper.registrarTrabajo(t.getId());
+
+        Presupuesto p = new Presupuesto();
+        p.setMonto(150.0);
+        p.setNotas("Presupuesto test");
+        p.setTrabajo(t);
+        p.setEmpresa(empresaService.obtenerPorId(idEmpresaRegistrada));
+        
+        presupuestoService.crearPresupuesto(p);
+        helper.registrarPresupuesto(p.getId());
+        
+        List<Presupuesto> listado = presupuestoService.listarPorTrabajo(t.getId());
+        assertEquals(1, listado.size());
+        assertEquals(150.0, listado.get(0).getMonto());
     }
 }

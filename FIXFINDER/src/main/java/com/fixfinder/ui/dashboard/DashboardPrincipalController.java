@@ -136,11 +136,13 @@ public class DashboardPrincipalController {
      * Refresca Incidencias, Perfil de Empresa y Lista de Operarios.
      */
     public void sincronizarTodo() {
-        // Refresco total de datos
-        servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
+        // Siempre pasamos el idEmpresa para que el servidor incluya trabajos ACEPTADO de esta empresa
         if (idEmpresa > 0) {
+            servicioCliente.solicitarListaTrabajosPorEmpresa(idEmpresa);
             servicioCliente.obtenerDatosEmpresa(idEmpresa);
             servicioCliente.solicitarListaOperarios(idEmpresa);
+        } else {
+            servicioCliente.solicitarListaTrabajos(usuarioId, usuarioRol);
         }
     }
 
@@ -219,12 +221,13 @@ public class DashboardPrincipalController {
                             idEmpresa,
                             (String) infoEmpresaActual.getOrDefault("nombre", ""),
                             (String) infoEmpresaActual.getOrDefault("cif", ""),
-                            (String) infoEmpresaActual.getOrDefault("email", ""),
+                            (String) infoEmpresaActual.getOrDefault("emailContacto", (String) infoEmpresaActual.getOrDefault("email", "")),
                             (String) infoEmpresaActual.getOrDefault("telefono", ""),
                             (String) infoEmpresaActual.getOrDefault("direccion", ""),
                             url
                         );
                         registrarActividad("🏢 Logo corporativo actualizado");
+                        Platform.runLater(() -> sincronizarTodo());
                     },
                     err -> logError("subida logo", (Exception) err));
         }

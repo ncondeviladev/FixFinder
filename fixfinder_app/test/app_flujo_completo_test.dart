@@ -7,12 +7,14 @@ import 'package:fixfinder_app/screens/dashboard_pantalla.dart';
 import 'package:fixfinder_app/providers/trabajo_provider.dart';
 import 'package:fixfinder_app/providers/usuario_provider.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Test de Integración a nivel de Widget de la aplicación FixFinder.
 /// Este test verifica el arranque de la app y la llegada a la pantalla de Login.
 void main() {
   setUp(() async {
+    dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
     // Inicializamos SharedPreferences con valores vacíos para evitar errores
     SharedPreferences.setMockInitialValues({});
   });

@@ -18,12 +18,14 @@ public interface TrabajoService {
          * @param descripcion Descripción del problema.
          * @param direccion   Dirección donde se realizará el trabajo.
          * @param urgencia    Nivel de urgencia (1-5 ó enum).
+         * @param urlsFotos   Lista de URLs de fotos del trabajo.
          * @return El trabajo creado con estado PENDIENTE.
          * @throws ServiceException Error al crear.
          */
         Trabajo solicitarReparacion(Integer idCliente, String titulo, CategoriaServicio categoria, String descripcion,
                         String direccion,
-                        int urgencia)
+                        int urgencia,
+                        List<String> urlsFotos)
                         throws ServiceException;
 
         /**
@@ -49,9 +51,10 @@ public interface TrabajoService {
          *
          * @param idTrabajo      ID del trabajo.
          * @param informeTecnico Descripción de la solución.
+         * @param urlsFotos      Lista de URLs de fotos del trabajo finalizado.
          * @throws ServiceException Error al finalizar.
          */
-        void finalizarTrabajo(Integer idTrabajo, String informeTecnico) throws ServiceException;
+        void finalizarTrabajo(Integer idTrabajo, String informeTecnico, List<String> urlsFotos) throws ServiceException;
 
         /**
          * Cancela una solicitud de trabajo.
@@ -66,7 +69,7 @@ public interface TrabajoService {
          * Modifica los detalles de un trabajo antes de ser finalizado.
          */
         void modificarTrabajo(Integer idTrabajo, String titulo, String descripcion, String direccion,
-                        CategoriaServicio categoria, int urgencia) throws ServiceException;
+                        CategoriaServicio categoria, int urgencia, List<String> urlsFotos) throws ServiceException;
 
         /**
          * Añade la valoración y el comentario final del cliente a un trabajo terminado.

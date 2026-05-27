@@ -217,6 +217,7 @@ public class AppDashboardPrincipal extends Application {
                                     : null;
 
                             loginStage.close();
+                            servicioCliente.suscribirEmpresa(idEmpresa);
                             DashboardPrincipal dashboard = new DashboardPrincipal(
                                     servicioCliente, id, nombre, rol, urlFoto, idEmpresa);
                             dashboard.mostrar();

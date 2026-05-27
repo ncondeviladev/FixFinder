@@ -248,9 +248,9 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                     (trabajoActual.estado == EstadoTrabajo.PENDIENTE ||
                         trabajoActual.estado == EstadoTrabajo.PRESUPUESTADO))
                   DetalleSeccionPresupuestos(
-                    presupuestos: _presupuestos.isNotEmpty 
-                        ? _presupuestos 
-                        : trabajoActual.presupuestos,
+                    presupuestos: trabajoActual.presupuestos.isNotEmpty 
+                        ? trabajoActual.presupuestos 
+                        : _presupuestos,
                     cargando: _cargandoPresupuestos &&
                         (_presupuestos.isEmpty && trabajoActual.presupuestos.isEmpty),
                     procesando: _procesando,
@@ -259,14 +259,12 @@ class _DetalleTrabajoPantallaState extends State<DetalleTrabajoPantalla> {
                     onRechazar: _rechazarPresupuesto,
                   ),
                 if (esOperario &&
-                    (trabajoActual.estado == EstadoTrabajo.ASIGNADO ||
-                        trabajoActual.estado == EstadoTrabajo.REALIZADO))
+                    trabajoActual.estado == EstadoTrabajo.ASIGNADO)
                   _buildBotonFinalizar(trabajoActual.id),
                 if (trabajoActual.estado == EstadoTrabajo.FINALIZADO)
                   DetalleResumenFinal(trabajo: trabajoActual),
                 if (esCliente &&
-                    (trabajoActual.estado == EstadoTrabajo.FINALIZADO ||
-                        trabajoActual.estado == EstadoTrabajo.REALIZADO) &&
+                    trabajoActual.estado == EstadoTrabajo.FINALIZADO &&
                     trabajoActual.valoracion == 0)
                   _buildBotonValorar(trabajoActual.id),
                 if (_procesando)

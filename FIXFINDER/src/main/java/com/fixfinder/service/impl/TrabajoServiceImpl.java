@@ -3,9 +3,12 @@ package com.fixfinder.service.impl;
 import com.fixfinder.modelos.Operario;
 import com.fixfinder.modelos.Trabajo;
 import com.fixfinder.modelos.Usuario;
+import com.fixfinder.modelos.componentes.FotoTrabajo;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import com.fixfinder.modelos.enums.EstadoTrabajo;
+import com.fixfinder.repository.FotoTrabajoRepository;
 import com.fixfinder.repository.OperarioRepository;
+import com.fixfinder.repository.PresupuestoRepository;
 import com.fixfinder.repository.TrabajoRepository;
 import com.fixfinder.repository.UsuarioRepository;
 import com.fixfinder.service.NotificationService;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,20 +33,25 @@ public class TrabajoServiceImpl implements TrabajoService {
     private final TrabajoRepository trabajoRepository;
     private final UsuarioRepository usuarioRepository;
     private final OperarioRepository operarioRepository;
+    private final FotoTrabajoRepository fotoTrabajoRepository;
+    private final PresupuestoRepository presupuestoRepository;
     private final NotificationService notificationService;
 
     @Autowired
     public TrabajoServiceImpl(TrabajoRepository trabajoRepository, UsuarioRepository usuarioRepository, 
-                             OperarioRepository operarioRepository, NotificationService notificationService) {
+                             OperarioRepository operarioRepository, FotoTrabajoRepository fotoTrabajoRepository,
+                             PresupuestoRepository presupuestoRepository, NotificationService notificationService) {
         this.trabajoRepository = trabajoRepository;
         this.usuarioRepository = usuarioRepository;
         this.operarioRepository = operarioRepository;
+        this.fotoTrabajoRepository = fotoTrabajoRepository;
+        this.presupuestoRepository = presupuestoRepository;
         this.notificationService = notificationService;
     }
 
     @Override
     @Transactional
-    public Trabajo solicitarReparacion(Integer idCliente, String titulo, CategoriaServicio categoria, String descripcion, String direccion, int urgencia) throws ServiceException {
+    public Trabajo solicitarReparacion(Integer idCliente, String titulo, CategoriaServicio categoria, String descripcion, String direccion, int urgencia, List<String> urlsFotos) throws ServiceException {
         if (idCliente == null) throw new ServiceException("El ID del cliente no puede ser nulo.");
         if (descripcion == null || descripcion.trim().isEmpty()) throw new ServiceException("La descripción es obligatoria.");
 
@@ -86,8 +95,13 @@ public class TrabajoServiceImpl implements TrabajoService {
         
         Trabajo saved = trabajoRepository.save(trabajo);
         
+        // Procesar fotos si se proporcionaron
+        if (urlsFotos != null && !urlsFotos.isEmpty()) {
+            procesarFotos(urlsFotos, saved.getId());
+        }
+        
         // Notificar nuevo trabajo
-        notificationService.difundirEventoTrabajo("NUEVO", saved.getId(), idCliente, 0, "Nueva solicitud: " + saved.getTitulo());
+        notificationService.difundirEventoTrabajo("NUEVO", saved.getId(), idCliente, 0, 0, "Nueva solicitud: " + saved.getTitulo());
         
         return saved;
     }
@@ -120,8 +134,10 @@ public class TrabajoServiceImpl implements TrabajoService {
         
         // Notificar asignación
         int idEmpresa = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getIdEmpresa() : 0;
-        notificationService.difundirEventoTrabajo("ASIGNACION", idTrabajo, trabajo.getCliente().getId(), idEmpresa, 
-                (idOperario != null && idOperario > 0) ? "Operario asignado" : "Operario desasignado");
+        int idOp = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getId() : 0;
+        notificationService.difundirEventoTrabajo("ASIGNACION", idTrabajo, trabajo.getCliente().getId(), 
+                idOp, idEmpresa, 
+                idOp > 0 ? "Operario asignado" : "Operario desasignado");
     }
 
     @Override
@@ -137,13 +153,13 @@ public class TrabajoServiceImpl implements TrabajoService {
             trabajoRepository.save(trabajo);
             
             notificationService.difundirEventoTrabajo("INICIO", idTrabajo, trabajo.getCliente().getId(), 
-                    trabajo.getOperarioAsignado().getIdEmpresa(), "Trabajo iniciado");
+                    trabajo.getOperarioAsignado().getId(), trabajo.getOperarioAsignado().getIdEmpresa(), "Trabajo iniciado");
         }
     }
 
     @Override
     @Transactional
-    public void finalizarTrabajo(Integer idTrabajo, String informeTecnico) throws ServiceException {
+    public void finalizarTrabajo(Integer idTrabajo, String informeTecnico, List<String> urlsFotos) throws ServiceException {
         Trabajo trabajo = trabajoRepository.findById(idTrabajo).orElse(null);
         if (trabajo == null) throw new ServiceException("Trabajo no encontrado.");
 
@@ -151,7 +167,7 @@ public class TrabajoServiceImpl implements TrabajoService {
             throw new ServiceException("El trabajo debe estar ASIGNADO para finalizarse.");
         }
 
-        trabajo.setEstado(EstadoTrabajo.REALIZADO);
+        trabajo.setEstado(EstadoTrabajo.FINALIZADO);
         trabajo.setFechaFinalizacion(LocalDateTime.now());
 
         if (informeTecnico != null && !informeTecnico.trim().isEmpty() && !informeTecnico.equals("Trabajo finalizado correctamente (Simulador).")) {
@@ -169,13 +185,18 @@ public class TrabajoServiceImpl implements TrabajoService {
                     trabajo.setDescripcion(parteSuperior + "🛠 OPERARIO:\n" + informeTecnico.trim());
                 }
             } else {
-                trabajo.setDescripcion(descActual + "\n\n🛠 INFORME TÉCNICO:\n" + informeTecnico);
+                trabajo.setDescripcion(descActual + "\n\n==============================\n🛠 OPERARIO:\n" + informeTecnico.trim() + "\n==============================");
             }
         }
         trabajoRepository.save(trabajo);
         
+        // Procesar fotos si se proporcionaron
+        if (urlsFotos != null && !urlsFotos.isEmpty()) {
+            procesarFotos(urlsFotos, idTrabajo);
+        }
+        
         notificationService.difundirEventoTrabajo("FINALIZADO", idTrabajo, trabajo.getCliente().getId(), 
-                trabajo.getOperarioAsignado().getIdEmpresa(), "Trabajo finalizado por el técnico");
+                trabajo.getOperarioAsignado().getId(), trabajo.getOperarioAsignado().getIdEmpresa(), "Trabajo finalizado por el técnico");
     }
 
     @Override
@@ -192,6 +213,7 @@ public class TrabajoServiceImpl implements TrabajoService {
         }
 
         int idEmpresa = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getIdEmpresa() : 0;
+        int idOperario = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getId() : 0;
         
         if (trabajo.getOperarioAsignado() != null) {
             trabajo.setOperarioAsignado(null);
@@ -201,12 +223,12 @@ public class TrabajoServiceImpl implements TrabajoService {
         trabajo.setDescripcion(trabajo.getDescripcion() + " [CANCELADO: " + motivo + "]");
         trabajoRepository.save(trabajo);
         
-        notificationService.difundirEventoTrabajo("CANCELADO", idTrabajo, trabajo.getCliente().getId(), idEmpresa, "Trabajo cancelado: " + motivo);
+        notificationService.difundirEventoTrabajo("CANCELADO", idTrabajo, trabajo.getCliente().getId(), idOperario, idEmpresa, "Trabajo cancelado: " + motivo);
     }
 
     @Override
     @Transactional
-    public void modificarTrabajo(Integer idTrabajo, String titulo, String descripcion, String direccion, CategoriaServicio categoria, int urgencia) throws ServiceException {
+    public void modificarTrabajo(Integer idTrabajo, String titulo, String descripcion, String direccion, CategoriaServicio categoria, int urgencia, List<String> urlsFotos) throws ServiceException {
         Trabajo trabajo = trabajoRepository.findById(idTrabajo).orElse(null);
         if (trabajo == null) throw new ServiceException("Trabajo no encontrado.");
 
@@ -221,7 +243,14 @@ public class TrabajoServiceImpl implements TrabajoService {
 
         trabajoRepository.save(trabajo);
         
-        notificationService.difundirEventoTrabajo("MODIFICADO", idTrabajo, trabajo.getCliente().getId(), 0, "Trabajo modificado");
+        // Procesar fotos si se proporcionaron
+        if (urlsFotos != null && !urlsFotos.isEmpty()) {
+            procesarFotos(urlsFotos, idTrabajo);
+        }
+        
+        int idOperario = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getId() : 0;
+        int idEmpresa = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getIdEmpresa() : 0;
+        notificationService.difundirEventoTrabajo("MODIFICADO", idTrabajo, trabajo.getCliente().getId(), idOperario, idEmpresa, "Trabajo modificado");
     }
 
     @Override
@@ -230,7 +259,7 @@ public class TrabajoServiceImpl implements TrabajoService {
         Trabajo trabajo = trabajoRepository.findById(idTrabajo).orElse(null);
         if (trabajo == null) throw new ServiceException("Trabajo no encontrado.");
 
-        if (trabajo.getEstado() != EstadoTrabajo.FINALIZADO && trabajo.getEstado() != EstadoTrabajo.REALIZADO && trabajo.getEstado() != EstadoTrabajo.PAGADO) {
+        if (trabajo.getEstado() != EstadoTrabajo.FINALIZADO && trabajo.getEstado() != EstadoTrabajo.PAGADO) {
             throw new ServiceException("Solo se pueden valorar trabajos en estado FINALIZADO o superado.");
         }
         if (valoracion < 1 || valoracion > 5) {
@@ -243,15 +272,49 @@ public class TrabajoServiceImpl implements TrabajoService {
         trabajoRepository.save(trabajo);
         
         int idEmpresa = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getIdEmpresa() : 0;
-        notificationService.difundirEventoTrabajo("VALORACION", idTrabajo, trabajo.getCliente().getId(), idEmpresa, "Nueva valoración recibida");
+        int idOperario = (trabajo.getOperarioAsignado() != null) ? trabajo.getOperarioAsignado().getId() : 0;
+        notificationService.difundirEventoTrabajo("VALORACION", idTrabajo, trabajo.getCliente().getId(), idOperario, idEmpresa, "Nueva valoración recibida");
     }
 
     @Override
     public List<Trabajo> listarPendientes(Integer idEmpresa) throws ServiceException {
         List<Trabajo> todos = trabajoRepository.findAll();
-        return todos.stream()
-                .filter(t -> t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO)
-                .collect(Collectors.toList());
+        
+        if (idEmpresa == null || idEmpresa <= 0) {
+            return todos.stream()
+                    .filter(t -> t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO)
+                    .collect(Collectors.toList());
+        }
+        
+        List<Trabajo> visibles = new ArrayList<>();
+        for (Trabajo t : todos) {
+            if (t.getEstado() == EstadoTrabajo.PENDIENTE || t.getEstado() == EstadoTrabajo.PRESUPUESTADO) {
+                visibles.add(t);
+                continue;
+            }
+            
+            if (t.getEstado() == EstadoTrabajo.ACEPTADO) {
+                boolean esDeLaEmpresa = false;
+                List<com.fixfinder.modelos.Presupuesto> presupuestos = presupuestoRepository.findByTrabajoId(t.getId());
+                if (presupuestos != null) {
+                    for (com.fixfinder.modelos.Presupuesto p : presupuestos) {
+                        if ("ACEPTADO".equalsIgnoreCase(p.getEstado().toString()) && p.getEmpresa() != null && p.getEmpresa().getId() == idEmpresa) {
+                            esDeLaEmpresa = true;
+                            break;
+                        }
+                    }
+                }
+                if (esDeLaEmpresa) {
+                    visibles.add(t);
+                    continue;
+                }
+            }
+            
+            if (t.getOperarioAsignado() != null && t.getOperarioAsignado().getIdEmpresa() == idEmpresa) {
+                visibles.add(t);
+            }
+        }
+        return visibles;
     }
 
     @Override
@@ -272,5 +335,23 @@ public class TrabajoServiceImpl implements TrabajoService {
     @Override
     public Trabajo obtenerPorId(Integer idTrabajo) throws ServiceException {
         return trabajoRepository.findById(idTrabajo).orElse(null);
+    }
+
+    private void procesarFotos(List<String> urlsNuevas, int idTrabajo) {
+        if (urlsNuevas == null || urlsNuevas.isEmpty()) return;
+        
+        List<FotoTrabajo> actuales = fotoTrabajoRepository.findByIdTrabajo(idTrabajo);
+        List<String> urlsActuales = new ArrayList<>();
+        if (actuales != null) {
+            for (FotoTrabajo ft : actuales) {
+                urlsActuales.add(ft.getUrl());
+            }
+        }
+        
+        for (String url : urlsNuevas) {
+            if (url != null && !url.isBlank() && !urlsActuales.contains(url)) {
+                fotoTrabajoRepository.save(new FotoTrabajo(0, idTrabajo, url));
+            }
+        }
     }
 }

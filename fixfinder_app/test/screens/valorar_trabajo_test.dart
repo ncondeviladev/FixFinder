@@ -6,6 +6,7 @@ import 'package:fixfinder_app/models/trabajo.dart';
 import 'package:fixfinder_app/models/usuario.dart';
 import 'package:fixfinder_app/providers/trabajo_provider.dart';
 import 'package:fixfinder_app/providers/usuario_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MockTrabajoProvider extends TrabajoProvider {
   @override
@@ -21,6 +22,10 @@ class MockUsuarioProvider extends UsuarioProvider {
 }
 
 void main() {
+  setUpAll(() {
+    dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
+  });
+
   testWidgets('DetalleTrabajoPantalla muestra botón de valorar si el usuario es Cliente y el trabajo está FINALIZADO', (WidgetTester tester) async {
     final trabajoFinalizado = Trabajo(
       id: 1,

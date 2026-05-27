@@ -57,8 +57,12 @@ public class ServicioCliente {
                 // Suscribirse a temas generales
                 session.subscribe("/topic/trabajos", this);
                 session.subscribe("/topic/presupuestos", this);
-                session.subscribe("/topic/usuarios", this);
                 session.subscribe("/topic/gerentes", this);
+            }
+
+            @Override
+            public java.lang.reflect.Type getPayloadType(StompHeaders headers) {
+                return java.util.Map.class;
             }
 
             @Override
@@ -93,6 +97,28 @@ public class ServicioCliente {
     public void setOnMensajeRecibido(Consumer<String> callback) {
         this.onMensajeRecibido = callback;
     }
+    
+    public void suscribirEmpresa(int idEmpresa) {
+        if (stompSession != null && idEmpresa > 0) {
+            stompSession.subscribe("/topic/empresa/" + idEmpresa, new StompSessionHandlerAdapter() {
+                @Override
+                public java.lang.reflect.Type getPayloadType(StompHeaders headers) {
+                    return java.util.Map.class;
+                }
+                @Override
+                public void handleFrame(StompHeaders headers, Object payload) {
+                    try {
+                        String json = mapper.writeValueAsString(payload);
+                        if (onMensajeRecibido != null) {
+                            onMensajeRecibido.accept(json);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
 
     // --- PETICIONES (Adaptadas a REST) ---
 
@@ -105,8 +131,12 @@ public class ServicioCliente {
     }
 
     public void solicitarListaTrabajos(int idUsuario, String rol) {
-        // En la nueva API, usamos endpoints específicos
+        // Siempre pasamos el idEmpresa para que el servidor incluya los trabajos ACEPTADO de nuestra empresa
         getAsync("/trabajos/pendientes", "LISTAR_TRABAJOS");
+    }
+
+    public void solicitarListaTrabajosPorEmpresa(int idEmpresa) {
+        getAsync("/trabajos/pendientes?idEmpresa=" + idEmpresa, "LISTAR_TRABAJOS");
     }
 
     public void solicitarListaOperarios(int idEmpresa) {
@@ -119,9 +149,10 @@ public class ServicioCliente {
 
     public void enviarCrearPresupuesto(int idTrabajo, int idEmpresa, double monto, String notas) {
         Map<String, Object> body = new HashMap<>();
+        body.put("idTrabajo", idTrabajo);
+        body.put("idEmpresa", idEmpresa);
         body.put("monto", monto);
         body.put("notas", notas);
-        // El nuevo endpoint podría ser diferente, pero lo adaptamos
         postAsync("/presupuestos", body, "CREAR_PRESUPUESTO");
     }
 
@@ -181,11 +212,11 @@ public class ServicioCliente {
 
     public void enviarActualizarFotoPerfil(int idUsuario, String url) {
         Map<String, String> body = Map.of("urlFoto", url);
-        putAsync("/usuarios/" + idUsuario, body, "ACTUALIZAR_FOTO_PERFIL");
+        putAsync("/usuarios/" + idUsuario + "/foto", body, "ACTUALIZAR_FOTO_PERFIL");
     }
 
     public void obtenerDatosEmpresa(int idEmpresa) {
-        getAsync("/empresas/" + idEmpresa, "GET_EMPRESA");
+        getAsync("/empresas/" + idEmpresa + "/estadisticas", "GET_EMPRESA");
     }
 
     public void enviarModificarOperario(int id, String nom, String dni, String email, String tel, String esp, boolean activo) {

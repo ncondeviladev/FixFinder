@@ -18,7 +18,6 @@ class EstadoBadge extends StatelessWidget {
         return const Color(0xFF3B82F6); // Azul Medio
       case EstadoTrabajo.ASIGNADO:
         return const Color(0xFFA855F7); // Morado
-      case EstadoTrabajo.REALIZADO:
       case EstadoTrabajo.FINALIZADO:
         return const Color(0xFF22C55E); // Verde
       case EstadoTrabajo.PAGADO:

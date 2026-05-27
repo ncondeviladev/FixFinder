@@ -1,5 +1,6 @@
 package com.fixfinder.modelos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fixfinder.modelos.enums.CategoriaServicio;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -26,7 +27,8 @@ public class Empresa {
     @Column(name = "email_contacto")
     private String emailContacto;
     
-    @Column(name = "url_foto")
+    @Column(name = "url_foto", length = 2048)
+    @JsonProperty("url_foto")
     private String urlFoto;
     
     @Column(name = "fecha_alta", insertable = false, updatable = false)
@@ -104,6 +106,7 @@ public class Empresa {
         this.emailContacto = emailContacto;
     }
 
+    @JsonProperty("url_foto")
     public String getUrlFoto() {
         return urlFoto;
     }

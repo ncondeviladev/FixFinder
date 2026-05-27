@@ -48,6 +48,7 @@ class AuthService {
               'userData', jsonEncode(_usuarioActual!.toJson()));
         } catch (_) {}
 
+        _socket.suscribirCanalUsuario(_usuarioActual!.id);
         return true;
       }
       return false;
@@ -65,7 +66,18 @@ class AuthService {
     } catch (e) {
       // Ignorar
     }
+    _socket.desuscribirCanalUsuario();
     _socket.disconnect();
+  }
+
+  /// Actualiza los datos de la sesión actual (usado por el provider al recibir broadcasts).
+  void actualizarUsuarioLocal(Usuario usuarioModificado) {
+    _usuarioActual = usuarioModificado;
+    try {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('userData', jsonEncode(_usuarioActual!.toJson()));
+      });
+    } catch (_) {}
   }
 
   /// Intenta recuperar una sesión previa desde el almacenamiento persistente.
@@ -81,6 +93,7 @@ class AuthService {
       if (userData['token'] == null || userData['id'] == null) return false;
 
       _usuarioActual = Usuario.fromJson(userData);
+      _socket.suscribirCanalUsuario(_usuarioActual!.id);
       return true;
     } catch (e) {
       return false;

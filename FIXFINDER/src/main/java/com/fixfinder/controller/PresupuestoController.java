@@ -20,11 +20,31 @@ public class PresupuestoController {
     @Autowired
     private PresupuestoService presupuestoService;
 
+    @Autowired
+    private com.fixfinder.service.interfaz.TrabajoService trabajoService;
+
+    @Autowired
+    private com.fixfinder.service.interfaz.EmpresaService empresaService;
+
     @PostMapping
-    public ResponseEntity<?> crearPresupuesto(@RequestBody Presupuesto presupuesto) {
+    public ResponseEntity<?> crearPresupuesto(@RequestBody Map<String, Object> body) {
         try {
-            presupuestoService.crearPresupuesto(presupuesto);
-            return ResponseEntity.ok(Map.of("message", "Presupuesto creado", "id", presupuesto.getId()));
+            int idTrabajo = body.containsKey("idTrabajo") && body.get("idTrabajo") != null ? ((Number) body.get("idTrabajo")).intValue() : 0;
+            int idEmpresa = body.containsKey("idEmpresa") && body.get("idEmpresa") != null ? ((Number) body.get("idEmpresa")).intValue() : 0;
+            double monto = body.containsKey("monto") && body.get("monto") != null ? ((Number) body.get("monto")).doubleValue() : 0.0;
+            String notas = (String) body.get("notas");
+
+            Presupuesto p = new Presupuesto();
+            p.setMonto(monto);
+            p.setNotas(notas);
+
+            com.fixfinder.modelos.Trabajo t = trabajoService.obtenerPorId(idTrabajo);
+            com.fixfinder.modelos.Empresa e = empresaService.obtenerPorId(idEmpresa);
+            p.setTrabajo(t);
+            p.setEmpresa(e);
+
+            presupuestoService.crearPresupuesto(p);
+            return ResponseEntity.ok(Map.of("message", "Presupuesto creado", "id", p.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

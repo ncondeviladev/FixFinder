@@ -83,9 +83,8 @@ class _TarjetaTrabajoState extends State<TarjetaTrabajo>
       if (widget.trabajo.estado == EstadoTrabajo.PRESUPUESTADO) {
         return '¡Presupuesto recibido!';
       }
-      if (widget.trabajo.estado == EstadoTrabajo.REALIZADO ||
-          (widget.trabajo.estado == EstadoTrabajo.FINALIZADO &&
-              widget.trabajo.valoracion == 0)) {
+      if (widget.trabajo.estado == EstadoTrabajo.FINALIZADO &&
+          widget.trabajo.valoracion == 0) {
         return '¡Pendiente de valorar!';
       }
     } else {

@@ -19,6 +19,15 @@ public interface OperarioService {
     void altaOperario(Operario operario) throws ServiceException;
 
     /**
+     * Modifica datos de un operario de forma parcial (Patch).
+     *
+     * @param idOperario ID del operario.
+     * @param datos Mapa con los datos a modificar.
+     * @throws ServiceException Error en BD.
+     */
+    void actualizarOperarioParcial(int idOperario, java.util.Map<String, Object> datos) throws ServiceException;
+
+    /**
      * Modifica datos de un operario.
      *
      * @param operario Operario actualizado.
@@ -61,4 +70,12 @@ public interface OperarioService {
      * @throws ServiceException Error al actualizar.
      */
     void establecerDisponibilidad(Integer idOperario, boolean disponible) throws ServiceException;
+
+    /**
+     * Obtiene un operario por su ID de usuario.
+     *
+     * @param idUsuario ID del usuario/operario.
+     * @return Operario encontrado, o null si no existe.
+     */
+    Operario obtenerPorId(int idUsuario) throws ServiceException;
 }

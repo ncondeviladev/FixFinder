@@ -14,8 +14,7 @@ public enum EstadoTrabajo {
     PRESUPUESTADO, // Con presupuestos enviados
     ACEPTADO, // Presupuesto aceptado
     ASIGNADO, // Operario asignado
-    REALIZADO, // Trabajo técnico terminado, pendiente de facturación
-    FINALIZADO, // Cerrado y facturado, pendiente de pago
+    FINALIZADO, // Trabajo técnico terminado / completado
     PAGADO, // Ciclo completo, pagado por el cliente
     CANCELADO // Cancelado por cliente
 }

@@ -30,10 +30,9 @@ public class OperarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> modificarOperario(@PathVariable int id, @RequestBody Operario operario) {
+    public ResponseEntity<?> modificarOperario(@PathVariable int id, @RequestBody Map<String, Object> body) {
         try {
-            operario.setId(id);
-            operarioService.modificarOperario(operario);
+            operarioService.actualizarOperarioParcial(id, body);
             return ResponseEntity.ok(Map.of("mensaje", "Operario actualizado correctamente", "status", 200));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage(), "status", 400));

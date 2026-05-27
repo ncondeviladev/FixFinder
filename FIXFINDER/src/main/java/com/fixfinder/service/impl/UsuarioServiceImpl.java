@@ -74,25 +74,59 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void modificarUsuario(Usuario usuario) throws ServiceException {
         if (usuario == null || usuario.getId() == 0) throw new ServiceException("Usuario inválido para modificar.");
         
-        Usuario usuarioConMismoEmail = usuarioRepository.findByEmail(usuario.getEmail());
-        if (usuarioConMismoEmail != null && usuarioConMismoEmail.getId() != usuario.getId()) {
+        Usuario original = usuarioRepository.findById(usuario.getId()).orElse(null);
+        if (original == null) throw new ServiceException("Usuario no encontrado.");
+
+        // Merge fields safely
+        if (usuario.getNombreCompleto() != null && !usuario.getNombreCompleto().trim().isEmpty()) {
+            original.setNombreCompleto(usuario.getNombreCompleto());
+        }
+        if (usuario.getEmail() != null && !usuario.getEmail().trim().isEmpty()) {
+            original.setEmail(usuario.getEmail());
+        }
+        if (usuario.getTelefono() != null && !usuario.getTelefono().trim().isEmpty()) {
+            original.setTelefono(usuario.getTelefono());
+        }
+        if (usuario.getDireccion() != null && !usuario.getDireccion().trim().isEmpty()) {
+            original.setDireccion(usuario.getDireccion());
+        }
+        if (usuario.getUrlFoto() != null && !usuario.getUrlFoto().trim().isEmpty()) {
+            original.setUrlFoto(usuario.getUrlFoto());
+        }
+
+        // Validate merged email is not used by anyone else
+        Usuario usuarioConMismoEmail = usuarioRepository.findByEmail(original.getEmail());
+        if (usuarioConMismoEmail != null && usuarioConMismoEmail.getId() != original.getId()) {
             throw new ServiceException("El email ya está en uso por otro usuario.");
         }
         
-        validarDatosUsuario(usuario);
+        validarDatosUsuario(original);
         
-        Usuario original = usuarioRepository.findById(usuario.getId()).orElse(null);
-        if (original != null) {
-            usuario.setPasswordHash(original.getPasswordHash());
-            usuario.setFechaRegistro(original.getFechaRegistro());
-        }
-        
-        usuarioRepository.save(usuario);
+        usuarioRepository.save(original);
         
         // Notificar cambio de perfil
-        notificationService.difundirEventoUsuario("PERFIL_MODIFICADO", usuario.getId(), 
-            usuario.getNombreCompleto(), usuario.getUrlFoto(), "Perfil actualizado", 
-            usuario.getEmail(), usuario.getTelefono(), usuario.getDireccion());
+        notificationService.difundirEventoUsuario("PERFIL_MODIFICADO", original.getId(), 
+            original.getNombreCompleto(), original.getUrlFoto(), "Perfil actualizado", 
+            original.getEmail(), original.getTelefono(), original.getDireccion());
+    }
+
+    @Override
+    @Transactional
+    public void actualizarFotoPerfil(Integer idUsuario, String urlFoto) throws ServiceException {
+        if (idUsuario == null) throw new ServiceException("ID de usuario inválido.");
+        if (urlFoto != null && urlFoto.length() > 2048) {
+            throw new ServiceException("La URL de la foto excede el límite de 2048 caracteres.");
+        }
+
+        Usuario original = usuarioRepository.findById(idUsuario).orElse(null);
+        if (original == null) throw new ServiceException("Usuario no encontrado.");
+
+        original.setUrlFoto(urlFoto);
+        usuarioRepository.save(original);
+
+        notificationService.difundirEventoUsuario("FOTO", original.getId(), 
+            original.getNombreCompleto(), original.getUrlFoto(), "Foto de perfil actualizada", 
+            original.getEmail(), original.getTelefono(), original.getDireccion());
     }
 
     @Override
@@ -159,8 +193,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                 throw new ServiceException("El teléfono debe contener exactamente 9 dígitos numéricos.");
             }
         }
-        if (usuario.getUrlFoto() != null && usuario.getUrlFoto().length() > 255) {
-            throw new ServiceException("La URL de la foto excede el límite de 255 caracteres.");
+        if (usuario.getUrlFoto() != null && usuario.getUrlFoto().length() > 2048) {
+            throw new ServiceException("La URL de la foto excede el límite de 2048 caracteres.");
         }
         if (usuario.getDireccion() != null && usuario.getDireccion().trim().isEmpty()) {
             throw new ServiceException("La dirección no puede estar formada solo por espacios.");

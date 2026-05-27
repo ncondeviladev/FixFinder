@@ -36,6 +36,15 @@ public interface UsuarioService {
     void modificarUsuario(Usuario usuario) throws ServiceException;
 
     /**
+     * Actualiza únicamente la foto de perfil de un usuario.
+     *
+     * @param idUsuario ID del usuario.
+     * @param urlFoto Nueva URL de la foto.
+     * @throws ServiceException Si ocurre un error al guardar.
+     */
+    void actualizarFotoPerfil(Integer idUsuario, String urlFoto) throws ServiceException;
+
+    /**
      * Da de baja un usuario del sistema (puede ser baja lógica).
      *
      * @param idUsuario ID del usuario a eliminar.

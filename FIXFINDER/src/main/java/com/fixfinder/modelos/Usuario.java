@@ -29,13 +29,16 @@ public class Usuario {
     @Column(name = "password_hash")
     protected String passwordHash;
 
-    @Column(name = "url_foto")
+    @Column(name = "url_foto", length = 2048)
+    @com.fasterxml.jackson.annotation.JsonProperty("url_foto")
     protected String urlFoto;
 
     @Column(name = "fecha_registro", insertable = false, updatable = false)
     protected LocalDateTime fechaRegistro;
 
     protected String telefono;
+    
+    @Column(name = "direccion")
     protected String direccion;
 
     @Column(unique = true)

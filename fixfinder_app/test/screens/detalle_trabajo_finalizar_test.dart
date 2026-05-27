@@ -6,6 +6,7 @@ import 'package:fixfinder_app/models/trabajo.dart';
 import 'package:fixfinder_app/models/usuario.dart';
 import 'package:fixfinder_app/providers/trabajo_provider.dart';
 import 'package:fixfinder_app/providers/usuario_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MockTrabajoProvider extends TrabajoProvider {
   @override
@@ -21,6 +22,10 @@ class MockUsuarioProvider extends UsuarioProvider {
 }
 
 void main() {
+  setUpAll(() {
+    dotenv.testLoad(fileInput: '''ENVIRONMENT=LOCAL\nSERVER_IP_LOCAL=127.0.0.1\nPORT=8080''');
+  });
+
   testWidgets('DetalleTrabajoPantalla muestra botón de finalizar si el usuario es Operario y el trabajo está ASIGNADO', (WidgetTester tester) async {
     final trabajoAsignado = Trabajo(
       id: 1,

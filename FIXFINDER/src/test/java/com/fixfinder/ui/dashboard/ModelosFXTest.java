@@ -28,7 +28,7 @@ public class ModelosFXTest {
         assertEquals("Gotera", t.getTitulo());
 
         // Cambiamos el estado (simulando una respuesta del servidor)
-        t.estadoProperty().set("REALIZADO");
-        assertEquals("REALIZADO", t.getEstado(), "El getter debe reflejar el cambio en la propiedad");
+        t.estadoProperty().set("FINALIZADO");
+        assertEquals("FINALIZADO", t.getEstado(), "El getter debe reflejar el cambio en la propiedad");
     }
 }

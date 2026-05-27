@@ -38,6 +38,8 @@ public class Trabajo {
     private CategoriaServicio categoria;
     
     private String titulo;
+
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
     
     @Embedded
@@ -57,7 +59,7 @@ public class Trabajo {
     // Componentes nuevos
     private int valoracion; // 0-5
     
-    @Column(name = "comentario_cliente")
+    @Column(name = "comentario_cliente", columnDefinition = "TEXT")
     private String comentarioCliente;
     
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

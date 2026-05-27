@@ -13,6 +13,15 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.io.InputStream;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.StorageClient;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Replicación fiel del Seeder original (seeder.sql) adaptado a Spring Boot.
@@ -47,28 +56,60 @@ public class DataSeeder {
         private final OperarioRepository operarioRepo;
         private final ClienteRepository clienteRepo;
         private final TrabajoRepository trabajoRepo;
+        private final com.fixfinder.repository.PresupuestoRepository presupuestoRepo;
+        private final JdbcTemplate jdbcTemplate;
 
         private final String HASH_1234 = GestorPassword.hashearPassword("1234");
 
         public SeederRunner(EmpresaRepository empresaRepo, UsuarioRepository usuarioRepo, 
                             OperarioRepository operarioRepo, ClienteRepository clienteRepo, 
-                            TrabajoRepository trabajoRepo) {
+                            TrabajoRepository trabajoRepo, com.fixfinder.repository.PresupuestoRepository presupuestoRepo,
+                            JdbcTemplate jdbcTemplate) {
             this.empresaRepo = empresaRepo;
             this.usuarioRepo = usuarioRepo;
             this.operarioRepo = operarioRepo;
             this.clienteRepo = clienteRepo;
             this.trabajoRepo = trabajoRepo;
+            this.presupuestoRepo = presupuestoRepo;
+            this.jdbcTemplate = jdbcTemplate;
         }
 
         public void run() {
             System.out.println("🌱 Restaurando base de datos con datos de LEVANTE y EXPRESS FIX...");
 
-            // Limpieza previa
-            trabajoRepo.deleteAll();
-            clienteRepo.deleteAll();
-            operarioRepo.deleteAll();
-            usuarioRepo.deleteAll();
-            empresaRepo.deleteAll();
+            // Limpieza previa con SQL nativo desactivando claves foráneas
+            try {
+                jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+                jdbcTemplate.execute("TRUNCATE TABLE factura");
+                jdbcTemplate.execute("TRUNCATE TABLE mensaje_chat");
+                jdbcTemplate.execute("TRUNCATE TABLE foto_trabajo");
+                jdbcTemplate.execute("TRUNCATE TABLE presupuesto");
+                jdbcTemplate.execute("TRUNCATE TABLE trabajo");
+                jdbcTemplate.execute("TRUNCATE TABLE cliente");
+                jdbcTemplate.execute("TRUNCATE TABLE operario");
+                jdbcTemplate.execute("TRUNCATE TABLE usuario");
+                jdbcTemplate.execute("TRUNCATE TABLE empresa_especialidad");
+                jdbcTemplate.execute("TRUNCATE TABLE empresa");
+                
+                // Forzar ALTER TABLE para cambiar columnas a TEXT si son VARCHAR(255) residuales
+                jdbcTemplate.execute("ALTER TABLE trabajo MODIFY descripcion TEXT");
+                jdbcTemplate.execute("ALTER TABLE trabajo MODIFY comentario_cliente TEXT");
+                jdbcTemplate.execute("ALTER TABLE presupuesto MODIFY notas TEXT");
+                
+                jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+                System.out.println("🧹 Base de datos limpiada y columnas actualizadas a TEXT con éxito.");
+            } catch (Exception e) {
+                System.err.println("⚠️ Error limpiando tablas por SQL nativo: " + e.getMessage());
+                // Fallback clásico
+                trabajoRepo.deleteAll();
+                clienteRepo.deleteAll();
+                operarioRepo.deleteAll();
+                usuarioRepo.deleteAll();
+                empresaRepo.deleteAll();
+            }
+            
+            // Limpiar Firebase Storage
+            limpiarFirebaseStorage();
 
             // 1. EMPRESAS
             Empresa e1 = new Empresa();
@@ -151,7 +192,7 @@ public class DataSeeder {
             Cliente c1 = new Cliente();
             c1.setEmail("marta@gmail.com");
             c1.setPasswordHash(HASH_1234);
-            c1.setNombreCompleto("Marta Cliente");
+            c1.setNombreCompleto("Marta García");
             c1.setRol(Rol.CLIENTE);
             c1.setDni("55555555F");
             c1.setTelefono("655555555");
@@ -161,7 +202,7 @@ public class DataSeeder {
             Cliente c2 = new Cliente();
             c2.setEmail("juan@hotmail.com");
             c2.setPasswordHash(HASH_1234);
-            c2.setNombreCompleto("Juan Cliente");
+            c2.setNombreCompleto("Juan Martínez");
             c2.setRol(Rol.CLIENTE);
             c2.setDni("66666666G");
             c2.setTelefono("666666666");
@@ -169,23 +210,74 @@ public class DataSeeder {
             c2 = clienteRepo.save(c2);
 
             // 6. TRABAJOS
-            crearTrabajo(c1, CategoriaServicio.FONTANERIA, "Fuga en baño principal", "Hay una fuga de agua debajo del lavabo del baño principal.", "Calle Poeta Querol 3, Valencia");
+            Trabajo t1 = crearTrabajo(c1, CategoriaServicio.FONTANERIA, "Fuga en baño principal", "Hay una fuga de agua debajo del lavabo del baño principal.", "Calle Poeta Querol 3, Valencia");
             crearTrabajo(c1, CategoriaServicio.PINTURA, "Pintar salón completo", "El salón necesita una mano de pintura completa, paredes y techo.", "Calle Poeta Querol 3, Valencia");
             crearTrabajo(c1, CategoriaServicio.ELECTRICIDAD, "Enchufe roto en cocina", "El enchufe de la cocina no funciona, posible cortocircuito.", "Calle Poeta Querol 3, Valencia");
             crearTrabajo(c1, CategoriaServicio.ALBANILERIA, "Grieta en pared exterior", "Grieta de unos 30cm en la pared exterior del garaje.", "Calle Poeta Querol 3, Valencia");
             crearTrabajo(c2, CategoriaServicio.CLIMATIZACION, "Aire acondicionado no enfría", "El split del dormitorio no baja de 25 grados aunque esté al mínimo.", "Avenida Blasco Ibañez 12, Valencia");
+
         }
 
-        private void crearTrabajo(Cliente c, CategoriaServicio cat, String titulo, String desc, String dir) {
+        private Trabajo crearTrabajo(Cliente c, CategoriaServicio cat, String titulo, String desc, String dir) {
             Trabajo t = new Trabajo();
             t.setCliente(c);
             t.setCategoria(cat);
             t.setTitulo(titulo);
-            t.setDescripcion(desc);
+            
+            String descEstructurada = "==============================\n" +
+                    "📝 CLIENTE:\n" + desc.trim() + "\n" +
+                    "==============================\n" +
+                    "💰 GERENTE:\n(Sin presupuesto redactado)\n" +
+                    "==============================\n" +
+                    "🛠 OPERARIO:\n(Sin informe de trabajo)\n" +
+                    "==============================";
+            t.setDescripcion(descEstructurada);
+            
             t.setDireccion(dir);
             t.setEstado(com.fixfinder.modelos.enums.EstadoTrabajo.PENDIENTE);
             t.setFechaCreacion(LocalDateTime.now());
-            trabajoRepo.save(t);
+            return trabajoRepo.save(t);
+        }
+        private void limpiarFirebaseStorage() {
+            try {
+                InputStream serviceAccount = DataSeeder.class.getResourceAsStream("/firebase-service-account.json");
+
+                // Fallback: Buscar en la raíz del proyecto si no está en recursos
+                if (serviceAccount == null) {
+                    java.io.File fileRaiz = new java.io.File("firebase-service-account.json");
+                    if (fileRaiz.exists()) {
+                        serviceAccount = new java.io.FileInputStream(fileRaiz);
+                    }
+                }
+
+                if (serviceAccount == null) {
+                    System.err.println("⚠️ FIREBASE STORAGE: Falta archivo 'firebase-service-account.json' en la raíz.");
+                    System.err.println("   Para limpiar Firebase automáticamente, descarga la clave JSON desde Firebase Console.");
+                    return;
+                }
+
+                if (FirebaseApp.getApps().isEmpty()) {
+                    FirebaseOptions options = FirebaseOptions.builder()
+                            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                            .setStorageBucket("fixfinder-dbb81.firebasestorage.app")
+                            .build();
+                    FirebaseApp.initializeApp(options);
+                }
+
+                Bucket bucket = StorageClient.getInstance().bucket();
+                System.out.println("🔥 Conectado a Firebase Storage. Destruyendo fotos huérfanas...");
+
+                int contador = 0;
+                Iterable<Blob> todosLosBlobs = bucket.list().iterateAll();
+                for (Blob blob : todosLosBlobs) {
+                    blob.delete();
+                    contador++;
+                }
+                System.out.println("🧹 Firebase Storage: Vaciado total completado (" + contador + " archivos eliminados).");
+
+            } catch (Exception e) {
+                System.err.println("❌ ERROR limpiando Firebase: " + e.getMessage());
+            }
         }
     }
 }

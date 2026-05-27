@@ -192,29 +192,37 @@ public class ManejadorRespuestas {
             return;
         }
 
+        boolean meIncumbe = esParaMiEmpresa || esParaMiUsuario || esNuevoGlobal;
+        
+        if (meIncumbe && "PRESUPUESTO".equals(categoria) && "NUEVO".equals(subtipo)) {
+            if (esParaMiEmpresa) {
+                info = "Presupuesto enviado exitosamente";
+            }
+        }
+
         switch (categoria) {
             case "TRABAJO":
-                alRegistrarActividad.accept("🔔 " + info);
+                if (meIncumbe) alRegistrarActividad.accept("🔔 " + info);
                 alSolicitarRefresco.run(); // Refrescamos tablas para ver la nueva incidencia o el cambio
                 break;
             
             case "PRESUPUESTO":
-                alRegistrarActividad.accept("💰 " + info);
+                if (meIncumbe) alRegistrarActividad.accept("💰 " + info);
                 alSolicitarRefresco.run();
                 break;
 
             case "VALORACION":
-                alRegistrarActividad.accept("⭐ " + info);
+                if (meIncumbe) alRegistrarActividad.accept("⭐ " + info);
                 alSolicitarRefresco.run(); // Refrescar KPIs y panel de empresa
                 break;
 
             case "EMPRESA":
-                alRegistrarActividad.accept("🏢 " + info);
+                if (meIncumbe) alRegistrarActividad.accept("🏢 " + info);
                 alSolicitarRefresco.run(); // Refrescar datos corporativos
                 break;
 
             case "OPERARIO":
-                alRegistrarActividad.accept("🔧 " + info);
+                if (meIncumbe) alRegistrarActividad.accept("🔧 " + info);
                 alSolicitarRefresco.run(); // Refrescar tabla de personal
                 break;
 
@@ -239,7 +247,7 @@ public class ManejadorRespuestas {
 
             String estado = t.getEstado();
             // Lógica de conteo para KPIs
-            if (!"FINALIZADO".equals(estado) && !"REALIZADO".equals(estado) && !"CANCELADO".equals(estado))
+            if (!"FINALIZADO".equals(estado) && !"CANCELADO".equals(estado))
                 activos++;
 
             if (t.haPresupuestado(idEmpresaLogueada)) {
@@ -248,7 +256,7 @@ public class ManejadorRespuestas {
                 pendientes++;
             }
 
-            if ("REALIZADO".equals(estado) || "FINALIZADO".equals(estado))
+            if ("FINALIZADO".equals(estado))
                 completados++;
         }
 
@@ -275,14 +283,14 @@ public class ManejadorRespuestas {
         int activos = 0, pendientes = 0, completados = 0, presupuestados = 0;
         for (TrabajoFX t : todosTrabajos) {
             String estado = t.getEstado();
-            if (!"FINALIZADO".equals(estado) && !"REALIZADO".equals(estado) && !"CANCELADO".equals(estado))
+            if (!"FINALIZADO".equals(estado) && !"CANCELADO".equals(estado))
                 activos++;
             if (t.haPresupuestado(idEmpresaLogueada)) {
                 presupuestados++;
             } else if ("PENDIENTE".equals(estado)) {
                 pendientes++;
             }
-            if ("REALIZADO".equals(estado) || "FINALIZADO".equals(estado))
+            if ("FINALIZADO".equals(estado))
                 completados++;
         }
         if (vistaDashboard != null) {
@@ -326,7 +334,7 @@ public class ManejadorRespuestas {
             case "ASIGNADO", "ACEPTADO" -> 1;
             case "PRESUPUESTADO" -> 2;
             case "PENDIENTE" -> 3;
-            case "REALIZADO", "FINALIZADO" -> 4;
+            case "FINALIZADO" -> 4;
             default -> 5;
         };
     }
