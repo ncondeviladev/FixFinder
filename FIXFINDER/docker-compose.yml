@@ -22,4 +22,4 @@ services:
       # Persistencia: SACADO DE ONEDRIVE para evitar bloqueos
       - C:/FixFinder_DB:/var/lib/mysql
       # Inicialización: Ejecuta tu script SQL solo la primera vez que se crea el volumen
-      - ./docs/diseno/ESQUEMA_BD.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./sql/ESQUEMA_BD.sql:/docker-entrypoint-initdb.d/schema.sql

@@ -30,7 +30,7 @@ Panel administrativo exclusivo para **Gerentes**. Permite la monitorización glo
 ![Dashboard](DOCS/capturas/dash_panel.png)
 
 ### 3. Servidor Central (Backend Java) ⚙️
-El "cerebro" del sistema que orquestra todas las comunicaciones de forma segura y eficiente.
+El "cerebro" del sistema que orquesta todas las comunicaciones de forma segura y eficiente.
 *   **Puntos clave:** Sockets TCP con protocolo binario de bajo nivel, lo que garantiza un control total sobre el flujo de datos sin depender de frameworks externos.
 
 ---
@@ -67,12 +67,47 @@ Para una inmersión profunda en las decisiones de diseño, retos técnicos y gu�
 
 ---
 
-## 🔧 Instalación Rápida
+## 👨‍🏫 Guía de Instalación para el Tribunal
 
-1.  **Base de Datos:** Importar `DOCS/diseno/ESQUEMA_BD.sql` en MySQL.
-2.  **Servidor:** Ejecutar `./gradlew runServer` en el directorio `FIXFINDER`.
-3.  **App Móvil:** `flutter run` en `fixfinder_app`.
-4.  **Dashboard:** Ejecutar el binario `FixFinder_Dashboard.exe`.
+El proyecto está diseñado para funcionar de manera distribuida. Puedes evaluarlo de dos formas:
+
+### Opción A: Evaluación Rápida (Nube - Recomendado) ☁️
+El servidor central y la base de datos ya están desplegados y en ejecución 24/7 en **AWS EC2 y RDS**. Solo necesitas ejecutar los clientes pre-compilados (enlaces de descarga en los Anexos de la Memoria):
+1. **App Móvil:** Instalar el archivo `app-release.apk` en un dispositivo o emulador Android.
+2. **Dashboard Empresa:** Ejecutar el binario portable `FixFinder_Dashboard.exe` en Windows (no requiere instalación de Java).
+
+### Opción B: Ejecución desde Código Fuente (Local) 💻
+Para evaluar y modificar el código, el proyecto ya viene **pre-configurado de fábrica en Modo Local**. Solo tienes que compilar y levantar los servicios:
+
+1. **Base de Datos:** Desde la carpeta `FIXFINDER`, levanta el contenedor de MySQL mediante Docker (esto creará la BBDD e importará el esquema automáticamente):
+   ```bash
+   docker-compose up -d
+   ```
+   *(Alternativa sin Docker: Levantar MySQL en puerto 3306 con credenciales root/root e importar a mano `FIXFINDER/sql/ESQUEMA_BD.sql`).*
+2. **Servidor Backend:** Desde la carpeta `FIXFINDER`, ejecutar:
+   ```bash
+   ./gradlew runServer
+   ```
+3. **Dashboard Desktop:** Desde la carpeta `FIXFINDER`, ejecutar en otra terminal:
+   ```bash
+   ./gradlew runDashboard
+   ```
+4. **App Móvil:** Desde la carpeta `fixfinder_app`, arrancar el proyecto Flutter (asegúrate de tener un emulador encendido):
+   ```bash
+   flutter run
+   ```
+
+---
+
+## 🔑 Credenciales de Prueba
+
+Para facilitar la evaluación del proyecto sin necesidad de crear cuentas nuevas (aunque el registro es 100% funcional), puedes usar los siguientes usuarios por defecto (todas las contraseñas son **`1234`**):
+
+| Rol | Plataforma | Email |
+| :--- | :--- | :--- |
+| **Cliente** | App Móvil | `marta@gmail.com` |
+| **Operario** | App Móvil | `paco@levante.com` |
+| **Gerente** | Dashboard (Desktop) | `gerente.a@levante.com` |
 
 ---
 

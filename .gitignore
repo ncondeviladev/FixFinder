@@ -1,5 +1,7 @@
 # Archivos de Planificación y Utilidades Personales
 limpiar_proyectos.ps1
+MEMORIA_REVIEW.txt
+PRESENTACION_REVIEW.txt
 
 # IDEs y Entorno
 .vscode/
@@ -23,6 +25,10 @@ out/
 # Secrets and Credentials
 FIXFINDER/src/main/resources/firebase-service-account.json
 *.pem
+
+# Environment Variables
+.env
+fixfinder_app/.env
 
 # Artefactos de Despliegue (Generados)
 FixFinderDashboard/
